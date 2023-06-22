@@ -58,11 +58,13 @@ interrupt_simulate_handle_t callInterrupt;
 
 void callback()
 {
+	//Users code here
 	return;
 }
 
 void TimerCallback() //InterruptTimer
 {
+	//Useres code here
 	return;
 }
 
@@ -197,8 +199,7 @@ DWORD WINAPI ThreadNo1(LPVOID lpParam)
 		if (str == NULL)
 		{
 			printf("Memory for str alloc ERROR\t\n");
-		}
-		else {
+		}else {
 			sprintf(str, keyboardBuff, 2);
 		}memset(keyboardBuff, 0, sizeof(keyboardBuff));
 		
@@ -316,6 +317,8 @@ DWORD WINAPI TickThread(LPVOID lpParam)
 
 static uint8_t StringCompareAndParseToNum(char* inBuff, uint8_t maxPossibleLen)
 {
+	if (inBuff == NULL)
+		return -1;
 	uint8_t len = maxPossibleLen;
 	if (maxPossibleLen == NULL)
 	{
