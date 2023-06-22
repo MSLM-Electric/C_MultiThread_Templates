@@ -146,7 +146,7 @@ int main()
 	WaitForMultipleObjects(3, Array_Of_Thread_Handles, TRUE, INFINITE);
 	uint8_t testFuncsOnDebug = 0;
 	ReleaseMutex(mutx);  //free mutex to start program
-	while (1) //this node doesn't executes
+	while (1)
 	{
 		if (!PauseConsoleCommand) {
 			printf("MainBckgdProccess\n");
