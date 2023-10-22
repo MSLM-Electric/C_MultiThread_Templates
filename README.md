@@ -1,1 +1,1 @@
-C multi threading templates, tests and experiments.
+C templates for simulate, tests, experiments and implementing multi threading.

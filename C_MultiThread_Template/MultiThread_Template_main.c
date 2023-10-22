@@ -1,35 +1,11 @@
 #define _CRT_SECURE_NO_WARNINGS  //!!! to allow unsafe and oldest code styles
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <stdio.h>
-//#include <windows.system.threading.h>
-//#include <processthreadsapi.h>
-#include <Windows.h>
-#include <strsafe.h>
+#include "../MultiThreadSupport.h"
 
 #define false 0
 #define true 1
 
-uint8_t someData[128] = {
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0
-};
+uint8_t someData[128] = {0};
 
 uint32_t globTick;
 uint32_t timerVal = 0;
@@ -88,6 +64,10 @@ void StopTimer()
 DWORD WINAPI ThreadNo1(LPVOID lpParam);
 DWORD WINAPI ThreadNo2(LPVOID lpParam);
 DWORD WINAPI TickThread(LPVOID lpParam);
+ThreadsStruct_t Thread1Struct;
+ThreadsStruct_t Thread2Struct;
+ThreadsStruct_t TickThreadStruct;
+
 static uint8_t StringCompareAndParseToNum(char* inBuff, uint8_t maxPossibleLen);
 static void ShowAllStates(void);
 HANDLE sem;
@@ -100,53 +80,24 @@ int main()
 	sem = CreateSemaphoreW(NULL, 3, 3, "NT5BBSEM");
 	mutx = CreateMutexW(NULL, 1, "Mutex");
 
-	// Data of Thread 1
-	int Data_Of_Thread_1 = 1;
-	// Data of Thread 2
-	int Data_Of_Thread_2 = 2;
-	// Data of Thread 3
-	int Data_Of_Thread_3 = 3;
-	// Data of TickThread
-	int Data_Of_TickThread = 4;
-	// variable to hold handle of Thread 1
-	HANDLE Handle_Of_Thread_1 = 0;
-	// variable to hold handle of Thread 1 
-	HANDLE Handle_Of_Thread_2 = 0;
-	// variable to hold handle of Thread 1
-	HANDLE Handle_Of_Thread_3 = 0;
-	//
-	HANDLE Handle_Of_TickThread = 0;
+	int res = 0;
+	res = ThreadCreation(&ThreadNo1, &Thread1Struct, 1);
+	res = ThreadCreation(&ThreadNo2, &Thread2Struct, 2);
+	res = ThreadCreation(&TickThread, &TickThreadStruct, 4);
+
 	// Aray to store thread handles 
 	HANDLE Array_Of_Thread_Handles[4];
-
-	// Create thread 1.
-	Handle_Of_Thread_1 = CreateThread(NULL, 0,
-		ThreadNo1, &Data_Of_Thread_1, 0, NULL);
-	if (Handle_Of_Thread_1 == NULL)
-		ExitProcess(Data_Of_Thread_1);
-
-	// Create thread 2.
-	Handle_Of_Thread_2 = CreateThread(NULL, 0,
-		ThreadNo2, &Data_Of_Thread_2, 0, NULL);
-	if (Handle_Of_Thread_2 == NULL)
-		ExitProcess(Data_Of_Thread_2);
-
-	// Create TickThread
-	Handle_Of_TickThread = CreateThread(NULL, 0,
-		TickThread, &Data_Of_TickThread, 0, NULL);
-	if (Handle_Of_TickThread == NULL)
-		ExitProcess(Data_Of_TickThread);
-
 	// Store Thread handles in Array of Thread
 	// Handles as per the requirement
 	// of WaitForMultipleObjects() 
-	Array_Of_Thread_Handles[0] = Handle_Of_Thread_1;
-	Array_Of_Thread_Handles[1] = Handle_Of_Thread_2;
-	Array_Of_Thread_Handles[3] = Handle_Of_TickThread;
+	Array_Of_Thread_Handles[0] = &Thread1Struct.Handle_Of_Thread;
+	Array_Of_Thread_Handles[1] = Thread2Struct.Handle_Of_Thread;
+	Array_Of_Thread_Handles[3] = TickThreadStruct.Handle_Of_Thread;
 
 	// Wait until all threads have terminated.
 	WaitForMultipleObjects(3, Array_Of_Thread_Handles, TRUE, INFINITE);
 	uint8_t testFuncsOnDebug = 0;
+	memset(someData, 0, sizeof(someData));
 	ReleaseMutex(mutx);  //free mutex to start program
 	while (1)
 	{
@@ -163,7 +114,7 @@ int main()
 }
 
 enum cmdsValEnums{
-	ALL = 1,  //it shows all states of OneWire functns
+	ALL = 1,  //it shows all states of your functns
 	DETAILS,
 	PAUSE_CONSOLE/*,
 	EXAMPLE //Users code*/
@@ -172,16 +123,7 @@ enum cmdsValEnums{
 
 DWORD WINAPI ThreadNo1(LPVOID lpParam)
 {
-	int     Data = 0;
-	char a;
-	HANDLE  hStdout = NULL;
-
-	// Get Handle To screen. Else how will we print?
-	if ((hStdout = GetStdHandle(STD_OUTPUT_HANDLE)) == INVALID_HANDLE_VALUE)
-		return 1;
-	// Cast the parameter to the correct
-	// data type passed by callee i.e main() in our case.
-	Data = *((int*)lpParam);
+	int res = ThreadInit(lpParam);
 
 	char *str = (char *)malloc(4);
 	//char *keyboardBuff = (char *)malloc(20 * sizeof(char));
@@ -239,16 +181,7 @@ DWORD WINAPI ThreadNo1(LPVOID lpParam)
 
 DWORD WINAPI ThreadNo2(LPVOID lpParam)
 {
-	int     Data = 0;
-	char a;
-	HANDLE  hStdout = NULL;
-
-	// Get Handle To screen. Else how will we print?
-	if ((hStdout = GetStdHandle(STD_OUTPUT_HANDLE)) == INVALID_HANDLE_VALUE)
-		return 1;
-	// Cast the parameter to the correct
-	// data type passed by callee i.e main() in our case.
-	Data = *((int*)lpParam);
+	int res = ThreadInit(lpParam);
 
 	uint8_t buttonForCallInterruptStateChange = 2;
 	while (1)
@@ -274,16 +207,8 @@ DWORD WINAPI ThreadNo2(LPVOID lpParam)
 
 DWORD WINAPI TickThread(LPVOID lpParam)
 {
-	int     Data = 0;
-	char a;
-	HANDLE  hStdout = NULL;
+	int res = ThreadInit(lpParam);
 
-	// Get Handle To screen. Else how will we print?
-	if ((hStdout = GetStdHandle(STD_OUTPUT_HANDLE)) == INVALID_HANDLE_VALUE)
-		return 1;
-	// Cast the parameter to the correct
-	// data type passed by callee i.e main() in our case.
-	Data = *((int*)lpParam);
 	Timer.Start = 0;
 	while (1)
 	{
@@ -296,7 +221,7 @@ DWORD WINAPI TickThread(LPVOID lpParam)
 		}
 
 		/*Catch errors & doubt condition values*/
-		if (false == 0) {
+		if (false == 1) {
 			catchPoint = 1;
 		}
 	}
