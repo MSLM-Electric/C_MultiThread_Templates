@@ -78,7 +78,7 @@ int main()
 	// Store Thread handles in Array of Thread
 	// Handles as per the requirement
 	// of WaitForMultipleObjects() 
-	Array_Of_Thread_Handles[0] = &Thread1Struct.Handle_Of_Thread;
+	Array_Of_Thread_Handles[0] = Thread1Struct.Handle_Of_Thread;
 	Array_Of_Thread_Handles[1] = Thread2Struct.Handle_Of_Thread;
 	Array_Of_Thread_Handles[3] = TickThreadStruct.Handle_Of_Thread;
 
