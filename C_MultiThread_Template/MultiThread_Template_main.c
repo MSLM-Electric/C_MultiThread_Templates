@@ -1,6 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS  //!!! to allow unsafe and oldest code styles
 
 #include "../MultiThreadSupport.h"
+#include "../Lib/SimpleTimerWP.h"
 
 #define false 0
 #define true 1
@@ -9,11 +10,6 @@ uint8_t someData[128] = {0};
 
 uint32_t globTick;
 uint32_t timerVal = 0;
-struct {
-	uint32_t setVal;
-	uint32_t launchedTime;
-	uint8_t Start;
-}Timer;
 
 uint8_t getData[1024];
 uint16_t catchPoint = 0;
@@ -26,11 +22,19 @@ enum {
 	NOT_INTERRUPT_STATE = 2
 }State_t;
 
+enum {
+	DMA_READY = 1,
+	DMA_BUSY = 2
+}dmastate_t;
+
 typedef struct{
 	uint8_t State;
-}interrupt_simulate_handle_t;
+}interrupt_simulate_handle_t, dma_simulate_handle_t;
 
 interrupt_simulate_handle_t callInterrupt;
+dma_simulate_handle_t DMAHandle;
+Timerwp_t UsersTimer;
+uint8_t testTimer = 0;
 
 void callback()
 {
@@ -44,22 +48,6 @@ void TimerCallback() //InterruptTimer
 	return;
 }
 
-extern void LaunchTimer(uint32_t time)
-{
-	if (Timer.Start == 0)
-	{
-		Timer.setVal = time;
-		Timer.launchedTime = globTick;
-	}	
-	Timer.Start = 1;
-}
-
-void StopTimer()
-{
-	Timer.setVal = 0;
-	Timer.launchedTime = 0;
-	Timer.Start = 0;
-}
 
 DWORD WINAPI ThreadNo1(LPVOID lpParam);
 DWORD WINAPI ThreadNo2(LPVOID lpParam);
@@ -96,17 +84,27 @@ int main()
 
 	// Wait until all threads have terminated.
 	WaitForMultipleObjects(3, Array_Of_Thread_Handles, TRUE, INFINITE);
-	uint8_t testFuncsOnDebug = 0;
+
 	memset(someData, 0, sizeof(someData));
 	ReleaseMutex(mutx);  //free mutex to start program
+	Timerwp_t MainProgrammDelay;
+#ifdef DEBUG_ON_VS
+	InitTimerWP(&UsersTimer, (tickptr_fn*)GetTickCount);
+	InitTimerWP(&MainProgrammDelay, (tickptr_fn*)GetTickCount);
+#endif // DEBUG_ON_VS
+	LaunchTimerWP((U32_ms)2000, &MainProgrammDelay);
+
 	while (1)
 	{
 		if (!PauseConsoleCommand) {
-			printf("MainBckgdProccess\n");
-			Sleep(2000);
-			if (testFuncsOnDebug)
+			if (IsTimerWPRinging(&MainProgrammDelay))//Sleep(2000);
 			{
-				;
+				RestartTimerWP(&MainProgrammDelay);
+				printf("MainBckgdProccess\n");
+			}
+			if (testTimer)
+			{
+				LaunchTimerWP((U32_ms)3000, &UsersTimer);
 			}
 		}
 	}
@@ -116,7 +114,8 @@ int main()
 enum cmdsValEnums{
 	ALL = 1,  //it shows all states of your functns
 	DETAILS,
-	PAUSE_CONSOLE/*,
+	PAUSE_CONSOLE,
+	ENABLE_TIMER/*,
 	EXAMPLE //Users code*/
 };
 
@@ -170,6 +169,13 @@ DWORD WINAPI ThreadNo1(LPVOID lpParam)
 			else
 				printf("Pause Console OFF: Show Mainbackground process!\n");
 		}break;
+		case ENABLE_TIMER: {
+			testTimer =  ~testTimer & 0x01;
+			if (testTimer)
+				printf("Timer ENABLED!\n");
+			else
+				printf("Timer DISABLED!\n");
+		}break;
 		default:
 			break;
 		}
@@ -209,15 +215,18 @@ DWORD WINAPI TickThread(LPVOID lpParam)
 {
 	int res = ThreadInit(lpParam);
 
-	Timer.Start = 0;
+	Timerwp_t Timer;
+#ifdef DEBUG_ON_VS
+	InitTimerWP(&Timer, (tickptr_fn*)GetTickCount);
+#endif // DEBUG_ON_VS
 	while (1)
 	{
 		Sleep(1);
-		globTick++;
-		if (((globTick - Timer.launchedTime) > Timer.setVal) * Timer.Start)
+		if (IsTimerWPRinging(&UsersTimer))
 		{
-			StopTimer();
 			TimerCallback();
+			StopTimerWP(&UsersTimer); //or Restart it if you want periodic implementation
+			printf("3 sec. left\n");
 		}
 
 		/*Catch errors & doubt condition values*/
@@ -263,6 +272,8 @@ static uint8_t StringCompareAndParseToNum(char* inBuff, uint8_t maxPossibleLen)
 	else if (strncmp(inBuff, /*PAUSE*/"PA", /*5*/len) == 0) {
 		return PAUSE_CONSOLE;
 	}
+	else if (strncmp(inBuff, /*ENABLE_TIMER*/"TI", len) == 0)
+		return ENABLE_TIMER;
 	return 0;
 }
 

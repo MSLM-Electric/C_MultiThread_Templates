@@ -9,6 +9,8 @@
 #include <Windows.h>
 #include <strsafe.h>
 
+#define DEBUG_ON_VS
+
 typedef DWORD *(WINAPI ThreadNamePtr_fn)(LPVOID lpParam);
 
 typedef struct {
