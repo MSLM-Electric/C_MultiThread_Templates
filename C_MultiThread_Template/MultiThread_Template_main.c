@@ -7,10 +7,6 @@
 #define true 1
 
 uint8_t someData[128] = {0};
-
-uint32_t globTick;
-uint32_t timerVal = 0;
-
 uint8_t getData[1024];
 uint16_t catchPoint = 0;
 
@@ -34,7 +30,7 @@ typedef struct{
 interrupt_simulate_handle_t callInterrupt;
 dma_simulate_handle_t DMAHandle;
 Timerwp_t UsersTimer;
-uint8_t testTimer = 0;
+/*TI*/ uint8_t testTimer = 0;
 
 void callback()
 {
@@ -102,9 +98,10 @@ int main()
 				RestartTimerWP(&MainProgrammDelay);
 				printf("MainBckgdProccess\n");
 			}
-			if (testTimer)
-			{
+			if (testTimer){
 				LaunchTimerWP((U32_ms)3000, &UsersTimer);
+			}else{
+				StopTimerWP(&UsersTimer);
 			}
 		}
 	}
@@ -215,18 +212,14 @@ DWORD WINAPI TickThread(LPVOID lpParam)
 {
 	int res = ThreadInit(lpParam);
 
-	Timerwp_t Timer;
-#ifdef DEBUG_ON_VS
-	InitTimerWP(&Timer, (tickptr_fn*)GetTickCount);
-#endif // DEBUG_ON_VS
+	uint16_t testCount = 0;
 	while (1)
 	{
-		Sleep(1);
 		if (IsTimerWPRinging(&UsersTimer))
 		{
 			TimerCallback();
-			StopTimerWP(&UsersTimer); //or Restart it if you want periodic implementation
-			printf("3 sec. left\n");
+			RestartTimerWP(&UsersTimer); //Restart it if you want periodic implementation
+			printf("3 sec. left -- cnt = %u\n", testCount); testCount++;
 		}
 
 		/*Catch errors & doubt condition values*/
