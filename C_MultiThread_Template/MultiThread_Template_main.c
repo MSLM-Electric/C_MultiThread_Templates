@@ -44,7 +44,6 @@ void TimerCallback() //InterruptTimer
 	return;
 }
 
-
 DWORD WINAPI ThreadNo1(LPVOID lpParam);
 DWORD WINAPI ThreadNo2(LPVOID lpParam);
 DWORD WINAPI TickThread(LPVOID lpParam);
@@ -98,14 +97,15 @@ int main()
 				RestartTimerWP(&MainProgrammDelay);
 				printf("MainBckgdProccess\n");
 			}
-			if (testTimer){
-				LaunchTimerWP((U32_ms)3000, &UsersTimer);
-			}else{
-				StopTimerWP(&UsersTimer);
-			}
+		}
+		if (testTimer) {
+			LaunchTimerWP((U32_ms)3000, &UsersTimer);
+		}
+		else {
+			StopTimerWP(&UsersTimer);
 		}
 	}
-	printf("endOfCycle \n");
+	printf("endOfCycle. Bad jump! \n"); //programm execution never should get here!
 }
 
 enum cmdsValEnums{
@@ -139,7 +139,8 @@ DWORD WINAPI ThreadNo1(LPVOID lpParam)
 			printf("Memory for str alloc ERROR\t\n");
 		}else {
 			sprintf(str, keyboardBuff, 2);
-		}memset(keyboardBuff, 0, sizeof(keyboardBuff));
+			memset(keyboardBuff, 0, sizeof(keyboardBuff));
+		}
 		
 		switch (StringCompareAndParseToNum(str, NULL)) //maybe we need do it in another way
 		{
@@ -181,7 +182,6 @@ DWORD WINAPI ThreadNo1(LPVOID lpParam)
 }
 
 
-
 DWORD WINAPI ThreadNo2(LPVOID lpParam)
 {
 	int res = ThreadInit(lpParam);
@@ -208,6 +208,7 @@ DWORD WINAPI ThreadNo2(LPVOID lpParam)
 	}
 }
 
+
 DWORD WINAPI TickThread(LPVOID lpParam)
 {
 	int res = ThreadInit(lpParam);
@@ -230,43 +231,22 @@ DWORD WINAPI TickThread(LPVOID lpParam)
 }
 
 
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
-
-
 static uint8_t StringCompareAndParseToNum(char* inBuff, uint8_t maxPossibleLen)
 {
 	if (inBuff == NULL)
 		return -1;
 	uint8_t len = maxPossibleLen;
 	if (maxPossibleLen == NULL)
-	{
 		len = 2;
-	}
 
 	//Users code
 	/*------------------------------Put your Functions launch here----------------------------*/
 	//if(strncmp(inBuff, /*EXAMPLE*/"EX", len) == 0){ return EXAMPLE; }
 	/*----------------------------------------------------------------------------------------*/
-	if (strncmp(inBuff, /*"ALL"*/"AL", /*3*/len) == 0) {
-		return ALL;
-	}
-	else if (strncmp(inBuff, /*DETAILS*/"DE", len) == 0) {
-		return DETAILS;
-	}
-	else if (strncmp(inBuff, /*PAUSE*/"PA", /*5*/len) == 0) {
-		return PAUSE_CONSOLE;
-	}
-	else if (strncmp(inBuff, /*ENABLE_TIMER*/"TI", len) == 0)
-		return ENABLE_TIMER;
+	if (strncmp(inBuff, /*"ALL"*/"AL", /*3*/len) == 0)         { return ALL; }
+	else if (strncmp(inBuff, /*DETAILS*/"DE", len) == 0)       { return DETAILS; }
+	else if (strncmp(inBuff, /*PAUSE*/"PA", /*5*/len) == 0)    { return PAUSE_CONSOLE; }
+	else if (strncmp(inBuff, /*ENABLE_TIMER*/"TI", len) == 0)  { return ENABLE_TIMER; }
 	return 0;
 }
 
