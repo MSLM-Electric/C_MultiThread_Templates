@@ -14,8 +14,6 @@ TempRsrv
 !Debug/*.exe
 !Release/*.exe
 C_MultiThread_Template/TestAnotherApproach.c
-!ProtocolDevelopingTest/ProtocolMasterDevelopeTest/Debug/*.exe
-!ProtocolDevelopingTest/ProtocolSlaveDevelopeTest/Debug/*.exe
 !ProtocolDevelopingTest/ProtocolMasterDevelopeTest/ProtocolMasterDevelopeTest.sln
 !ProtocolDevelopingTest/ProtocolSlaveDevelopeTest/ProtocolSlaveDevelopeTest.sln
 f

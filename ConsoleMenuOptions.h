@@ -13,7 +13,7 @@ typedef struct {
 	enum cmdsValEnums optionId;
 }menuChoise_t;
 
-menuChoise_t MenuOption[5] = {
+static menuChoise_t MenuOption[5] = {
 	{"AL", ALL},
 	{"DE", DETAILS},
 	{"PA", PAUSE_CONSOLE},
@@ -23,3 +23,5 @@ menuChoise_t MenuOption[5] = {
 	{"EX", EXAMPLE},
 	/*----------------------------------------------------------------------------------------*/
 };
+
+uint8_t StringCompareAndParseToNum(char* inBuff, uint8_t maxPossibleLen);

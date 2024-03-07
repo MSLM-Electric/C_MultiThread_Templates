@@ -2,7 +2,7 @@
 
 #include "../MultiThreadSupport.h"
 #include "../Lib/SimpleTimerWP.h"
-#include "ConsoleMenuOptions.h"
+#include "../ConsoleMenuOptions.h"
 
 #define false 0
 #define true 1
@@ -52,7 +52,6 @@ ThreadsStruct_t Thread1Struct;
 ThreadsStruct_t Thread2Struct;
 ThreadsStruct_t TickThreadStruct;
 
-static uint8_t StringCompareAndParseToNum(char* inBuff, uint8_t maxPossibleLen);
 static void ShowAllStates(void);
 HANDLE sem;
 HANDLE mutx;
@@ -100,10 +99,10 @@ int main()
 			}
 		}
 		if (testTimer) {
-			LaunchTimerWP((U32_ms)3000, &UsersTimer);
+			;
 		}
 		else {
-			StopTimerWP(&UsersTimer);
+			;//stoptimer
 		}
 	}
 	printf("endOfCycle. Bad jump! \n"); //programm execution never should get here!
@@ -208,38 +207,10 @@ DWORD WINAPI TickThread(LPVOID lpParam)
 	uint16_t testCount = 0;
 	while (1)
 	{
-		if (IsTimerWPRinging(&UsersTimer))
-		{
-			TimerCallback();
-			RestartTimerWP(&UsersTimer); //Restart it if you want periodic implementation
-			printf("3 sec. left -- cnt = %u\n", testCount); testCount++;
-		}
 
-		/*Catch errors & doubt condition values*/
-		if (false == 1) {
-			catchPoint = 1;
-		}
 	}
 }
 
-
-static uint8_t StringCompareAndParseToNum(char* inBuff, uint8_t maxPossibleLen)
-{
-	if (inBuff == NULL)
-		return -1;
-	uint8_t len = maxPossibleLen;
-	if (maxPossibleLen == NULL)
-		len = 2;
-
-	//Users code
-	/*---------Put your Functions launch to the header file TestAnotherApproach.h----------*/
-	/*-------------------------------------------------------------------------------------*/
-	for (uint8_t u = 0; u < sizeof(MenuOption); u++) {
-		if (strncmp(inBuff, MenuOption[u].optionName, len) == 0)
-			return MenuOption[u].optionId;
-	}
-	return 0;
-}
 
 static void ShowAllStates(void)
 {
