@@ -2,6 +2,7 @@
 
 #include "../MultiThreadSupport.h"
 #include "../Lib/SimpleTimerWP.h"
+#include "TestAnotherApproach.h"
 
 #define false 0
 #define true 1
@@ -107,15 +108,6 @@ int main()
 	}
 	printf("endOfCycle. Bad jump! \n"); //programm execution never should get here!
 }
-
-enum cmdsValEnums{
-	ALL = 1,  //it shows all states of your functns
-	DETAILS,
-	PAUSE_CONSOLE,
-	ENABLE_TIMER/*,
-	EXAMPLE //Users code*/
-};
-
 
 DWORD WINAPI ThreadNo1(LPVOID lpParam)
 {
@@ -240,13 +232,12 @@ static uint8_t StringCompareAndParseToNum(char* inBuff, uint8_t maxPossibleLen)
 		len = 2;
 
 	//Users code
-	/*------------------------------Put your Functions launch here----------------------------*/
-	//if(strncmp(inBuff, /*EXAMPLE*/"EX", len) == 0){ return EXAMPLE; }
-	/*----------------------------------------------------------------------------------------*/
-	if (strncmp(inBuff, /*"ALL"*/"AL", /*3*/len) == 0)         { return ALL; }
-	else if (strncmp(inBuff, /*DETAILS*/"DE", len) == 0)       { return DETAILS; }
-	else if (strncmp(inBuff, /*PAUSE*/"PA", /*5*/len) == 0)    { return PAUSE_CONSOLE; }
-	else if (strncmp(inBuff, /*ENABLE_TIMER*/"TI", len) == 0)  { return ENABLE_TIMER; }
+	/*---------Put your Functions launch to the header file TestAnotherApproach.h----------*/
+	/*-------------------------------------------------------------------------------------*/
+	for (uint8_t u = 0; u < sizeof(MenuOption); u++) {
+		if (strncmp(inBuff, MenuOption[u].optionName, len) == 0)
+			return MenuOption[u].optionId;
+	}
 	return 0;
 }
 

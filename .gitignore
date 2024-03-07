@@ -1,0 +1,17 @@
+*.[oa]
+*.*
+*.sln
+*.vcxproj
+.vs
+Debug
+TempRsrv
+!*.c
+!*.h
+!*.json
+!*.gitignore
+!*.txt
+!*.md
+!Debug/*.exe
+!Release/*.exe
+C_MultiThread_Template/TestAnotherApproach.c
+f
