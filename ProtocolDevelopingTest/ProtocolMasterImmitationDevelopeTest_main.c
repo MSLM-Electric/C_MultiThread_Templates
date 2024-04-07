@@ -3,9 +3,12 @@
 #include "../MultiThreadSupport.h"
 #include "../Lib/SimpleTimerWP.h"
 #include "../ConsoleMenuOptions.h"
+#include "IO_immitationBetweenMasterSlave/MasterImmitationCfg.h"
 
 #define false 0
 #define true 1
+
+thisMastercfgs_t MasterInterface;
 
 uint8_t someData[128] = {0};
 uint8_t getData[1024];
@@ -58,6 +61,7 @@ HANDLE mutx;
 char keyboardBuff[20];
 uint8_t scanfIsBusy = 0;
 
+
 int main()
 {
 	sem = CreateSemaphoreW(NULL, 3, 3, "NT5BBSEM");
@@ -98,12 +102,10 @@ int main()
 				printf("MainBckgdProccess\n");
 			}
 		}
-		if (testTimer) {
-			;
-		}
-		else {
-			;//stoptimer
-		}
+		if (testTimer) {;}
+		else {	;/*stoptimer*/ }
+
+
 	}
 	printf("endOfCycle. Bad jump! \n"); //programm execution never should get here!
 }
@@ -185,7 +187,7 @@ DWORD WINAPI ThreadNo2(LPVOID lpParam)
 		{
 			printf_s("Enter The interrupt calling state:\n");
 			scanf_s("%d", &buttonForCallInterruptStateChange);
-			printf("entered data is: %d\n", buttonForCallInterruptStateChange);
+			printf("entered the interrupt state data is: %d\n", buttonForCallInterruptStateChange);
 		}
 		ReleaseMutex(mutx);
 		if (buttonForCallInterruptStateChange == 1) {
@@ -207,7 +209,6 @@ DWORD WINAPI TickThread(LPVOID lpParam)
 	uint16_t testCount = 0;
 	while (1)
 	{
-
 	}
 }
 

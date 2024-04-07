@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 
-project(ProtocolMasterDevelopeTest)
-set(PROJ_NAME ProtocolMasterDevelopeTest)
+project(ProtocolSlaveDevelopeTest)
 
 set(ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../")
 #on Lib located inc and src 
@@ -12,7 +11,7 @@ set(HARDWARE_PERIPHERAL ${ROOT_PATH}/ProtocolDevelopingTest/HardwarePeripheral)
 set(PROTOCOL_MASTER_MAIN ${ROOT_PATH}/ProtocolDevelopingTest)
 
 set(SOURCES
-	${PROTOCOL_MASTER_MAIN}/ProtocolMasterImmitationDevelopeTest_main.c 
+	${PROTOCOL_MASTER_MAIN}/ProtocolSlaveImmitationDevelopeTest_main.c 
 	${ROOT_SRC_DIR}/ConsoleMenuOptions.c
 	${ROOT_SRC_DIR}/MultiThreadSupport.c
 	${LIB_DIR}/SimpleTimerWP.c
@@ -32,16 +31,10 @@ set(HEADERS
 	#${LIB_DIR}/*.h
 	#${HARDWARE_PERIPHERAL}/*.h
 
-add_executable(ProtocolMasterDevelopeTest ${SOURCES} ${HEADERS})
+add_executable(ProtocolSlaveDevelopeTest ${SOURCES} ${HEADERS})
 
 if(${CMAKE_VERSION} VERSION_LESS "2.8.12")
-    include_directories(ProtocolMasterDevelopeTest PUBLIC ${INCLUDE_DIR})
+    include_directories(ProtocolSlaveDevelopeTest PUBLIC ${INCLUDE_DIR})
 else()
-    target_include_directories(ProtocolMasterDevelopeTest PUBLIC ${INCLUDE_DIR})
+    target_include_directories(ProtocolSlaveDevelopeTest PUBLIC ${INCLUDE_DIR})
 endif()
-
-#target_link_options(${PROJ_NAME} PUBLIC LINKER:-Map=${PROJ_NAME}.map)
-target_link_options(${PROJ_NAME} PRIVATE "/MAP:${PROJECT_SOURCE_DIR}/file.map")
-#the next is only gcc option and helps us to see how many memory used
-#before using it configure the linker script file!
-#target_link_options(${PROJ_NAME} PRIVATE -Wl,--print-memory-usage)

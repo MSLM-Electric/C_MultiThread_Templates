@@ -9,7 +9,7 @@ uint8_t StringCompareAndParseToNum(char* inBuff, uint8_t maxPossibleLen)
 		len = 2;
 
 	//Users code
-	/*---------Put your Functions launch to the header file TestAnotherApproach.h----------*/
+	/*---------Put your Functions launch to the header file ConsoleMenuOptions.h----------*/
 	/*-------------------------------------------------------------------------------------*/
 	for (uint8_t u = 0; u < sizeof(MenuOption); u++) {
 		if (strncmp(inBuff, MenuOption[u].optionName, len) == 0)

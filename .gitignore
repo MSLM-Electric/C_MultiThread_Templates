@@ -5,6 +5,7 @@
 .vs
 Debug
 TempRsrv
+out
 !*.c
 !*.h
 !*.json

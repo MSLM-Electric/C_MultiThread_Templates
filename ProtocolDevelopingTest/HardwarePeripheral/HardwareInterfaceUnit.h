@@ -3,7 +3,7 @@
 
 int Write(void);
 int Recv(void);
-int SentInterrupt(void* arg);
+int SentInterrupt(void* arg); //TransmitInterrupt();
 int ReceiveInterrupt(void* arg);
 
 
