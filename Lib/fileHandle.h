@@ -6,6 +6,12 @@
 #define DEBUG_ON_VS
 #if defined(DEBUG_ON_VS) || defined(COMPATIBLE_VS)
 #include "type_def.h"
+#include <Windows.h>
+
+#define f_lseek(x, y) fseek(x, y, SEEK_END)
+#define f_gets fgets
+#define f_eof  feof
+#define f_close fclose
 
 typedef FILE FIL;
 typedef unsigned long	DWORD;
@@ -39,6 +45,7 @@ typedef enum {
 
 
 FSIZE_t getSizeOfFile(FIL *fp);
+#define f_size  getSizeOfFile
 FRESULT ReadFileTillLine(char* outBuffer, const size_t maxPossibleLen, FIL* Stream);
 FRESULT ReadTheLastLineOfFile(char* outBuffer, const size_t maxPossibleLen, FIL* f);
 

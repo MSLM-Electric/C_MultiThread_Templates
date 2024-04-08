@@ -4,6 +4,8 @@
 *.vcxproj
 .vs
 Debug
+build
+CMakeFiles
 TempRsrv
 out
 !*.c

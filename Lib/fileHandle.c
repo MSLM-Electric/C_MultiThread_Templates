@@ -1,9 +1,14 @@
 #include "fileHandle.h"
 
+//DWORD WINAPI GetFileSize(__in HANDLE hFile, __out_opt LPDWORD lpFileSizeHigh);
+
 
 FSIZE_t getSizeOfFile(FIL *fp)
-{
-    return  f_size(fp);
+{    
+    //return  f_size(fp);
+    FSIZE_t fileSize = 0;
+    LPDWORD lpFileSizeHigh = &fileSize;
+    return GetFileSize(fp, lpFileSizeHigh);
 }
 
 

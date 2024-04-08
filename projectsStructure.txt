@@ -1,0 +1,19 @@
+Projects structure (folders & files)
+
+- ROOT_PATH (Root folder)
+	- Lib
+	   - SimpleTimerWP.c
+	   - SimpleTimerWP.h
+	   - fileHandle.c
+	   - fileHandle.h
+	- ProtocolDevelopingTest
+	   - ProtocolMasterImmitationDevelopeTest_main.c
+	   - HardwarePeripheral
+	      - HardwareInterfaceUnit.c
+		  - HardwareInterfaceUnit.h
+	   - ProtocolMasterDevelopeTest
+	      - CMakeLists.txt   <-- (here our project)
+	- ConsoleMenuOptions.c
+	- ConsoleMenuOptions.h
+	- MultiThreadSupport.c
+	- MultiThreadSupport.h
