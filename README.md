@@ -8,26 +8,26 @@ Projects structure (folders & files)
 
 Currently working at:
 <br />- ROOT_PATH (Root folder)
-<br />	|- Lib
-<br />	|   |- SimpleTimerWP.c
-<br />	|   |- SimpleTimerWP.h
-<br />	|   |- fileHandle.c
-<br />	|   |- fileHandle.h
-<br />	|
-<br />	|- ProtocolDevelopingTest
-<br />	|   |- ProtocolMasterImmitationDevelopeTest_main.c
-<br />	|   |- HardwarePeripheral
-<br />	|   |   |- HardwareInterfaceUnit.c
-<br />	|   |   |- HardwareInterfaceUnit.h
-<br />	|   |
-<br />	|   |- IO_immitationBetweenMasterSlave
-<br />	|   |   |- iofile.txt
-<br />	|   |	|- MasterImmitationCfg.h
-<br />	|   |
-<br />	|   |- ProtocolMasterDevelopeTest
-<br />	|       |- CMakeLists.txt   <-- (here our project)
-<br />	|
-<br />	|- ConsoleMenuOptions.c
-<br />	|- ConsoleMenuOptions.h
-<br />	|- MultiThreadSupport.c
-<br />	|- MultiThreadSupport.h
+<br />   |- Lib
+<br />   |   |- SimpleTimerWP.c
+<br />   |   |- SimpleTimerWP.h
+<br />   |   |- fileHandle.c
+<br />   |   |- fileHandle.h
+<br />   |
+<br />   |- ProtocolDevelopingTest
+<br />   |   |- ProtocolMasterImmitationDevelopeTest_main.c
+<br />   |   |- HardwarePeripheral
+<br />   |   |   |- HardwareInterfaceUnit.c
+<br />   |   |   |- HardwareInterfaceUnit.h
+<br />   |   |
+<br />   |   |- IO_immitationBetweenMasterSlave
+<br />   |   |   |- iofile.txt
+<br />   |   |	|- MasterImmitationCfg.h
+<br />   |   |
+<br />   |   |- ProtocolMasterDevelopeTest
+<br />   |       |- CMakeLists.txt   <-- (here our project)
+<br />   |
+<br />   |- ConsoleMenuOptions.c
+<br />   |- ConsoleMenuOptions.h
+<br />   |- MultiThreadSupport.c
+<br />   |- MultiThreadSupport.h

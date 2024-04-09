@@ -10,6 +10,7 @@
 #define true 1
 
 void SettingsCMD_Handling(char* inBuff, const uint16_t maxPossibleLen);
+int ScanKeyboardWithWhiteSpaces(char* inBuff, uint16_t maxPossibleLen);
 thisMastercfgs_t MasterInterface;
 
 uint8_t someData[128] = {0};
@@ -221,29 +222,26 @@ DWORD WINAPI ThreadNo2(LPVOID lpParam)
 				printf("entered the interrupt state data is: %d\n", buttonForCallInterruptStateChange);
 			}
 			if (ConsolesMenuHandle.CMDcontrol[MAKE_PACKET]) {
+				memset(keyboardBuff, 0, sizeof(keyboardBuff));
+				memset(&ThisMastersConfigs, 0, sizeof(ThisMastersConfigs));
 				printf_s("Enter the SLAVE Address:\n");
 				scanf_s("%d", keyboardBuff);
-				ThisMastersConfigs.SlavesAddressToTalk = (uint16_t)keyboardBuff[0];
+				ThisMastersConfigs.SlavesAddressToTalk = *(uint16_t*)&keyboardBuff[0];
 				printf_s("Enter the function\n");
 				scanf_s("%d", keyboardBuff);
-				ThisMastersConfigs.function = (uint16_t)keyboardBuff[0];
+				ThisMastersConfigs.function = (uint8_t)keyboardBuff[0];
 				printf_s("Enter the address of SLAVE Memory to talk\n");
 				scanf_s("%d", keyboardBuff);
-				ThisMastersConfigs.AddressOfSlavesMemoryToTalk = (uint16_t)keyboardBuff[0];
+				ThisMastersConfigs.AddressOfSlavesMemoryToTalk = *(uint16_t*)&keyboardBuff[0];
 				printf_s("Enter the length data for talking\n");
 				scanf_s("%d", keyboardBuff);
-				ThisMastersConfigs.LenDataToTalk = (uint16_t)keyboardBuff[0];
+				ThisMastersConfigs.LenDataToTalk = *(uint16_t *)&(keyboardBuff[0]);
 				printf_s("Enter the communication period\n");
 				scanf_s("%d", keyboardBuff);
-				ThisMastersConfigs.communicationPeriod = (uint16_t)keyboardBuff[0];
+				ThisMastersConfigs.communicationPeriod = *(uint16_t*)&keyboardBuff[0];
 				printf_s("Enter the array of data to read/write\n");
 				memset(keyboardBuff, 0, sizeof(keyboardBuff));
-				//scanf_s("%s", keyboardBuff, 255);
-				scanf("%[*][60][h]s", keyboardBuff);
-				//getchar();
-				//scanf_s("%[^\n]", keyboardBuff, 255);
-				//scanf("%[^\n]%s", keyboardBuff);
-				//fgets(keyboardBuff, 255, stdin);
+				ScanKeyboardWithWhiteSpaces(keyboardBuff, 255);
 				memcpy_s(InterfacePort.BufferToSend, 255, keyboardBuff, 255);
 				ThisMastersConfigs.dataToWrite = InterfacePort.BufferToSend;
 				ConsolesMenuHandle.CMDcontrol[MAKE_PACKET] = 0;
@@ -261,6 +259,24 @@ DWORD WINAPI ThreadNo2(LPVOID lpParam)
 	}
 }
 
+int ScanKeyboardWithWhiteSpaces(char* inBuff, uint16_t maxPossibleLen)
+{
+	int res = -1;
+	uint16_t ptr = 0;
+	char catchedChar = 0;
+	memset(inBuff, 0, maxPossibleLen);
+	uint8_t timeout = 200;
+	do {
+		scanf_s("%s%c", (char *)&inBuff[ptr], 255, &catchedChar, 1);
+		ptr = strlen(inBuff);
+		inBuff[ptr] = ' ';
+		ptr++;
+	} while ((catchedChar != '\n') && (timeout--)); //(catchedChar == ' ')
+	if (timeout == 0)
+		return res;
+	inBuff[ptr] = '\0';
+	return res = 0;
+}
 
 DWORD WINAPI TickThread(LPVOID lpParam)
 {
