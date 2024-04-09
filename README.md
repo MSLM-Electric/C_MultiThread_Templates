@@ -7,27 +7,27 @@ Download this demo "*.exe" by clicking "Download raw file" and run it.
 Projects structure (folders & files)
 
 Currently working at:
-- ROOT_PATH (Root folder)
-	|- Lib
-	|   |- SimpleTimerWP.c
-	|   |- SimpleTimerWP.h
-	|   |- fileHandle.c
-	|   |- fileHandle.h
-	|
-	|- ProtocolDevelopingTest
-	|   |- ProtocolMasterImmitationDevelopeTest_main.c
-	|   |- HardwarePeripheral
-	|   |   |- HardwareInterfaceUnit.c
-	|   |   |- HardwareInterfaceUnit.h
-	|   |
-	|   |- IO_immitationBetweenMasterSlave
-	|   |   |- iofile.txt
-	|   |	|- MasterImmitationCfg.h
-	|   |
-	|   |- ProtocolMasterDevelopeTest
-	|       |- CMakeLists.txt   <-- (here our project)
-	|
-	|- ConsoleMenuOptions.c
-	|- ConsoleMenuOptions.h
-	|- MultiThreadSupport.c
-	|- MultiThreadSupport.h
+<br />- ROOT_PATH (Root folder)
+<br />	|- Lib
+<br />	|   |- SimpleTimerWP.c
+<br />	|   |- SimpleTimerWP.h
+<br />	|   |- fileHandle.c
+<br />	|   |- fileHandle.h
+<br />	|
+<br />	|- ProtocolDevelopingTest
+<br />	|   |- ProtocolMasterImmitationDevelopeTest_main.c
+<br />	|   |- HardwarePeripheral
+<br />	|   |   |- HardwareInterfaceUnit.c
+<br />	|   |   |- HardwareInterfaceUnit.h
+<br />	|   |
+<br />	|   |- IO_immitationBetweenMasterSlave
+<br />	|   |   |- iofile.txt
+<br />	|   |	|- MasterImmitationCfg.h
+<br />	|   |
+<br />	|   |- ProtocolMasterDevelopeTest
+<br />	|       |- CMakeLists.txt   <-- (here our project)
+<br />	|
+<br />	|- ConsoleMenuOptions.c
+<br />	|- ConsoleMenuOptions.h
+<br />	|- MultiThreadSupport.c
+<br />	|- MultiThreadSupport.h
