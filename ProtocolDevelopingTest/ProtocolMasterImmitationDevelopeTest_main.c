@@ -1,5 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS  //!!! to allow unsafe and oldest code styles
 
+#include "HardwarePeripheral/HardwareInterfaceUnit.h"
 #include "../MultiThreadSupport.h"
 #include "../Lib/SimpleTimerWP.h"
 #include "../ConsoleMenuOptions.h"
@@ -8,14 +9,16 @@
 #define false 0
 #define true 1
 
+void SettingsCMD_Handling(char* inBuff, const uint16_t maxPossibleLen);
 thisMastercfgs_t MasterInterface;
 
 uint8_t someData[128] = {0};
 uint8_t getData[1024];
 uint16_t catchPoint = 0;
+extern char iofilePath[] = IOFILE_PATH;
 
 /*DE*/ uint8_t MoreDetailsInShowing = 0;
-/*PA*/ uint8_t PauseConsoleCommand = 0;
+/*PA*/ uint8_t PauseConsoleCommand = 1;
 
 enum {
 	INTERRUPT_CALLED = 1,
@@ -48,7 +51,7 @@ void TimerCallback() //InterruptTimer
 	return;
 }
 
-DWORD WINAPI ThreadNo1(LPVOID lpParam);
+DWORD WINAPI ThreadWriting(LPVOID lpParam);
 DWORD WINAPI ThreadNo2(LPVOID lpParam);
 DWORD WINAPI TickThread(LPVOID lpParam);
 ThreadsStruct_t Thread1Struct;
@@ -68,7 +71,7 @@ int main()
 	mutx = CreateMutexW(NULL, 1, "Mutex");
 
 	int res = 0;
-	res = ThreadCreation(&ThreadNo1, &Thread1Struct, 1);
+	res = ThreadCreation(&ThreadWriting, &Thread1Struct, 1);
 	res = ThreadCreation(&ThreadNo2, &Thread2Struct, 2);
 	res = ThreadCreation(&TickThread, &TickThreadStruct, 4);
 
@@ -110,20 +113,21 @@ int main()
 	printf("endOfCycle. Bad jump! \n"); //programm execution never should get here!
 }
 
-DWORD WINAPI ThreadNo1(LPVOID lpParam)
+//ThreadNo1
+DWORD WINAPI ThreadWriting(LPVOID lpParam)
 {
 	int res = ThreadInit(lpParam);
 
 	char *str = (char *)malloc(4);
 	//char *keyboardBuff = (char *)malloc(20 * sizeof(char));
-	//char keyboardBuff[20];
+	char keyboardBuff[255];
 	while (1)
 	{
 		WaitForSingleObject(mutx, INFINITE);
 		{
 			memset(keyboardBuff, 0, sizeof(keyboardBuff));
 			printf("What function to Act? Enter it here:\n");
-			scanf_s("%s", keyboardBuff/*&str*/, 3);
+			scanf_s("%s", keyboardBuff/*&str*/, 255);
 			printf("entered data is: %s\n", keyboardBuff);
 		}
 		ReleaseMutex(mutx);
@@ -131,63 +135,119 @@ DWORD WINAPI ThreadNo1(LPVOID lpParam)
 		{
 			printf("Memory for str alloc ERROR\t\n");
 		}else {
-			sprintf(str, keyboardBuff, 2);
+			sprintf(str, keyboardBuff, 255);
 			memset(keyboardBuff, 0, sizeof(keyboardBuff));
 		}
-		
-		switch (StringCompareAndParseToNum(str, NULL)) //maybe we need do it in another way
-		{
+		SettingsCMD_Handling(str, NULL);
+	}
+}
+
+void SettingsCMD_Handling(char* inBuff, const uint16_t maxPossibleLen)
+{
+	uint8_t parsedCMD = StringCompareAndParseToNum(inBuff, NULL);
+	ConsolesMenuHandle.CMDcontrol[parsedCMD] = ~ConsolesMenuHandle.CMDcontrol[parsedCMD] & 0x01;
+	uint8_t IsParsedCMD_Enabled = ConsolesMenuHandle.CMDcontrol[parsedCMD];
+	switch (parsedCMD)
+	{
 		//Users code
 		/*------------------------------Put your Functions launch here----------------------------*/
 		//case EXAMPLE: {
 		//	ExampleOfYourFunctions();
 		//}break;
 		/*----------------------------------------------------------------------------------------*/
-		case ALL: {
-			ShowAllStates();
-		}break;
-		case DETAILS: {
-			MoreDetailsInShowing = ~MoreDetailsInShowing & 0x01;
-			if (MoreDetailsInShowing)
-				printf("DETAILS ON!\n");
-			else
-				printf("DETAILS OFF!\n");
-		}break;
-		case PAUSE_CONSOLE: {
-			PauseConsoleCommand = ~PauseConsoleCommand & 0x01;
-			if (PauseConsoleCommand)
-				printf("Pause Console ON: Mainbackground process don't show!\n");
-			else
-				printf("Pause Console OFF: Show Mainbackground process!\n");
-		}break;
-		case ENABLE_TIMER: {
-			testTimer =  ~testTimer & 0x01;
-			if (testTimer)
-				printf("Timer ENABLED!\n");
-			else
-				printf("Timer DISABLED!\n");
-		}break;
-		default:
-			break;
-		}
-		memset(str, 0, 2); //memsetstr
-	}
-}
+	case ALL: {
+		ShowAllStates();
+	}break;
+	case DETAILS: {
+		if (IsParsedCMD_Enabled)
+			printf("DETAILS ON!\n");
+		else
+			printf("DETAILS OFF!\n");
+	}break;
+	case PAUSE_CONSOLE: {
+		if (IsParsedCMD_Enabled)
+			printf("Pause Console ON: Mainbackground process don't show!\n");
+		else
+			printf("Pause Console OFF: Show Mainbackground process!\n");
+	}break;
+	case ENABLE_TIMER: {
+		if (IsParsedCMD_Enabled)
+			printf("Timer ENABLED!\n");
+		else
+			printf("Timer DISABLED!\n");
+	}break;
+	case MAKE_PACKET: {
 
+	}break;
+	case DMA_ENABLE: {
+		if (IsParsedCMD_Enabled)
+			printf("DMA interrupting peripheral ON!\n");
+		else
+			printf("DMA interrupting peripheral OFF!\n");
+	}break;
+	case START_COMMUNICATION: {
+		if (IsParsedCMD_Enabled) {
+			printf("START COMMUNICATION\n");
+			ConsolesMenuHandle.CMDcontrol[STOP_COMMUNICATION] = 0;
+		}
+	}break;
+	case STOP_COMMUNICATION: {
+		if (IsParsedCMD_Enabled) {
+			printf("STOP COMMUNICATION\n");
+			ConsolesMenuHandle.CMDcontrol[START_COMMUNICATION] = 0;
+		}
+	}break;
+	default:
+		break;
+	}
+	memset(inBuff, 0, 2); //memsetstr
+	return;
+}
 
 DWORD WINAPI ThreadNo2(LPVOID lpParam)
 {
 	int res = ThreadInit(lpParam);
 
 	uint8_t buttonForCallInterruptStateChange = 2;
+	char keyboardBuff[255];
 	while (1)
 	{
 		//Sleep(10);
 		WaitForSingleObject(mutx, INFINITE);
 		{
-			printf_s("Enter The interrupt calling state:\n");
-			scanf_s("%d", &buttonForCallInterruptStateChange);
-			printf("entered the interrupt state data is: %d\n", buttonForCallInterruptStateChange);
+			if (ConsolesMenuHandle.CMDcontrol[DMA_ENABLE]) {
+				printf_s("Enter The interrupt calling state:\n");
+				scanf_s("%d", &buttonForCallInterruptStateChange);
+				printf("entered the interrupt state data is: %d\n", buttonForCallInterruptStateChange);
+			}
+			if (ConsolesMenuHandle.CMDcontrol[MAKE_PACKET]) {
+				printf_s("Enter the SLAVE Address:\n");
+				scanf_s("%d", keyboardBuff);
+				ThisMastersConfigs.SlavesAddressToTalk = (uint16_t)keyboardBuff[0];
+				printf_s("Enter the function\n");
+				scanf_s("%d", keyboardBuff);
+				ThisMastersConfigs.function = (uint16_t)keyboardBuff[0];
+				printf_s("Enter the address of SLAVE Memory to talk\n");
+				scanf_s("%d", keyboardBuff);
+				ThisMastersConfigs.AddressOfSlavesMemoryToTalk = (uint16_t)keyboardBuff[0];
+				printf_s("Enter the length data for talking\n");
+				scanf_s("%d", keyboardBuff);
+				ThisMastersConfigs.LenDataToTalk = (uint16_t)keyboardBuff[0];
+				printf_s("Enter the communication period\n");
+				scanf_s("%d", keyboardBuff);
+				ThisMastersConfigs.communicationPeriod = (uint16_t)keyboardBuff[0];
+				printf_s("Enter the array of data to read/write\n");
+				memset(keyboardBuff, 0, sizeof(keyboardBuff));
+				//scanf_s("%s", keyboardBuff, 255);
+				scanf("%[*][60][h]s", keyboardBuff);
+				//getchar();
+				//scanf_s("%[^\n]", keyboardBuff, 255);
+				//scanf("%[^\n]%s", keyboardBuff);
+				//fgets(keyboardBuff, 255, stdin);
+				memcpy_s(InterfacePort.BufferToSend, 255, keyboardBuff, 255);
+				ThisMastersConfigs.dataToWrite = InterfacePort.BufferToSend;
+				ConsolesMenuHandle.CMDcontrol[MAKE_PACKET] = 0;
+			}
 		}
 		ReleaseMutex(mutx);
 		if (buttonForCallInterruptStateChange == 1) {

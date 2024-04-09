@@ -10,6 +10,7 @@ set(LIB_DIR ${ROOT_PATH}/Lib)
 set(ROOT_SRC_DIR ${ROOT_PATH})
 set(HARDWARE_PERIPHERAL ${ROOT_PATH}/ProtocolDevelopingTest/HardwarePeripheral)
 set(PROTOCOL_MASTER_MAIN ${ROOT_PATH}/ProtocolDevelopingTest)
+set(IOFILE_PATH ${PROTOCOL_MASTER_MAIN}/IO_immitationBetweenMasterSlave)
 
 set(SOURCES
 	${PROTOCOL_MASTER_MAIN}/ProtocolMasterImmitationDevelopeTest_main.c 
@@ -29,6 +30,8 @@ set(HEADERS
 	${LIB_DIR}/SimpleTimerWP.h
 	${LIB_DIR}/fileHandle.h
 	${HARDWARE_PERIPHERAL}/HardwareInterfaceUnit.h
+	${IOFILE_PATH}/MasterImmitationCfg.h
+	#${IOFILE_PATH}/SlaveImmitationCfg.h  //not needed! Its for SlaveProtocolDeveloping
 )
 	#${ROOT_SRC_DIR}/*.h
 	#${LIB_DIR}/*.h
@@ -51,4 +54,4 @@ target_link_options(${PROJ_NAME} PRIVATE "/MAP:${PROJECT_SOURCE_DIR}/file.map")
 #before using it configure the linker script file!
 #target_link_options(${PROJ_NAME} PRIVATE -Wl,--print-memory-usage)
 
-add_definitions(-DIOFILE_PATH="${PROTOCOL_MASTER_MAIN}/IO_immitationBetweenMasterSlave") #cause of ROOT_PATH it goes back twicely (../..//)
+add_definitions(-DIOFILE_PATH="${IOFILE_PATH}/iofile.txt") #cause of ROOT_PATH it goes back twicely (../..//)

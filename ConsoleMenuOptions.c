@@ -6,7 +6,7 @@ uint8_t StringCompareAndParseToNum(char* inBuff, uint8_t maxPossibleLen)
 		return -1;
 	uint8_t len = maxPossibleLen;
 	if (maxPossibleLen == NULL)
-		len = 2;
+		len = OPTION_NAMES_LEN;
 
 	//Users code
 	/*---------Put your Functions launch to the header file ConsoleMenuOptions.h----------*/
