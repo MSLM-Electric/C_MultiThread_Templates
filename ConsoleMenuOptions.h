@@ -35,7 +35,7 @@ static menuChoise_t MenuOption[cmdsValEnumslastINDEX-1] = {
 };
 
 struct ConsolesMenuHandle_Type {
-	uint8_t CMDcontrol[cmdsValEnumslastINDEX - 1];
+	uint8_t CMD[cmdsValEnumslastINDEX - 1];
 };
 struct ConsolesMenuHandle_Type ConsolesMenuHandle;
 

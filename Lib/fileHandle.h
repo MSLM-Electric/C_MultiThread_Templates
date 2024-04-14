@@ -50,3 +50,29 @@ FRESULT ReadFileTillLine(char* outBuffer, const size_t maxPossibleLen, FIL* Stre
 FRESULT ReadTheLastLineOfFile(char* outBuffer, const size_t maxPossibleLen, FIL* f);
 
 #endif //_FILEHANDLE_H_
+
+
+
+//SOME INFOS
+/*
+Mode flags that specifies the type of access and open method for the file. It is specified by a combination of following flags.
+Flags	Meaning
+FA_READ					Specifies read access to the file. Data can be read from the file.
+FA_WRITE				Specifies write access to the file. Data can be written to the file. Combine with FA_READ for read-write access.
+FA_OPEN_EXISTING		Opens a file. The function fails if the file is not existing. (Default)
+FA_CREATE_NEW			Creates a new file. The function fails with FR_EXIST if the file is existing.
+FA_CREATE_ALWAYS		Creates a new file. If the file is existing, it will be truncated and overwritten.
+FA_OPEN_ALWAYS			Opens the file if it is existing. If not, a new file will be created.
+FA_OPEN_APPEND			Same as FA_OPEN_ALWAYS except the read/write pointer is set end of the file.
+
+Mode flags in POSIX fopen() function corresponds to FatFs mode flags as follows:
+POSIX	FatFs
+"r"			FA_READ
+"r+"		FA_READ | FA_WRITE
+"w"			FA_CREATE_ALWAYS | FA_WRITE
+"w+"		FA_CREATE_ALWAYS | FA_WRITE | FA_READ
+"a"			FA_OPEN_APPEND | FA_WRITE
+"a+"		FA_OPEN_APPEND | FA_WRITE | FA_READ
+"wx"		FA_CREATE_NEW | FA_WRITE
+"w+x"		FA_CREATE_NEW | FA_WRITE | FA_READ
+*/

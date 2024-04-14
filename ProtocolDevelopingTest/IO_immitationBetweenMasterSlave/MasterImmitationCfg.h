@@ -2,8 +2,8 @@
 #define _MASTERIMMITATIONCFG_H_
 #include <stdint.h>
 
-const char mastersMessageId[] = "MASTER_WRITE:";
-const char slavesMessageId[] =  "SLAVE__WRITE:";
+char mastersMessageId[];
+//const char slavesMessageId[] =  "SLAVE__WRITE:";
 
 typedef struct{
   uint8_t Status;

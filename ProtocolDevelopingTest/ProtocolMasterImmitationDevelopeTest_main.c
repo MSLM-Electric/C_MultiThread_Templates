@@ -55,9 +55,11 @@ void TimerCallback() //InterruptTimer
 DWORD WINAPI ThreadWriting(LPVOID lpParam);
 DWORD WINAPI ThreadNo2(LPVOID lpParam);
 DWORD WINAPI TickThread(LPVOID lpParam);
+DWORD WINAPI ThreadReading(LPVOID lParam);
 ThreadsStruct_t Thread1Struct;
 ThreadsStruct_t Thread2Struct;
 ThreadsStruct_t TickThreadStruct;
+ThreadsStruct_t ThreadReadingStruct;
 
 static void ShowAllStates(void);
 HANDLE sem;
@@ -75,15 +77,17 @@ int main()
 	res = ThreadCreation(&ThreadWriting, &Thread1Struct, 1);
 	res = ThreadCreation(&ThreadNo2, &Thread2Struct, 2);
 	res = ThreadCreation(&TickThread, &TickThreadStruct, 4);
+	///!!!res = ThreadCreation(&ThreadReading, &ThreadReadingStruct, 5);
 
 	// Aray to store thread handles 
-	HANDLE Array_Of_Thread_Handles[4];
+	HANDLE Array_Of_Thread_Handles[5];
 	// Store Thread handles in Array of Thread
 	// Handles as per the requirement
 	// of WaitForMultipleObjects() 
 	Array_Of_Thread_Handles[0] = Thread1Struct.Handle_Of_Thread;
 	Array_Of_Thread_Handles[1] = Thread2Struct.Handle_Of_Thread;
 	Array_Of_Thread_Handles[3] = TickThreadStruct.Handle_Of_Thread;
+	Array_Of_Thread_Handles[4] = ThreadReadingStruct.Handle_Of_Thread;
 
 	// Wait until all threads have terminated.
 	WaitForMultipleObjects(3, Array_Of_Thread_Handles, TRUE, INFINITE);
@@ -109,7 +113,21 @@ int main()
 		if (testTimer) {;}
 		else {	;/*stoptimer*/ }
 
+		if (ConsolesMenuHandle.CMD[START_COMMUNICATION] && ThisMastersConfigs.Status) { //mutxMaster//!
+			InterfacePort.communicationPeriod = ThisMastersConfigs.communicationPeriod;
+			InterfacePort.Status = ThisMastersConfigs.Status; //Port ready to communicating
+			InterfacePort.LenDataToSend = ThisMastersConfigs.LenDataToTalk;
+		}
 
+		/*Users Thread. */
+		//SendRequest(PortNo=0, SlaveAddr=1, func=3, itsMemoryAddr=0x020, qntyData=10, communPeriod=400, *); 
+		if (InterfacePort.Status) {
+			LaunchTimerWP(InterfacePort.communicationPeriod, &UsersTimer);
+			if (IsTimerWPRinging(&UsersTimer)) {
+				RestartTimerWP(&UsersTimer);
+				int res = Write(&InterfacePort, &InterfacePort.BufferToSend, InterfacePort.LenDataToSend);
+			}
+		}
 	}
 	printf("endOfCycle. Bad jump! \n"); //programm execution never should get here!
 }
@@ -146,8 +164,8 @@ DWORD WINAPI ThreadWriting(LPVOID lpParam)
 void SettingsCMD_Handling(char* inBuff, const uint16_t maxPossibleLen)
 {
 	uint8_t parsedCMD = StringCompareAndParseToNum(inBuff, NULL);
-	ConsolesMenuHandle.CMDcontrol[parsedCMD] = ~ConsolesMenuHandle.CMDcontrol[parsedCMD] & 0x01;
-	uint8_t IsParsedCMD_Enabled = ConsolesMenuHandle.CMDcontrol[parsedCMD];
+	ConsolesMenuHandle.CMD[parsedCMD] = ~ConsolesMenuHandle.CMD[parsedCMD] & 0x01;
+	uint8_t IsParsedCMD_Enabled = ConsolesMenuHandle.CMD[parsedCMD];
 	switch (parsedCMD)
 	{
 		//Users code
@@ -189,19 +207,19 @@ void SettingsCMD_Handling(char* inBuff, const uint16_t maxPossibleLen)
 	case START_COMMUNICATION: {
 		if (IsParsedCMD_Enabled) {
 			printf("START COMMUNICATION\n");
-			ConsolesMenuHandle.CMDcontrol[STOP_COMMUNICATION] = 0;
+			ConsolesMenuHandle.CMD[STOP_COMMUNICATION] = 0;
 		}
 	}break;
 	case STOP_COMMUNICATION: {
 		if (IsParsedCMD_Enabled) {
 			printf("STOP COMMUNICATION\n");
-			ConsolesMenuHandle.CMDcontrol[START_COMMUNICATION] = 0;
+			ConsolesMenuHandle.CMD[START_COMMUNICATION] = 0;
 		}
 	}break;
 	default:
 		break;
 	}
-	memset(inBuff, 0, 2); //memsetstr
+	memset(inBuff, 0, 2/*maxPossibleLen*/); //memsetstr
 	return;
 }
 
@@ -216,13 +234,14 @@ DWORD WINAPI ThreadNo2(LPVOID lpParam)
 		//Sleep(10);
 		WaitForSingleObject(mutx, INFINITE);
 		{
-			if (ConsolesMenuHandle.CMDcontrol[DMA_ENABLE]) {
+			if (ConsolesMenuHandle.CMD[DMA_ENABLE]) {
 				printf_s("Enter The interrupt calling state:\n");
 				scanf_s("%d", &buttonForCallInterruptStateChange);
 				printf("entered the interrupt state data is: %d\n", buttonForCallInterruptStateChange);
 			}
-			if (ConsolesMenuHandle.CMDcontrol[MAKE_PACKET]) {
+			if (ConsolesMenuHandle.CMD[MAKE_PACKET]) {
 				memset(keyboardBuff, 0, sizeof(keyboardBuff));
+				//mutxMaster//!
 				memset(&ThisMastersConfigs, 0, sizeof(ThisMastersConfigs));
 				printf_s("Enter the SLAVE Address:\n");
 				scanf_s("%d", keyboardBuff);
@@ -244,7 +263,8 @@ DWORD WINAPI ThreadNo2(LPVOID lpParam)
 				ScanKeyboardWithWhiteSpaces(keyboardBuff, 255);
 				memcpy_s(InterfacePort.BufferToSend, 255, keyboardBuff, 255);
 				ThisMastersConfigs.dataToWrite = InterfacePort.BufferToSend;
-				ConsolesMenuHandle.CMDcontrol[MAKE_PACKET] = 0;
+				ThisMastersConfigs.Status = 1; //Masters configuration inited!
+				ConsolesMenuHandle.CMD[MAKE_PACKET] = 0;
 			}
 		}
 		ReleaseMutex(mutx);
@@ -267,8 +287,10 @@ int ScanKeyboardWithWhiteSpaces(char* inBuff, uint16_t maxPossibleLen)
 	memset(inBuff, 0, maxPossibleLen);
 	uint8_t timeout = 200;
 	do {
-		scanf_s("%s%c", (char *)&inBuff[ptr], 255, &catchedChar, 1);
+		scanf_s("%s%c", (char *)&inBuff[ptr], maxPossibleLen, &catchedChar, 1);
 		ptr = strlen(inBuff);
+		if (ptr > maxPossibleLen - 1)
+			return -2;
 		inBuff[ptr] = ' ';
 		ptr++;
 	} while ((catchedChar != '\n') && (timeout--)); //(catchedChar == ' ')
