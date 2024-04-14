@@ -17,6 +17,7 @@ enum {
 	PORT_RECEIVING = 1 << 4, //mb not needed
 	PORT_RECEIVED = 1 << 5,
 	//..
+	// PORT_ERROR //?
 }InterfacePortState_e;
 
 typedef struct {

@@ -1,12 +1,18 @@
 #include "HardwareInterfaceUnit.h"
 extern char mastersMessageId[] = "MASTER_WRITE:";
 
+#define ONLY //just nothing. Only for clarifying ports state currently
+
 int Write(InterfacePortHandle_t* PortHandle, const uint8_t *inBuff, const int size)
 {
-	if ((PortHandle->Status & (PORT_READY | PORT_SENDING | PORT_RECEIVING)) == PORT_READY) {
+	int res;
+	if ((PortHandle->Status & (PORT_READY | PORT_SENDING | PORT_RECEIVING)) == ONLY PORT_READY) {
 		PortHandle->Status |= PORT_SENDING;
 		//memcpy(PortHandle->BufferToSend, inBuff, size);
-		immitationOfPortsBus(PortHandle);
+		res = immitationOfPortsBus(PortHandle);
+		if (res < 0) {
+			//PORT_ERROR//?;
+		}
 	}
 }
 
@@ -22,6 +28,8 @@ static int immitationOfPortsBus(InterfacePortHandle_t* PortHandle)
 	char *mastersBusMessageId = mastersMessageId;
 	sprintf(buffer, "%s %s\n", mastersBusMessageId, PortHandle->BufferToSend); //sizes?
 	FIL* f = fopen(iofilePath, "a+"); //a
+	if (f == NULL)
+		res = -1;
 	size_t siz = fwrite(buffer, strlen(buffer), 1/*??*/, f);// fwprintf, .._s
 	res = (int)siz;
 	fclose(f);
