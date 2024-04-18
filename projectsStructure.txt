@@ -1,6 +1,6 @@
 Projects structure (folders & files)
 
-Currently working at:
+Currently working at: ProtocolDevelopeTemplate Project
 - ROOT_PATH (Root folder)
 	|- Lib
 	|   |- SimpleTimerWP.c

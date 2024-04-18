@@ -126,6 +126,7 @@ int main()
 			if (IsTimerWPRinging(&UsersTimer)) {
 				RestartTimerWP(&UsersTimer);
 				int res = Write(&InterfacePort, &InterfacePort.BufferToSend, InterfacePort.LenDataToSend);
+				res = Recv(&InterfacePort, &InterfacePort.BufferRecved, sizeof(InterfacePort.BufferRecved));
 			}
 		}
 	}

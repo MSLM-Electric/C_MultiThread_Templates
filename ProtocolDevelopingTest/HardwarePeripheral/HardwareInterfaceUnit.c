@@ -25,7 +25,9 @@ static int immitationOfPortsBus(InterfacePortHandle_t* PortHandle)
 {
 	int res = 0;
 	char buffer[300];
+	//char portsBusMessageId = portsMessageId;
 	char *mastersBusMessageId = mastersMessageId;
+	//"%s%s %s\n"
 	sprintf(buffer, "%s %s\n", mastersBusMessageId, PortHandle->BufferToSend); //sizes?
 	FIL* f = fopen(iofilePath, "a+"); //a
 	if (f == NULL)

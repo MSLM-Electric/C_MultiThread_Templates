@@ -4,7 +4,7 @@ project(ProtocolMasterDevelopeTest)
 set(PROJ_NAME ProtocolMasterDevelopeTest)
 
 set(ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../")
-#on Lib located inc and src 
+#on Lib located inc and src
 set(LIB_DIR ${ROOT_PATH}/Lib)
 #inc and src located together on root path
 set(ROOT_SRC_DIR ${ROOT_PATH})
@@ -13,7 +13,7 @@ set(PROTOCOL_MASTER_MAIN ${ROOT_PATH}/ProtocolDevelopingTest)
 set(IOFILE_PATH ${PROTOCOL_MASTER_MAIN}/IO_immitationBetweenMasterSlave)
 
 set(SOURCES
-	${PROTOCOL_MASTER_MAIN}/ProtocolMasterImmitationDevelopeTest_main.c 
+	${PROTOCOL_MASTER_MAIN}/ProtocolMasterImmitationDevelopeTest_main.c
 	${ROOT_SRC_DIR}/ConsoleMenuOptions.c
 	${ROOT_SRC_DIR}/MultiThreadSupport.c
 	${LIB_DIR}/SimpleTimerWP.c
@@ -36,7 +36,11 @@ set(HEADERS
 	#${ROOT_SRC_DIR}/*.h
 	#${LIB_DIR}/*.h
 	#${HARDWARE_PERIPHERAL}/*.h
+
+#next line exports lib file on build/Debug/*.dll (shared); *.lib (static)
 #add_library(ProtocolDevelopeLibrary SHARED ${SOURCES} ${HEADERS})
+#add_library(ProtocolDevelopeLibrary STATIC ${SOURCES} ${HEADERS})
+#add_library(ProtocolDevelopeLibrary MODULE ${SOURCES} ${HEADERS})
 
 add_executable(ProtocolMasterDevelopeTest ${SOURCES} ${HEADERS})
 
@@ -49,7 +53,7 @@ else()
 endif()
 
 #target_link_options(${PROJ_NAME} PUBLIC LINKER:-Map=${PROJ_NAME}.map)
-target_link_options(${PROJ_NAME} PRIVATE "/MAP:${PROJECT_SOURCE_DIR}/file.map")
+target_link_options(${PROJ_NAME} PRIVATE "/MAP:${PROJECT_SOURCE_DIR}/outputProject.map")
 #the next is only gcc option and helps us to see how many memory used
 #before using it configure the linker script file!
 #target_link_options(${PROJ_NAME} PRIVATE -Wl,--print-memory-usage)

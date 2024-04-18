@@ -1,20 +1,23 @@
 cmake_minimum_required(VERSION 3.12)
 
 project(ProtocolSlaveDevelopeTest)
+set(PROJ_NAME ProtocolSlaveDevelopeTest)
 
 set(ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../")
-#on Lib located inc and src 
+#on Lib located inc and src
 set(LIB_DIR ${ROOT_PATH}/Lib)
 #inc and src located together on root path
 set(ROOT_SRC_DIR ${ROOT_PATH})
 set(HARDWARE_PERIPHERAL ${ROOT_PATH}/ProtocolDevelopingTest/HardwarePeripheral)
 set(PROTOCOL_MASTER_MAIN ${ROOT_PATH}/ProtocolDevelopingTest)
+set(IOFILE_PATH ${PROTOCOL_MASTER_MAIN}/IO_immitationBetweenMasterSlave)
 
 set(SOURCES
-	${PROTOCOL_MASTER_MAIN}/ProtocolSlaveImmitationDevelopeTest_main.c 
+	${PROTOCOL_MASTER_MAIN}/ProtocolSlaveImmitationDevelopeTest_main.c
 	${ROOT_SRC_DIR}/ConsoleMenuOptions.c
 	${ROOT_SRC_DIR}/MultiThreadSupport.c
 	${LIB_DIR}/SimpleTimerWP.c
+	${LIB_DIR}/fileHandle.c
 	${HARDWARE_PERIPHERAL}/HardwareInterfaceUnit.c
 )
 	#${ROOT_SRC_DIR}/*.c
@@ -25,11 +28,20 @@ set(HEADERS
 	${ROOT_SRC_DIR}/ConsoleMenuOptions.h
 	${ROOT_SRC_DIR}/MultiThreadSupport.h
 	${LIB_DIR}/SimpleTimerWP.h
+	${LIB_DIR}/fileHandle.h
 	${HARDWARE_PERIPHERAL}/HardwareInterfaceUnit.h
+	#${IOFILE_PATH}/MasterImmitationCfg.h  //not needed! Its for MasterProtocolDeveloping
+	${IOFILE_PATH}/SlaveImmitationCfg.h
+	${IOFILE_PATH}/PortsBusMessages.h
 )
 	#${ROOT_SRC_DIR}/*.h
 	#${LIB_DIR}/*.h
 	#${HARDWARE_PERIPHERAL}/*.h
+
+#next line exports lib file on build/Debug/*.dll (shared); *.lib (static)
+#add_library(ProtocolDevelopeLibrary SHARED ${SOURCES} ${HEADERS})
+add_library(ProtocolDevelopeLibrary STATIC ${SOURCES} ${HEADERS})
+#add_library(ProtocolDevelopeLibrary MODULE ${SOURCES} ${HEADERS})
 
 add_executable(ProtocolSlaveDevelopeTest ${SOURCES} ${HEADERS})
 
@@ -38,3 +50,6 @@ if(${CMAKE_VERSION} VERSION_LESS "2.8.12")
 else()
     target_include_directories(ProtocolSlaveDevelopeTest PUBLIC ${INCLUDE_DIR})
 endif()
+
+target_link_options(${PROJ_NAME} PRIVATE "/MAP:${PROJECT_SOURCE_DIR}/file.map")
+add_definitions(-DIOFILE_PATH="${IOFILE_PATH}/iofile.txt")

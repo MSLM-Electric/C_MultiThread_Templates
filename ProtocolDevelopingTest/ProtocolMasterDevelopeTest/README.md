@@ -1,13 +1,13 @@
 do next (at beggining):
-<br /> 
+<br />
 <br /> mkdir build
 <br /> cd build
 <br /> cmake ..
-<br /> 
+<br />
 <br /> and after generated buildings
-<br /> go to the .sln file to see the project trees
+<br /> go to the build/ .sln file to see the project trees
 <br /> and debug/run it
-<br /> 
+<br />
 <br /> #cmake --trace .
 <br /> #cmake --trace-expand
 <br /> #cmake --debug-output

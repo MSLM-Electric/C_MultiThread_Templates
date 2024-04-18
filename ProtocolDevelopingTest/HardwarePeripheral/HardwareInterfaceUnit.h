@@ -10,6 +10,7 @@ char iofilePath[200];
 #endif // IOFILE_PATH
 
 enum {
+	//PORT_OFF = 0, //PORT_CLEAR,
 	PORT_READY = 1,
 	PORT_BUSY = 1 << 1,
 	PORT_SENDING = 1 << 2,

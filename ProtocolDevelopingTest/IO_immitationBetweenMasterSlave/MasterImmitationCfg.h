@@ -3,7 +3,6 @@
 #include <stdint.h>
 
 char mastersMessageId[];
-//const char slavesMessageId[] =  "SLAVE__WRITE:";
 
 typedef struct{
   uint8_t Status;

@@ -6,7 +6,7 @@ Download this demo "*.exe" by clicking "Download raw file" and run it.
 
 Projects structure (folders & files)
 
-Currently working at:
+Currently working at: ProtocolDevelopeTemplate Project
 <br />- ROOT_PATH (Root folder)
 <br />   |- Lib
 <br />   |   |- SimpleTimerWP.c
