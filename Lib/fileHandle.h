@@ -75,4 +75,13 @@ POSIX	FatFs
 "a+"		FA_OPEN_APPEND | FA_WRITE | FA_READ
 "wx"		FA_CREATE_NEW | FA_WRITE
 "w+x"		FA_CREATE_NEW | FA_WRITE | FA_READ
+
+microsofts info:
+mode	Access
+"r"		Opens for reading. If the file doesn't exist or can't be found, the fopen call fails.
+"w"		Opens an empty file for writing. If the given file exists, its contents are destroyed.
+"a"		Opens for writing at the end of the file (appending) without removing the end-of-file (EOF) marker before new data is written to the file. Creates the file if it doesn't exist.
+"r+"	Opens for both reading and writing. The file must exist.
+"w+"	Opens an empty file for both reading and writing. If the file exists, its contents are destroyed.
+"a+"	Opens for reading and appending. The appending operation includes the removal of the EOF marker before new data is written to the file. The EOF marker isn't restored after writing is completed. Creates the file if it doesn't exist.
 */

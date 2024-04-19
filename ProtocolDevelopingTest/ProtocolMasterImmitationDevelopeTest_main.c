@@ -100,6 +100,7 @@ int main()
 	InitTimerWP(&MainProgrammDelay, (tickptr_fn*)GetTickCount);
 #endif // DEBUG_ON_VS
 	LaunchTimerWP((U32_ms)2000, &MainProgrammDelay);
+	InitPort(&InterfacePort);
 
 	while (1)
 	{
@@ -114,11 +115,13 @@ int main()
 		else {	;/*stoptimer*/ }
 
 		if (ConsolesMenuHandle.CMD[START_COMMUNICATION] && ThisMastersConfigs.Status) { //mutxMaster//!
+			//if (InterfacePort.Status & 0x2)
+				InterfacePort.Status |= 0x1;
 			InterfacePort.communicationPeriod = ThisMastersConfigs.communicationPeriod;
-			InterfacePort.Status = ThisMastersConfigs.Status; //Port ready to communicating
+			//InterfacePort.Status = ThisMastersConfigs.Status; //Port ready to communicating
 			InterfacePort.LenDataToSend = ThisMastersConfigs.LenDataToTalk;
 		}else {
-			InterfacePort.Status = ThisMastersConfigs.Status = 0;
+			InterfacePort.Status &= ~0x1;
 		}
 
 		/*Users Thread. */
@@ -142,7 +145,7 @@ DWORD WINAPI ThreadWriting(LPVOID lpParam)//rename to ThreadConsoleHandling or T
 
 	char *str = (char *)malloc(4);
 	//char *keyboardBuff = (char *)malloc(20 * sizeof(char));
-	char keyboardBuff[100];
+	char keyboardBuff[255];
 	while (1)
 	{
 		WaitForSingleObject(mutx, INFINITE);
@@ -162,7 +165,7 @@ DWORD WINAPI ThreadWriting(LPVOID lpParam)//rename to ThreadConsoleHandling or T
 		}
 		SettingsCMD_Handling(str, NULL);
 		WaitForSingleObject(mutx, INFINITE);
-		ScanCMDsScenarios();
+		ScanCMDsScenarios(keyboardBuff, sizeof(keyboardBuff));
 		ReleaseMutex(mutx);
 	}
 }
@@ -214,12 +217,12 @@ DWORD WINAPI ThreadReading(LPVOID lpParam)
 	InterfacePortHandle_t Port;
 	Timerwp_t readingIOfilePeriod;
 	InitTimerWP(&readingIOfilePeriod, (tickptr_fn*)GetTickCount);
-	LaunchTimerWP((U32_ms)50, &readingIOfilePeriod);
+	LaunchTimerWP((U32_ms)1000, &readingIOfilePeriod);
 	while (1)
 	{
 		if (IsTimerWPRinging(&readingIOfilePeriod)) {
 			RestartTimerWP(&readingIOfilePeriod);
-			immitationReceivingOfPortsBus(&Port);
+			immitationReceivingOfPortsBus(&Port);  //reading file shouldn't be so fast!
 		}
 	}
 }

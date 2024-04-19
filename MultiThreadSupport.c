@@ -32,3 +32,10 @@ int ThreadInit(/*ThreadsStruct_t* ThreadStruct*/LPVOID lpParam)
 	Data = *((int*)lpParam);
 	return res;
 }
+
+int TakeMutex(HANDLE *mutexId, const uint32_t timeout)
+{
+	int res = 0;
+	WaitForSingleObject(mutexId, timeout);
+	return res;
+}

@@ -104,33 +104,33 @@ int ScanKeyboardWithWhiteSpaces(char* inBuff, uint16_t maxPossibleLen)
 	return res = 0;
 }
 
-void ScanCMDsScenarios(void)
+void ScanCMDsScenarios(char *buffer, const int maxPossibleLen)
 {
-	char keyboardBuffs[255]; //bad/ handled (corrupt).
+	//char keyboardBuffs[255]; //bad
 	//char *keyboardBuffs = (char *)malloc(255 * sizeof(char));
 	if (ConsolesMenuHandle.CMD[MAKE_PACKET]) {
-		memset(keyboardBuffs, 0, sizeof(keyboardBuffs));
+		memset(buffer, 0, maxPossibleLen);
 		//mutxMaster//!
 		memset(&ThisMastersConfigs, 0, sizeof(ThisMastersConfigs));
 		printf_s("Enter the SLAVE Address:\n");
-		scanf_s("%d", keyboardBuffs);
-		ThisMastersConfigs.SlavesAddressToTalk = *(uint16_t*)&keyboardBuffs[0];
+		scanf_s("%d", buffer);
+		ThisMastersConfigs.SlavesAddressToTalk = *(uint16_t*)&buffer[0];
 		printf_s("Enter the function\n");
-		scanf_s("%d", keyboardBuffs);
-		ThisMastersConfigs.function = (uint8_t)keyboardBuffs[0];
+		scanf_s("%d", buffer);
+		ThisMastersConfigs.function = (uint8_t)buffer[0];
 		printf_s("Enter the address of SLAVE Memory to talk\n");
-		scanf_s("%d", keyboardBuffs);
-		ThisMastersConfigs.AddressOfSlavesMemoryToTalk = *(uint16_t*)&keyboardBuffs[0];
+		scanf_s("%d", buffer);
+		ThisMastersConfigs.AddressOfSlavesMemoryToTalk = *(uint16_t*)&buffer[0];
 		printf_s("Enter the length data for talking\n");
-		scanf_s("%d", keyboardBuffs);
-		ThisMastersConfigs.LenDataToTalk = *(uint16_t*)&(keyboardBuffs[0]);
+		scanf_s("%d", buffer);
+		ThisMastersConfigs.LenDataToTalk = *(uint16_t*)&(buffer[0]);
 		printf_s("Enter the communication period\n");
-		scanf_s("%d", keyboardBuffs);
-		ThisMastersConfigs.communicationPeriod = *(uint16_t*)&keyboardBuffs[0];
+		scanf_s("%d", buffer);
+		ThisMastersConfigs.communicationPeriod = *(uint16_t*)&buffer[0];
 		printf_s("Enter the array of data to read/write\n");
-		memset(keyboardBuffs, 0, sizeof(keyboardBuffs));
-		ScanKeyboardWithWhiteSpaces(keyboardBuffs, 255);
-		memcpy_s(InterfacePort.BufferToSend, 255, keyboardBuffs, 255);
+		memset(buffer, 0, maxPossibleLen);
+		ScanKeyboardWithWhiteSpaces(buffer, 255);
+		memcpy_s(InterfacePort.BufferToSend, 255, buffer, 255);
 		ThisMastersConfigs.dataToWrite = InterfacePort.BufferToSend;
 		ThisMastersConfigs.Status = 1; //Masters configuration inited!
 		ConsolesMenuHandle.CMD[MAKE_PACKET] = 0;

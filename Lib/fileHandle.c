@@ -14,15 +14,18 @@ FSIZE_t getSizeOfFile(FIL *fp)
 
 FRESULT ReadFileTillLine(char* outBuffer, const size_t maxPossibleLen, FIL* Stream)
 {
+    FRESULT fres = FR_OK;
     char* estr = f_gets(outBuffer, maxPossibleLen, Stream);
     if (estr == NULL)
     {
         if (!f_eof(Stream) == NULL)
         {
-            return FR_INVALID_PARAMETER;//~FR_OK;
+#ifndef DEBUG_ON_VS
+            fres = FR_INVALID_PARAMETER;//~FR_OK;
+#endif // DEBUG_ON_VS             
         }
     }
-    return FR_OK; //FR_OK
+    return fres; //FR_OK
 }
 
 //before calling this function file should be open

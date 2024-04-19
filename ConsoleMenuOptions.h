@@ -42,4 +42,4 @@ struct ConsolesMenuHandle_Type ConsolesMenuHandle;
 uint8_t StringCompareAndParseToNum(char* inBuff, uint8_t maxPossibleLen);
 void SettingsCMD_Handling(char* inBuff, const uint16_t maxPossibleLen);
 int ScanKeyboardWithWhiteSpaces(char* inBuff, uint16_t maxPossibleLen);
-void ScanCMDsScenarios(void);
+void ScanCMDsScenarios(char* buffer, const int maxPossibleLen);

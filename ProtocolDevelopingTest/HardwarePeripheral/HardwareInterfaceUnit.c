@@ -1,9 +1,20 @@
 #include "HardwareInterfaceUnit.h"
 #include "../IO_immitationBetweenMasterSlave/PortsBusMessages.h"
+#include "../../MultiThreadSupport.h"
 
 extern char mastersMessageId[] = "MASTER_WRITE:";
+HANDLE iofileMutex;
+FIL FileHandle;
 
 #define ONLY //just nothing. Only for clarifying ports state currently
+
+int InitPort(InterfacePortHandle_t* PortHandle)
+{
+	int res = 0;
+	iofileMutex = CreateMutexW(NULL, 1, "IOFILE_Mutex");
+	ReleaseMutex(iofileMutex);
+	return res;
+}
 
 int Write(InterfacePortHandle_t* PortHandle, const uint8_t *inBuff, const int size)
 {
@@ -31,12 +42,17 @@ static int immitationOfPortsBus(InterfacePortHandle_t* PortHandle) //! immitatio
 	char *mastersBusMessageId = mastersMessageId;
 	//"%s%s %s\n"
 	sprintf(buffer, "%s %s\n", mastersBusMessageId, PortHandle->BufferToSend); //sizes?
-	FIL* f = fopen(iofilePath, "a+"); //a
+	TakeMutex(&iofileMutex, INFINITE);
+	FIL* f = &FileHandle;
+	f = fopen(iofilePath, "a+"); //a
 	if (f == NULL) {
+		//fclose(f);
+		ReleaseMutex(iofileMutex);
 		res = -1;
 		return res;
 	}
 	size_t siz = fwrite(buffer, strlen(buffer), 1/*??*/, f);// fwprintf, .._s
+	ReleaseMutex(iofileMutex);
 	res = (int)siz;
 	fclose(f);
 	if (res > 0) {
@@ -53,14 +69,17 @@ int immitationReceivingOfPortsBus(InterfacePortHandle_t* outPortHandle)
 	int PortNo = 0;
 	//char portsBusMessageId = portsMessageId;
 
-	//get(iofileMutex);
-	FIL* f = fopen(iofilePath, "r");
+	TakeMutex(&iofileMutex, INFINITE);
+	FIL* f = &FileHandle;
+	f = fopen(iofilePath, "r"); //!+ fopen_s(&file, fname, "r")  use this, more safely
 	if (f == NULL) {
+		//fclose(f);
+		ReleaseMutex(iofileMutex);
 		res = -1;
 		return res;
 	}
 	FRESULT fres = ReadTheLastLineOfFile(buffer, sizeof(buffer), f);
-	//release(iofileMutex);
+	ReleaseMutex(iofileMutex);
 	/*if (strncmp(buffer, portsMessageId, strlen(portsMessageId) - 2) == 0) {
 		buffer[strlen(portsMessageId) - 2] = PortNo;
 	}*/

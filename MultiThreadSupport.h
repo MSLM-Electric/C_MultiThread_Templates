@@ -21,3 +21,5 @@ typedef struct {
 
 int ThreadCreation(ThreadNamePtr_fn* ThreadName, ThreadsStruct_t *ThreadStruct, int Data_Of_Thread);
 int ThreadInit(LPVOID lpParam);
+//int CreateMutex(HANDLE* mutexId, char* nameOfMutex); //InitMutex()
+int TakeMutex(HANDLE *mutexId, const uint32_t timeout);
