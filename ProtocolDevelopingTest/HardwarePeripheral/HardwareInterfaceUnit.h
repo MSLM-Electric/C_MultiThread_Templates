@@ -32,13 +32,14 @@ typedef struct {
 	enum InterfacePortState_e Status; //(int)
 }InterfacePortHandle_t;
 
-InterfacePortHandle_t InterfacePort; //InterfacePort[ALL_CHANNELS]
+InterfacePortHandle_t InterfacePort; //InterfacePort[ALL_CHANNELS] //InterfacePort[PORT0];
 
 int Write(InterfacePortHandle_t *PortHandle, const uint8_t *inBuff, const int size);
 int Recv(InterfacePortHandle_t *PortHandle, uint8_t *outBuff, const int maxPossibleSize);
 void TransmitInterrupt(void* arg); //Call_TXInterrupt()
-void ReceiveInterrupt(void* arg);
+void Called_RXInterrupt(void* arg); //void ReceiveInterrupt(void* arg);
 //int SentInterrupt(void); //End of transmit callback
+int immitationReceivingOfPortsBus(InterfacePortHandle_t* outPortHandle);
 
 
 #endif // !HARDWARE_INTERFACE_UNIT_H

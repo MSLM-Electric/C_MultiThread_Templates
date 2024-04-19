@@ -35,8 +35,11 @@ static menuChoise_t MenuOption[cmdsValEnumslastINDEX-1] = {
 };
 
 struct ConsolesMenuHandle_Type {
-	uint8_t CMD[cmdsValEnumslastINDEX - 1];
+	uint8_t CMD[cmdsValEnumslastINDEX - 1];  //mb sounds better: IsEnabledCMD[] or IsCMDEnabled[]
 };
 struct ConsolesMenuHandle_Type ConsolesMenuHandle;
 
 uint8_t StringCompareAndParseToNum(char* inBuff, uint8_t maxPossibleLen);
+void SettingsCMD_Handling(char* inBuff, const uint16_t maxPossibleLen);
+int ScanKeyboardWithWhiteSpaces(char* inBuff, uint16_t maxPossibleLen);
+void ScanCMDsScenarios(void);

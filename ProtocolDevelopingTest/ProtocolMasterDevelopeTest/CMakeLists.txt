@@ -31,6 +31,7 @@ set(HEADERS
 	${LIB_DIR}/fileHandle.h
 	${HARDWARE_PERIPHERAL}/HardwareInterfaceUnit.h
 	${IOFILE_PATH}/MasterImmitationCfg.h
+	${IOFILE_PATH}/PortsBusMessages.h
 	#${IOFILE_PATH}/SlaveImmitationCfg.h  //not needed! Its for SlaveProtocolDeveloping
 )
 	#${ROOT_SRC_DIR}/*.h

@@ -1,4 +1,6 @@
 #include "HardwareInterfaceUnit.h"
+#include "../IO_immitationBetweenMasterSlave/PortsBusMessages.h"
+
 extern char mastersMessageId[] = "MASTER_WRITE:";
 
 #define ONLY //just nothing. Only for clarifying ports state currently
@@ -21,7 +23,7 @@ int Recv(InterfacePortHandle_t* PortHandle, uint8_t *outBuff, const int maxPossi
 
 }
 
-static int immitationOfPortsBus(InterfacePortHandle_t* PortHandle)
+static int immitationOfPortsBus(InterfacePortHandle_t* PortHandle) //! immitationSendingOfPortsBus()
 {
 	int res = 0;
 	char buffer[300];
@@ -30,18 +32,67 @@ static int immitationOfPortsBus(InterfacePortHandle_t* PortHandle)
 	//"%s%s %s\n"
 	sprintf(buffer, "%s %s\n", mastersBusMessageId, PortHandle->BufferToSend); //sizes?
 	FIL* f = fopen(iofilePath, "a+"); //a
-	if (f == NULL)
+	if (f == NULL) {
 		res = -1;
+		return res;
+	}
 	size_t siz = fwrite(buffer, strlen(buffer), 1/*??*/, f);// fwprintf, .._s
 	res = (int)siz;
 	fclose(f);
-	if (res > 0)
-		TransmitInterrupt(PortHandle); //Call_TXInterrupt()
+	if (res > 0) {
+		ThisMastersConfigs/*[PortNo]*/.currentIOfileLine++;
+		TransmitInterrupt(PortHandle); //Called_TXInterrupt()
+	}
 	return res;
 }
 
-void TransmitInterrupt(void *arg) {
+int immitationReceivingOfPortsBus(InterfacePortHandle_t* outPortHandle)
+{
+	int res = 0;
+	char buffer[300];
+	int PortNo = 0;
+	//char portsBusMessageId = portsMessageId;
+
+	//get(iofileMutex);
+	FIL* f = fopen(iofilePath, "r");
+	if (f == NULL) {
+		res = -1;
+		return res;
+	}
+	FRESULT fres = ReadTheLastLineOfFile(buffer, sizeof(buffer), f);
+	//release(iofileMutex);
+	/*if (strncmp(buffer, portsMessageId, strlen(portsMessageId) - 2) == 0) {
+		buffer[strlen(portsMessageId) - 2] = PortNo;
+	}*/
+	if ((fres == FR_OK) && (strncmp(buffer, slavesMessageId, strlen(slavesMessageId)) == 0)) { //fres = FR_INVALID_PARAMETER?? But is ok?
+
+		if (ThisMastersConfigs.lastReadedLine != ThisMastersConfigs.currentIOfileLine) {
+			//Port occured a data on Bus 
+			//we pretend that the Hardware has the big FIFO
+			memcpy_s(InterfacePort.BufferRecved, sizeof(InterfacePort.LenDataToRecv), &buffer[strlen(slavesMessageId)], sizeof(InterfacePort.LenDataToRecv));
+			ThisMastersConfigs.lastReadedLine = ThisMastersConfigs.currentIOfileLine++;
+			Called_RXInterrupt(&InterfacePort);
+		}
+	}
+	else {
+		res = (int)fres;
+	}
+	return res;
+}
+
+void TransmitInterrupt(void *arg) 
+{
 	InterfacePortHandle_t* Port = (InterfacePortHandle_t *)arg;
 	Port->Status &= ~PORT_SENDING;
 	Port->Status |= PORT_SENDED;
+}
+
+void Called_RXInterrupt(void* arg)
+{
+	InterfacePortHandle_t* Port = (InterfacePortHandle_t*)arg;
+	Port->Status |= PORT_RECEIVED;
+	if (InterfacePort.BufferRecved[0] == ThisMastersConfigs.SlavesAddressToTalk){ //IsThisDataForMe();
+		;
+	}
+	return;
 }

@@ -7,6 +7,7 @@ char mastersMessageId[];
 typedef struct{
   uint8_t Status;
   uint32_t lastReadedLine; //from IO File
+  uint32_t currentIOfileLine;
   uint16_t SlavesAddressToTalk;
   uint8_t  function;
   uint16_t AddressOfSlavesMemoryToTalk;
