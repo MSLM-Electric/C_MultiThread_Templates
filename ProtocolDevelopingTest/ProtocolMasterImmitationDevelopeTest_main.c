@@ -17,6 +17,7 @@ uint8_t someData[128] = {0};
 uint8_t getData[1024];
 uint16_t catchPoint = 0;
 extern char iofilePath[] = IOFILE_PATH;
+extern char globMutexFile[] = GLOB_MUTEX_FILE;
 
 /*DE*/ uint8_t MoreDetailsInShowing = 0;
 /*PA*/ uint8_t PauseConsoleCommand = 1;
@@ -38,6 +39,7 @@ typedef struct{
 interrupt_simulate_handle_t callInterrupt;
 dma_simulate_handle_t DMAHandle;
 Timerwp_t UsersTimer;
+Timerwp_t MonitoringTim;
 /*TI*/ uint8_t testTimer = 0;
 
 void callback()
@@ -98,6 +100,8 @@ int main()
 #ifdef DEBUG_ON_VS
 	InitTimerWP(&UsersTimer, (tickptr_fn*)GetTickCount);
 	InitTimerWP(&MainProgrammDelay, (tickptr_fn*)GetTickCount);
+	InitTimerWP(&MonitoringTim, (tickptr_fn*)GetTickCount);
+	MonitoringTim.setVal = (U32_ms)4000; //default
 #endif // DEBUG_ON_VS
 	LaunchTimerWP((U32_ms)2000, &MainProgrammDelay);
 	InitPort(&InterfacePort);
@@ -134,8 +138,9 @@ int main()
 			LaunchTimerWP(InterfacePort.communicationPeriod, &UsersTimer);
 			if (IsTimerWPRinging(&UsersTimer)) {
 				RestartTimerWP(&UsersTimer);
-				int res = Write(&InterfacePort, &InterfacePort.BufferToSend, InterfacePort.LenDataToSend);
-				res = Recv(&InterfacePort, &InterfacePort.BufferRecved, sizeof(InterfacePort.BufferRecved));
+				if (Write(&InterfacePort, &InterfacePort.BufferToSend, InterfacePort.LenDataToSend) > 0) { // =>0//?
+					res = Recv(&InterfacePort, &InterfacePort.BufferRecved, sizeof(InterfacePort.BufferRecved));
+				}
 			}
 		}
 	}
@@ -210,10 +215,17 @@ DWORD WINAPI TickThread(LPVOID lpParam)
 	uint16_t testCount = 0;
 	while (1)
 	{
+		if (ConsolesMenuHandle.CMD[ENABLE_TIMER]) {
+			LaunchTimerWP(MonitoringTim.setVal, &MonitoringTim);
+			if (IsTimerWPRinging(&MonitoringTim))
+				RestartTimerWP(&MonitoringTim);
+		}else{
+			StopTimerWP(&MonitoringTim);
+		}
 	}
 }
 
-DWORD WINAPI ThreadReading(LPVOID lpParam)
+DWORD WINAPI ThreadReading(LPVOID lpParam) //
 {
 	int res = ThreadInit(lpParam);
 
@@ -222,12 +234,29 @@ DWORD WINAPI ThreadReading(LPVOID lpParam)
 	Timerwp_t readingIOfilePeriod;
 	InitTimerWP(&readingIOfilePeriod, (tickptr_fn*)GetTickCount);
 	LaunchTimerWP((U32_ms)1000, &readingIOfilePeriod);
+	stopwatchwp_t testMeasure[2];
+	InitStopWatchWP(&testMeasure[0], (tickptr_fn*)GetTickCount);
+	InitStopWatchWP(&testMeasure[1], (tickptr_fn*)GetTickCount);
 	while (1)
 	{
 		if (IsTimerWPRinging(&readingIOfilePeriod)) {
 			RestartTimerWP(&readingIOfilePeriod);
 			if(InterfacePort.Status & (PORT_READY | PORT_RECEIVING) == (PORT_READY | PORT_RECEIVING))
 				immitationReceivingOfPortsBus(&InterfacePort);  //reading file shouldn't be so fast!
+		}
+		if (IsTimerWPRinging(&InterfacePort.ReceivingTimer)) { //also you can put it on TickThread()
+			InterfacePort.Status &= ~PORT_RECEIVING;
+			StopTimerWP(&InterfacePort.ReceivingTimer);
+			StopWatchWP(&testMeasure[0]);
+		}
+		if (IsTimerWPRinging(&MonitoringTim)) {
+			printf("Received timeout test measure: %u\n", testMeasure[0].measuredTime);
+			printf("Sending timeout test measure: %u\n", testMeasure[1].measuredTime);
+		}
+		if (IsTimerWPRinging(&InterfacePort.SendingTimer)) {
+			InterfacePort.Status &= ~PORT_SENDING;
+			StopTimerWP(&InterfacePort.SendingTimer);
+			StopWatchWP(&testMeasure[1]);
 		}
 	}
 }

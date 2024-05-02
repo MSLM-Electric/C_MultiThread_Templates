@@ -135,6 +135,13 @@ void ScanCMDsScenarios(char *buffer, const int maxPossibleLen)
 		ThisMastersConfigs.Status = 1; //Masters configuration inited!
 		ConsolesMenuHandle.CMD[MAKE_PACKET] = 0;
 	}
+	else if (ConsolesMenuHandle.CMD[SET_TIMER_PERIOD]) {
+		memset(buffer, 0, maxPossibleLen);
+		printf_s("Set Monitoring Timers period:\n");
+		scanf_s("%d", buffer);
+		MonitoringTim.setVal = *(uint16_t*)&(buffer[0]);
+		ConsolesMenuHandle.CMD[SET_TIMER_PERIOD] = 0;
+	}
 	//free(keyboardBuffs);
 	return;
 }

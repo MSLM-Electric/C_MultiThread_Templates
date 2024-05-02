@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "Lib/SimpleTimerWP.h"
 
 enum cmdsValEnums {
 	ALL = 1,  //it shows all states of your functns
@@ -9,6 +10,7 @@ enum cmdsValEnums {
 	DMA_ENABLE,
 	START_COMMUNICATION,
 	STOP_COMMUNICATION,
+	SET_TIMER_PERIOD,
 	EXAMPLE, /*//Users code*/
 	cmdsValEnumslastINDEX
 };
@@ -24,10 +26,11 @@ static menuChoise_t MenuOption[cmdsValEnumslastINDEX-ALL] = {
 	{"DETAILS", DETAILS},
 	{"PAUSE", PAUSE_CONSOLE},
 	{"TIMENABLE", ENABLE_TIMER},
-	{"MAKEPACKET", MAKE_PACKET},
+	{"MAKEPACK", MAKE_PACKET}, //"MAKEPACKET"
 	{"DMAONOFF", DMA_ENABLE},
-	{"STARTCOMMUNIC", START_COMMUNICATION},
-	{"STOPCOMMUNIC", STOP_COMMUNICATION},
+	{"STARTCOM", START_COMMUNICATION}, //"STARTCOMMUNIC"
+	{"STOPCOM", STOP_COMMUNICATION},   //"STOPCOMMUNIC"
+	{"SETPERIO", SET_TIMER_PERIOD},
 	//Users code
 	/*------------------------------Put your Functions launch here----------------------------*/
 	{"EXAMPLE", EXAMPLE},
@@ -38,6 +41,7 @@ struct ConsolesMenuHandle_Type {
 	uint8_t CMD[cmdsValEnumslastINDEX - ALL];  //?!mb sounds better: IsEnabledCMD[] or IsCMDEnabled[]
 };
 struct ConsolesMenuHandle_Type ConsolesMenuHandle;
+extern Timerwp_t MonitoringTim;
 
 uint8_t StringCompareAndParseToNum(char* inBuff, uint8_t maxPossibleLen);
 void SettingsCMD_Handling(char* inBuff, const uint16_t maxPossibleLen);

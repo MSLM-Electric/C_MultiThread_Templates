@@ -12,7 +12,7 @@ set(LIB_DIR ${ROOT_PATH}/Lib)
 set(ROOT_SRC_DIR ${ROOT_PATH})
 set(HARDWARE_PERIPHERAL ${ROOT_PATH}/ProtocolDevelopingTest/HardwarePeripheral)
 set(PROTOCOL_MASTER_MAIN ${ROOT_PATH}/ProtocolDevelopingTest)
-set(IOFILE_PATH ${PROTOCOL_MASTER_MAIN}/IO_immitationBetweenMasterSlave)
+include(${PROTOCOL_MASTER_MAIN}/globDefines.cmake)
 
 set(SOURCES
 	${PROTOCOL_MASTER_MAIN}/ProtocolMasterImmitationDevelopeTest_main.c
@@ -25,7 +25,7 @@ set(SOURCES
 	#${ROOT_SRC_DIR}/*.c
 	#${LIB_DIR}/*.c
 	#${HARDWARE_PERIPHERAL}/*.c
-
+message(${IOFILE_PATH} )
 set(HEADERS
 	${ROOT_SRC_DIR}/ConsoleMenuOptions.h
 	${ROOT_SRC_DIR}/MultiThreadSupport.h
@@ -36,9 +36,6 @@ set(HEADERS
 	${IOFILE_PATH}/PortsBusMessages.h
 	#${IOFILE_PATH}/SlaveImmitationCfg.h  //not needed! Its for SlaveProtocolDeveloping
 )
-	#${ROOT_SRC_DIR}/*.h
-	#${LIB_DIR}/*.h
-	#${HARDWARE_PERIPHERAL}/*.h
 
 #next line exports lib file on build/Debug/*.dll (shared); *.lib (static)
 #add_library(ProtocolDevelopeLibrary SHARED ${SOURCES} ${HEADERS})
@@ -60,5 +57,3 @@ target_link_options(${PROJ_NAME} PRIVATE "/MAP:${PROJECT_SOURCE_DIR}/outputProje
 #the next is only gcc option and helps us to see how many memory used
 #before using it configure the linker script file!
 #target_link_options(${PROJ_NAME} PRIVATE -Wl,--print-memory-usage)
-
-add_definitions(-DIOFILE_PATH="${IOFILE_PATH}/iofile.txt") #cause of ROOT_PATH it goes back twicely (../..//)

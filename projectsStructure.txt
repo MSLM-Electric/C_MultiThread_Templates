@@ -31,3 +31,4 @@ Currently working at: ProtocolDevelopeTemplate Project
 
 TODO: Main background process not showing after entering "PAUSE" off. Fix or change the approach on PAUSE node code in ConsoleMenuHandle. Or
 Leave it as it was, but just ...
+TODO: Reading IOfile make matchable with Port.ReceivingTimer (mb, think about it again)

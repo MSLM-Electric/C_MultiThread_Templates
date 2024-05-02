@@ -6,6 +6,7 @@ char mastersMessageId[] = MASTER_MESSAGE_ID;
 char slavesMessageId[] = SLAVE_MESSAGE_ID;
 HANDLE iofileMutex;
 FIL FileHandle;
+FIL MutexFileHandle;
 
 #define ONLY //just nothing. Only for clarifying ports state currently
 
@@ -18,13 +19,16 @@ int InitPort(InterfacePortHandle_t* PortHandle)
 #ifdef MASTER_PORT_PROJECT
 	PortHandle->Status |= PORT_MASTER;
 #endif // MASTER_PORT_PROJECT
-
+	InitTimerWP(&PortHandle->ReceivingTimer, (tickptr_fn*)GetTickCount);
+	InitTimerWP(&PortHandle->SendingTimer, (tickptr_fn*)GetTickCount);
+	PortHandle->ReceivingTimer.setVal = (U32_ms)200; //Default 200ms
+	PortHandle->SendingTimer.setVal = (U32_ms)200; //def
 	return res;
 }
 
 int Write(InterfacePortHandle_t* PortHandle, const uint8_t *inBuff, const int size)
 {
-	int res;
+	int res = -1;
 	if ((PortHandle->Status & (PORT_READY | PORT_SENDING | PORT_RECEIVING /*| PORT_ASYNC*/)) == ONLY (PORT_READY /*| PORT_ASYNC*/)) {
 		PortHandle->Status |= PORT_SENDING;
 		//memcpy(PortHandle->BufferToSend, inBuff, size);
@@ -32,8 +36,17 @@ int Write(InterfacePortHandle_t* PortHandle, const uint8_t *inBuff, const int si
 		res = immitationOfPortsBus(PortHandle);
 		if (res < 0) {
 			//PORT_ERROR//?;
+		}else{
+			;;
 		}
 	}
+	else if((PortHandle->Status & (PORT_READY | PORT_SENDING /*| PORT_ASYNC*/)) == ONLY(PORT_READY | PORT_SENDING)) {
+		RestartTimerWP(&PortHandle->SendingTimer);
+	}
+	else {
+		res = -4;
+	}
+	return res;
 }
 
 int Recv(InterfacePortHandle_t* PortHandle, uint8_t *outBuff, const int maxPossibleSize)
@@ -43,7 +56,7 @@ int Recv(InterfacePortHandle_t* PortHandle, uint8_t *outBuff, const int maxPossi
 		//Enable Hardware RX Interrupt
 		PortHandle->Status |= PORT_RECEIVING;
 		PortHandle->Status &= ~PORT_RECEIVED;
-		//Launch ReceivingTimer;
+		//RestartTimerWP(&PortHandle->ReceivingTimer);
 		return res;
 	}
 }
@@ -51,6 +64,10 @@ int Recv(InterfacePortHandle_t* PortHandle, uint8_t *outBuff, const int maxPossi
 static int immitationOfPortsBus(InterfacePortHandle_t* PortHandle) //! immitationSendingOfPortsBus()
 {
 	int res = 0;
+	FRESULT fres = FR_OK;
+	fres = TakeGLOBMutex(&MutexFileHandle, INFINITE);
+	if (fres != FR_OK)
+		return res = -3;
 	char buffer[300];
 	//char portsBusMessageId = portsMessageId;
 	char* DirectionSendingOfBusMessageId;
@@ -73,6 +90,7 @@ static int immitationOfPortsBus(InterfacePortHandle_t* PortHandle) //! immitatio
 	size_t siz = fwrite(buffer, strlen(buffer), 1/*??*/, f);// fwprintf, .._s
 	fclose(f);
 	ReleaseMutex(iofileMutex);
+	RealeaseGLOBMutex(&MutexFileHandle);
 	res = (int)siz;
 	commonMasterSlaveCfgs_t* currentObjCfg;
 #ifdef MASTER_PORT_PROJECT
@@ -132,8 +150,9 @@ int immitationReceivingOfPortsBus(InterfacePortHandle_t* outPortHandle)
 		}
 		Called_RXInterrupt(&InterfacePort);
 	}
-	else {
+	else { //?
 		res = (int)fres;
+		RestartTimerWP(&outPortHandle->ReceivingTimer);
 	}
 	return res;
 }
@@ -143,6 +162,7 @@ void TransmitInterrupt(void *arg)
 	InterfacePortHandle_t* Port = (InterfacePortHandle_t *)arg;
 	Port->Status &= ~PORT_SENDING;
 	Port->Status |= PORT_SENDED;
+	StopTimerWP(&Port->SendingTimer);
 }
 
 void Called_RXInterrupt(void* arg)

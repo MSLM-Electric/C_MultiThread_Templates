@@ -63,3 +63,72 @@ FRESULT ReadTheLastLineOfFile(char* outBuffer, const size_t maxPossibleLen, FIL*
     f_close(f);
     return fres;
 }
+
+
+#ifdef GLOB_MUTEX_FILE
+#define NOT !
+#include "SimpleTimerWP.h"
+FRESULT TakeGLOBMutex(/*char* tempBuffer, const size_t maxPossibleLen,*/ FIL *f, uint32_t timeOut)
+{
+    Timerwp_t _TimeOut, readPeriod;
+    char buffer[100];
+    InitTimerWP(&_TimeOut, (tickptr_fn*)GetTickCount);
+    InitTimerWP(&readPeriod, (tickptr_fn*)GetTickCount);
+    LaunchTimerWP((U32_ms)timeOut, &_TimeOut);
+    LaunchTimerWP((U32_ms)10, &readPeriod);
+    FRESULT fres = FR_OK; //FR_NOT_READY;
+    do {
+        f = fopen(GLOB_MUTEX_FILE, "r+");
+        if (f == NULL) {
+            fres = FR_NOT_READY;
+            return fres;
+        }
+        memset(buffer, 0, sizeof(buffer));
+        fres = ReadFileTillLine(buffer, sizeof(buffer), f);
+        if ((fres == FR_OK) && (strncmp(buffer, FILE_MUTEX_REALEASED, strlen(FILE_MUTEX_REALEASED)) == 0)) {
+            //f_lseek(f, 0);
+            fseek(f, 0, SEEK_SET);
+            sprintf(buffer, "%s    ", (char*)FILE_MUTEX_TAKEN);
+            size_t siz = fwrite(buffer, strlen(buffer), 1, f);
+            StopTimerWP(&_TimeOut);
+            StopTimerWP(&readPeriod);
+            f_close(f);
+            return fres;
+        }
+        f_close(f);
+        while (NOT IsTimerWPRinging(&readPeriod));
+        RestartTimerWP(&readPeriod);
+    } while (NOT IsTimerWPRinging(&_TimeOut));
+    f_close(f);
+    StopTimerWP(&_TimeOut);
+    StopTimerWP(&readPeriod);
+    return FR_NOT_READY;
+}
+
+FRESULT RealeaseGLOBMutex(FIL* f)
+{
+    FRESULT fres = FR_OK;
+    f = fopen(GLOB_MUTEX_FILE, "r+");
+    if (f == NULL) {
+        fres = FR_TOO_MANY_OPEN_FILES;
+        return fres;
+    }
+    char buffer[100];
+    memset(buffer, 0, sizeof(buffer));
+    fres = ReadFileTillLine(buffer, sizeof(buffer), f);
+    if ((fres == FR_OK) && (strncmp(buffer, FILE_MUTEX_TAKEN, strlen(FILE_MUTEX_TAKEN)) == 0)) {
+        //f_lseek(f, 0);
+        fseek(f, 0, SEEK_SET);
+        sprintf(buffer, "%s\n", (char*)FILE_MUTEX_REALEASED);
+        size_t siz = fwrite(buffer, strlen(buffer), 1, f);
+        f_close(f);
+        return fres;
+    }
+    else if ((fres == FR_OK) && (strncmp(buffer, FILE_MUTEX_REALEASED, strlen(FILE_MUTEX_REALEASED)) == 0)) {
+        f_close(f);
+        return fres;
+    }
+    f_close(f);
+    return FR_NOT_READY;
+}
+#endif // GLOB_MUTEX_FILE

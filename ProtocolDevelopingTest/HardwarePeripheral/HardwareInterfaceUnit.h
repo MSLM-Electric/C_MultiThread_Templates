@@ -13,6 +13,9 @@
 #ifdef IOFILE_PATH
 char iofilePath[200];
 #endif // IOFILE_PATH
+#ifdef GLOB_MUTEX_FILE
+char globMutexFile[200];
+#endif //GLOB_MUTEX_FILE
 
 enum {
 	//PORT_OFF = 0, //PORT_CLEAR,
@@ -22,7 +25,7 @@ enum {
 	PORT_SENDED = 1 << 3,
 	PORT_RECEIVING = 1 << 4, //mb not needed
 	PORT_RECEIVED = 1 << 5,
-	PORT_ASYNC = 1 << 6,     //if zero, then it is a PORT_SYNC
+	PORT_ASYNC = 1 << 6,     //if zero, then it is a PORT_SYNC.  PORT_ASYNC = RS-485/CAN like interfaces.
 	PORT_MASTER = 1 << 7,    //if zero, it is SLAVE (good approach//?)
 	//..
 	// PORT_ERROR //?
@@ -49,6 +52,10 @@ void TransmitInterrupt(void* arg); //Call_TXInterrupt()
 void Called_RXInterrupt(void* arg); //void ReceiveInterrupt(void* arg);
 //int SentInterrupt(void); //End of transmit callback
 int immitationReceivingOfPortsBus(InterfacePortHandle_t* outPortHandle);
+#ifdef GLOB_MUTEX_FILE
+FRESULT TakeGLOBMutex(/*char* tempBuffer, const size_t maxPossibleLen,*/ FIL* f, uint32_t timeOut);
+FRESULT RealeaseGLOBMutex(FIL* f);
+#endif // GLOB_MUTEX_FILE
 
 
 #endif // !HARDWARE_INTERFACE_UNIT_H

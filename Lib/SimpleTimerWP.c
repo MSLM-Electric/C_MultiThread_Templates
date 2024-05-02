@@ -134,7 +134,7 @@ void StopTimerWP(Timerwp_t* Timer) //or RestartTimer
 	if (Timer != NULL) {
 		//if (Timer->ptrToTick == NULL)
 		//	return;
-		Timer->setVal = 0;
+		//Timer->setVal = 0;
 		Timer->launchedTime = 0;
 		Timer->Start = 0;
 	}
