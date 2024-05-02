@@ -1,9 +1,11 @@
 #ifndef PORTSBUSMESSAGES_H
 #define PORTSBUSMESSAGES_H
 
-char portsMessageId[]        =  "PORT_N ";
+/*const*/ extern char portsMessageId[]   =  "PORT_N ";
 
-char mastersMessageId[];   //=  "MASTER_WRITE:";
-const char slavesMessageId[] =  "SLAVE__WRITE:";
+/*const*/ extern char mastersMessageId[];
+#define MASTER_MESSAGE_ID "MASTER_WRITE:"
+/*const*/ extern char slavesMessageId[];
+#define SLAVE_MESSAGE_ID "SLAVE__WRITE:"
 
 #endif //PORTSBUSMESSAGES_H

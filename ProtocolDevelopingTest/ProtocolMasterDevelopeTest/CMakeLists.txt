@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.12)
 project(ProtocolMasterDevelopeTest)
 set(PROJ_NAME ProtocolMasterDevelopeTest)
 
+add_definitions(-DMASTER_PORT_PROJECT)
+
 set(ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../")
 #on Lib located inc and src
 set(LIB_DIR ${ROOT_PATH}/Lib)

@@ -104,6 +104,10 @@ int main()
 
 	while (1)
 	{
+		if (ConsolesMenuHandle.CMD[PAUSE_CONSOLE]) {
+			PauseConsoleCommand = ~PauseConsoleCommand & 0x1;
+			ConsolesMenuHandle.CMD[PAUSE_CONSOLE] = 0; //Do once by entering command
+		}
 		if (!PauseConsoleCommand) {
 			if (IsTimerWPRinging(&MainProgrammDelay))//Sleep(2000);
 			{
@@ -116,12 +120,12 @@ int main()
 
 		if (ConsolesMenuHandle.CMD[START_COMMUNICATION] && ThisMastersConfigs.Status) { //mutxMaster//!
 			//if (InterfacePort.Status & 0x2)
-				InterfacePort.Status |= 0x1;
+				InterfacePort.Status |= PORT_READY;
 			InterfacePort.communicationPeriod = ThisMastersConfigs.communicationPeriod;
 			//InterfacePort.Status = ThisMastersConfigs.Status; //Port ready to communicating
 			InterfacePort.LenDataToSend = ThisMastersConfigs.LenDataToTalk;
 		}else {
-			InterfacePort.Status &= ~0x1;
+			InterfacePort.Status &= ~PORT_READY;
 		}
 
 		/*Users Thread. */
@@ -214,7 +218,7 @@ DWORD WINAPI ThreadReading(LPVOID lpParam)
 	int res = ThreadInit(lpParam);
 
 	uint16_t testCountR = 0;
-	InterfacePortHandle_t Port;
+	//InterfacePortHandle_t Port;
 	Timerwp_t readingIOfilePeriod;
 	InitTimerWP(&readingIOfilePeriod, (tickptr_fn*)GetTickCount);
 	LaunchTimerWP((U32_ms)1000, &readingIOfilePeriod);
@@ -222,7 +226,8 @@ DWORD WINAPI ThreadReading(LPVOID lpParam)
 	{
 		if (IsTimerWPRinging(&readingIOfilePeriod)) {
 			RestartTimerWP(&readingIOfilePeriod);
-			immitationReceivingOfPortsBus(&Port);  //reading file shouldn't be so fast!
+			if(InterfacePort.Status & (PORT_READY | PORT_RECEIVING) == (PORT_READY | PORT_RECEIVING))
+				immitationReceivingOfPortsBus(&InterfacePort);  //reading file shouldn't be so fast!
 		}
 	}
 }

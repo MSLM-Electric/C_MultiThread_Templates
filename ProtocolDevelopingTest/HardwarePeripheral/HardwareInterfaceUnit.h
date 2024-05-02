@@ -3,7 +3,12 @@
 #include <stdint.h>
 #include "../../Lib/fileHandle.h"
 #include "../../Lib/SimpleTimerWP.h"
+#ifdef MASTER_PORT_PROJECT
 #include "../IO_immitationBetweenMasterSlave/MasterImmitationCfg.h"
+#else //if SLAVE_PORT_PROJECT
+#include "../IO_immitationBetweenMasterSlave/SlaveImmitationCfg.h"
+#endif // MASTER_PORT_PROJECT
+
 
 #ifdef IOFILE_PATH
 char iofilePath[200];
@@ -12,11 +17,13 @@ char iofilePath[200];
 enum {
 	//PORT_OFF = 0, //PORT_CLEAR,
 	PORT_READY = 1,
-	PORT_BUSY = 1 << 1,
+	PORT_BUSY = 1 << 1,      //mb not needed. instead it mb use only receiving flag
 	PORT_SENDING = 1 << 2,
 	PORT_SENDED = 1 << 3,
 	PORT_RECEIVING = 1 << 4, //mb not needed
 	PORT_RECEIVED = 1 << 5,
+	PORT_ASYNC = 1 << 6,     //if zero, then it is a PORT_SYNC
+	PORT_MASTER = 1 << 7,    //if zero, it is SLAVE (good approach//?)
 	//..
 	// PORT_ERROR //?
 }InterfacePortState_e;
@@ -26,10 +33,12 @@ typedef struct {
 	uint8_t BufferToSend[255];
 	uint16_t LenDataToSend;
 	uint16_t LenDataToRecv; //mb maxPossibleDataRecv
-	Timerwp_t ReceivingTimer;     //for bus timeout
+	Timerwp_t ReceivingTimer;     //for port timeout
 	Timerwp_t SendingTimer;       //this is for describing timeout 
 	uint16_t communicationPeriod; //Timerwp_t
 	enum InterfacePortState_e Status; //(int)
+	//u16 outCursor; //outPtr;
+	//u16 inCursor;  //inPtr;
 }InterfacePortHandle_t;
 
 InterfacePortHandle_t InterfacePort; //InterfacePort[ALL_CHANNELS] //InterfacePort[PORT0];

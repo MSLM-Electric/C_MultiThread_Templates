@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.12)
 project(ProtocolSlaveDevelopeTest)
 set(PROJ_NAME ProtocolSlaveDevelopeTest)
 
+add_definitions(-DSLAVE_PORT_PROJECT)
+
 set(ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../")
 #on Lib located inc and src
 set(LIB_DIR ${ROOT_PATH}/Lib)

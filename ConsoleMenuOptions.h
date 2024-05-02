@@ -19,7 +19,7 @@ typedef struct {
 	enum cmdsValEnums optionId;
 }menuChoise_t;
 
-static menuChoise_t MenuOption[cmdsValEnumslastINDEX-1] = {
+static menuChoise_t MenuOption[cmdsValEnumslastINDEX-ALL] = {
 	{"ALL", ALL},
 	{"DETAILS", DETAILS},
 	{"PAUSE", PAUSE_CONSOLE},
@@ -35,7 +35,7 @@ static menuChoise_t MenuOption[cmdsValEnumslastINDEX-1] = {
 };
 
 struct ConsolesMenuHandle_Type {
-	uint8_t CMD[cmdsValEnumslastINDEX - 1];  //mb sounds better: IsEnabledCMD[] or IsCMDEnabled[]
+	uint8_t CMD[cmdsValEnumslastINDEX - ALL];  //?!mb sounds better: IsEnabledCMD[] or IsCMDEnabled[]
 };
 struct ConsolesMenuHandle_Type ConsolesMenuHandle;
 

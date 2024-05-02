@@ -7,6 +7,7 @@ Currently working at: ProtocolDevelopeTemplate Project
 	|   |- SimpleTimerWP.h
 	|   |- fileHandle.c
 	|   |- fileHandle.h
+	|   |- type_def.h  
 	|
 	|- ProtocolDevelopingTest
 	|   |- ProtocolMasterImmitationDevelopeTest_main.c
@@ -17,11 +18,16 @@ Currently working at: ProtocolDevelopeTemplate Project
 	|   |- IO_immitationBetweenMasterSlave
 	|   |   |- iofile.txt
 	|   |	|- MasterImmitationCfg.h
+	|   |   |- PortsBusMessages.h
 	|   |
 	|   |- ProtocolMasterDevelopeTest
 	|       |- CMakeLists.txt   <-- (here our project)
+	|       |- README.md        <-- (instructions to build and run)
 	|
 	|- ConsoleMenuOptions.c
 	|- ConsoleMenuOptions.h
 	|- MultiThreadSupport.c
 	|- MultiThreadSupport.h
+
+TODO: Main background process not showing after entering "PAUSE" off. Fix or change the approach on PAUSE node code in ConsoleMenuHandle. Or
+Leave it as it was, but just ...

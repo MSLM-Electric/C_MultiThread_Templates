@@ -2,8 +2,6 @@
 #define _MASTERIMMITATIONCFG_H_
 #include <stdint.h>
 
-char mastersMessageId[];
-
 typedef struct{
   uint8_t Status;
   uint32_t lastReadedLine; //from IO File
@@ -15,6 +13,12 @@ typedef struct{
   uint16_t communicationPeriod;
   uint8_t* dataToWrite;
 }thisMastercfgs_t;
+
+typedef struct {
+	uint8_t Status;
+	uint32_t lastReadedLine;
+	uint32_t currentIOfileLine;
+}commonMasterSlaveCfgs_t;
 
 thisMastercfgs_t ThisMastersConfigs;
 #endif //_MASTERIMMITATIONCFG_H_
