@@ -12,7 +12,7 @@ set(LIB_DIR ${ROOT_PATH}/Lib)
 set(ROOT_SRC_DIR ${ROOT_PATH})
 set(HARDWARE_PERIPHERAL ${ROOT_PATH}/ProtocolDevelopingTest/HardwarePeripheral)
 set(PROTOCOL_MASTER_MAIN ${ROOT_PATH}/ProtocolDevelopingTest)
-set(IOFILE_PATH ${PROTOCOL_MASTER_MAIN}/IO_immitationBetweenMasterSlave)
+include(${PROTOCOL_MASTER_MAIN}/globDefines.cmake)
 
 set(SOURCES
 	${PROTOCOL_MASTER_MAIN}/ProtocolSlaveImmitationDevelopeTest_main.c
@@ -36,14 +36,8 @@ set(HEADERS
 	${IOFILE_PATH}/SlaveImmitationCfg.h
 	${IOFILE_PATH}/PortsBusMessages.h
 )
-	#${ROOT_SRC_DIR}/*.h
-	#${LIB_DIR}/*.h
-	#${HARDWARE_PERIPHERAL}/*.h
 
-#next line exports lib file on build/Debug/*.dll (shared); *.lib (static)
-#add_library(ProtocolDevelopeLibrary SHARED ${SOURCES} ${HEADERS})
-add_library(ProtocolDevelopeLibrary STATIC ${SOURCES} ${HEADERS})
-#add_library(ProtocolDevelopeLibrary MODULE ${SOURCES} ${HEADERS})
+#add_library(ProtocolDevelopeLibrary STATIC ${SOURCES} ${HEADERS})
 
 add_executable(ProtocolSlaveDevelopeTest ${SOURCES} ${HEADERS})
 
@@ -53,5 +47,4 @@ else()
     target_include_directories(ProtocolSlaveDevelopeTest PUBLIC ${INCLUDE_DIR})
 endif()
 
-target_link_options(${PROJ_NAME} PRIVATE "/MAP:${PROJECT_SOURCE_DIR}/file.map")
-add_definitions(-DIOFILE_PATH="${IOFILE_PATH}/iofile.txt")
+target_link_options(${PROJ_NAME} PRIVATE "/MAP:${PROJECT_SOURCE_DIR}/outputSlaveProject.map")

@@ -31,6 +31,7 @@ typedef struct{
 interrupt_simulate_handle_t callInterrupt;
 dma_simulate_handle_t DMAHandle;
 Timerwp_t UsersTimer;
+Timerwp_t MonitoringTim;
 /*TI*/ uint8_t testTimer = 0;
 
 void callback()
@@ -52,7 +53,6 @@ ThreadsStruct_t Thread1Struct;
 ThreadsStruct_t Thread2Struct;
 ThreadsStruct_t TickThreadStruct;
 
-static void ShowAllStates(void);
 HANDLE sem;
 HANDLE mutx;
 char keyboardBuff[20];
@@ -132,47 +132,14 @@ DWORD WINAPI ThreadNo1(LPVOID lpParam)
 			sprintf(str, keyboardBuff, 2);
 			memset(keyboardBuff, 0, sizeof(keyboardBuff));
 		}
-		
-		switch (StringCompareAndParseToNum(str, NULL)) //maybe we need do it in another way
-		{
-		//Users code
-		/*------------------------------Put your Functions launch here----------------------------*/
-		//case EXAMPLE: {
-		//	ExampleOfYourFunctions();
-		//}break;
-		/*----------------------------------------------------------------------------------------*/
-		case ALL: {
-			ShowAllStates();
-		}break;
-		case DETAILS: {
-			MoreDetailsInShowing = ~MoreDetailsInShowing & 0x01;
-			if (MoreDetailsInShowing)
-				printf("DETAILS ON!\n");
-			else
-				printf("DETAILS OFF!\n");
-		}break;
-		case PAUSE_CONSOLE: {
-			PauseConsoleCommand = ~PauseConsoleCommand & 0x01;
-			if (PauseConsoleCommand)
-				printf("Pause Console ON: Mainbackground process don't show!\n");
-			else
-				printf("Pause Console OFF: Show Mainbackground process!\n");
-		}break;
-		case ENABLE_TIMER: {
-			testTimer =  ~testTimer & 0x01;
-			if (testTimer)
-				printf("Timer ENABLED!\n");
-			else
-				printf("Timer DISABLED!\n");
-		}break;
-		default:
-			break;
-		}
-		memset(str, 0, 2); //memsetstr
+		SettingsCMD_Handling(str, NULL);
+		WaitForSingleObject(mutx, INFINITE);
+		ScanCMDsScenarios(keyboardBuff, sizeof(keyboardBuff));
+		ReleaseMutex(mutx);
 	}
 }
 
-
+#pragma region DMA_IMMITATION_BY_BUTTON
 DWORD WINAPI ThreadNo2(LPVOID lpParam)
 {
 	int res = ThreadInit(lpParam);
@@ -198,7 +165,7 @@ DWORD WINAPI ThreadNo2(LPVOID lpParam)
 		buttonForCallInterruptStateChange = 0;
 	}
 }
-
+#pragma endregion
 
 DWORD WINAPI TickThread(LPVOID lpParam)
 {
@@ -207,37 +174,12 @@ DWORD WINAPI TickThread(LPVOID lpParam)
 	uint16_t testCount = 0;
 	while (1)
 	{
-		if (IsTimerWPRinging(&UsersTimer))
-		{
-			TimerCallback();
-			RestartTimerWP(&UsersTimer); //Restart it if you want periodic implementation
+		if (ConsolesMenuHandle.CMD[ENABLE_TIMER]) {
+			LaunchTimerWP(MonitoringTim.setVal, &MonitoringTim);
+			if (IsTimerWPRinging(&MonitoringTim))
+				RestartTimerWP(&MonitoringTim);
+		}else {
+			StopTimerWP(&MonitoringTim);
 		}
 	}
-}
-
-static void ShowAllStates(void)
-{
-#ifdef DEBUG /*|| ENABLE_SOME_STATES_MONITORING*/
-	printf("\n\n\n..............\n");
-	printf("State 1: = %d\n", State1);
-	printf("State 2: = %d\n", State2);
-	printf("State 3: = %d\n", State3);
-	printf("..............\n");
-#define MORE_DETAILS_SHOW 1
-#if (MORE_DETAILS_SHOW == 1)
-	if (MoreDetailsInShowing) {
-		if (State1.Status & OPEN) {
-			printf("+--> State1.member: = %d\n", State1.member);
-		}
-		if (State2.Status & OPEN) {
-			printf("+--> State2.member: = %d\n", State2.member);
-		}
-		if (State3.Status & OPEN) {
-			printf("+--> State3 - Status: = %d\n", State3.Status);
-			printf("+--> State3 - member: = %d\n", State3.member);
-		}
-	}	
-#endif
-#endif
-	return;
 }

@@ -6,26 +6,31 @@ Download this demo "*.exe" by clicking "Download raw file" and run it.
 
 Projects structure (folders & files)
 
-Currently working at: ProtocolDevelopeTemplate Project
+Currently working at: ProtocolDevelopTemplate Project
 <br />- ROOT_PATH (Root folder)
 <br />   |- Lib
 <br />   |   |- SimpleTimerWP.c
 <br />   |   |- SimpleTimerWP.h
 <br />   |   |- fileHandle.c
 <br />   |   |- fileHandle.h
+<br />   |   |- type_def.h
 <br />   |
 <br />   |- ProtocolDevelopingTest
 <br />   |   |- ProtocolMasterImmitationDevelopeTest_main.c
+<br />   |   |- globDefines.cmake
 <br />   |   |- HardwarePeripheral
 <br />   |   |   |- HardwareInterfaceUnit.c
 <br />   |   |   |- HardwareInterfaceUnit.h
 <br />   |   |
 <br />   |   |- IO_immitationBetweenMasterSlave
 <br />   |   |   |- iofile.txt
-<br />   |   |	|- MasterImmitationCfg.h
+<br />   |   |   |- globMutexHold.txt
+<br />   |   |   |- MasterImmitationCfg.h
+<br />   |   |   |- PortsBusMessages.h
 <br />   |   |
 <br />   |   |- ProtocolMasterDevelopeTest
 <br />   |       |- CMakeLists.txt   <-- (here our project)
+<br />   |       |- README.md        <-- (instructions to build and run)
 <br />   |
 <br />   |- ConsoleMenuOptions.c
 <br />   |- ConsoleMenuOptions.h

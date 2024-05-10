@@ -108,6 +108,7 @@ void ScanCMDsScenarios(char *buffer, const int maxPossibleLen)
 {
 	//char keyboardBuffs[255]; //bad
 	//char *keyboardBuffs = (char *)malloc(255 * sizeof(char));
+#ifdef MASTER_PORT_PROJECT
 	if (ConsolesMenuHandle.CMD[MAKE_PACKET]) {
 		memset(buffer, 0, maxPossibleLen);
 		//mutxMaster//!
@@ -135,13 +136,17 @@ void ScanCMDsScenarios(char *buffer, const int maxPossibleLen)
 		ThisMastersConfigs.Status = 1; //Masters configuration inited!
 		ConsolesMenuHandle.CMD[MAKE_PACKET] = 0;
 	}
-	else if (ConsolesMenuHandle.CMD[SET_TIMER_PERIOD]) {
+	else 
+#endif // MASTER_PORT_PROJECT
+		if (ConsolesMenuHandle.CMD[SET_TIMER_PERIOD]) {
 		memset(buffer, 0, maxPossibleLen);
 		printf_s("Set Monitoring Timers period:\n");
 		scanf_s("%d", buffer);
 		MonitoringTim.setVal = *(uint16_t*)&(buffer[0]);
 		ConsolesMenuHandle.CMD[SET_TIMER_PERIOD] = 0;
 	}
+#ifdef SLAVE_PORT_PROJECT
+#endif // SLAVE_PORT_PROJECT
 	//free(keyboardBuffs);
 	return;
 }

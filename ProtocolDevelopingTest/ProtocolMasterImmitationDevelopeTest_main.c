@@ -20,7 +20,7 @@ extern char iofilePath[] = IOFILE_PATH;
 extern char globMutexFile[] = GLOB_MUTEX_FILE;
 
 /*DE*/ uint8_t MoreDetailsInShowing = 0;
-/*PA*/ uint8_t PauseConsoleCommand = 1;
+/*PA*/ uint8_t PauseConsoleCommand = 0;
 
 enum {
 	INTERRUPT_CALLED = 1,
@@ -105,13 +105,10 @@ int main()
 #endif // DEBUG_ON_VS
 	LaunchTimerWP((U32_ms)2000, &MainProgrammDelay);
 	InitPort(&InterfacePort);
-
+	ConsolesMenuHandle.CMD[PAUSE_CONSOLE] = 1; //enable pause initially
 	while (1)
 	{
-		if (ConsolesMenuHandle.CMD[PAUSE_CONSOLE]) {
-			PauseConsoleCommand = ~PauseConsoleCommand & 0x1;
-			ConsolesMenuHandle.CMD[PAUSE_CONSOLE] = 0; //Do once by entering command
-		}
+		PauseConsoleCommand = ConsolesMenuHandle.CMD[PAUSE_CONSOLE];
 		if (!PauseConsoleCommand) {
 			if (IsTimerWPRinging(&MainProgrammDelay))//Sleep(2000);
 			{
@@ -179,6 +176,7 @@ DWORD WINAPI ThreadWriting(LPVOID lpParam)//rename to ThreadConsoleHandling or T
 	}
 }
 
+#pragma region DMA_IMMITATION_BY_BUTTON
 DWORD WINAPI ThreadNo2(LPVOID lpParam)
 {
 	int res = ThreadInit(lpParam);
@@ -207,6 +205,7 @@ DWORD WINAPI ThreadNo2(LPVOID lpParam)
 		buttonForCallInterruptStateChange = 0;
 	}
 }
+#pragma endregion
 
 DWORD WINAPI TickThread(LPVOID lpParam)
 {
@@ -249,14 +248,14 @@ DWORD WINAPI ThreadReading(LPVOID lpParam) //
 			StopTimerWP(&InterfacePort.ReceivingTimer);
 			StopWatchWP(&testMeasure[0]);
 		}
-		if (IsTimerWPRinging(&MonitoringTim)) {
-			printf("Received timeout test measure: %u\n", testMeasure[0].measuredTime);
-			printf("Sending timeout test measure: %u\n", testMeasure[1].measuredTime);
-		}
 		if (IsTimerWPRinging(&InterfacePort.SendingTimer)) {
 			InterfacePort.Status &= ~PORT_SENDING;
 			StopTimerWP(&InterfacePort.SendingTimer);
 			StopWatchWP(&testMeasure[1]);
+		}
+		if (IsTimerWPRinging(&MonitoringTim)) {
+			printf("Received timeout test measure: %u\n", testMeasure[0].measuredTime);
+			printf("Sending timeout test measure: %u\n", testMeasure[1].measuredTime);
 		}
 	}
 }

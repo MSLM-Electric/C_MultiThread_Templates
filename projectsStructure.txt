@@ -1,6 +1,6 @@
 Projects structure (folders & files)
 
-Currently working at: ProtocolDevelopeTemplate Project
+Currently working at: ProtocolDevelopTemplate Project
 - ROOT_PATH (Root folder)
 	|- Lib
 	|   |- SimpleTimerWP.c
@@ -11,12 +11,14 @@ Currently working at: ProtocolDevelopeTemplate Project
 	|
 	|- ProtocolDevelopingTest
 	|   |- ProtocolMasterImmitationDevelopeTest_main.c
+	|   |- globDefines.cmake
 	|   |- HardwarePeripheral
 	|   |   |- HardwareInterfaceUnit.c
 	|   |   |- HardwareInterfaceUnit.h
 	|   |
 	|   |- IO_immitationBetweenMasterSlave
 	|   |   |- iofile.txt
+	|   |   |- globMutexHold.txt
 	|   |	|- MasterImmitationCfg.h
 	|   |   |- PortsBusMessages.h
 	|   |
@@ -29,6 +31,4 @@ Currently working at: ProtocolDevelopeTemplate Project
 	|- MultiThreadSupport.c
 	|- MultiThreadSupport.h
 
-TODO: Main background process not showing after entering "PAUSE" off. Fix or change the approach on PAUSE node code in ConsoleMenuHandle. Or
-Leave it as it was, but just ...
 TODO: Reading IOfile make matchable with Port.ReceivingTimer (mb, think about it again)

@@ -1,6 +1,7 @@
 ###globDefinesConfig.cmake
 
-get_filename_component(GLOB_DEFINES_DIR "${CMAKE_CURRENT_LIST_FILE}" DIRECTORY)  #TODO: test it in another projs and cmake versions lower 3.0.0!
+get_filename_component(GLOB_DEFINES_DIR "${CMAKE_CURRENT_LIST_FILE}" DIRECTORY)  #TODO: test it in another projs and cmake versions lower 3.0.0! (PATH = Legacy alias for DIRECTORY (use for CMake <= 2.8.11))
+                                                                                 #look at https://cmake.org/cmake/help/v2.8.12/cmake.html#command:get_filename_component
 set(IOFILE_PATH "${GLOB_DEFINES_DIR}/IO_immitationBetweenMasterSlave" CACHE PATH "Path to IO file") #FORCE)
 message(STATUS "IO file path: ${IOFILE_PATH}") #check it always in other platforms. The path may be not proper on another cases. //?!TODO: test it in another projs!  
 

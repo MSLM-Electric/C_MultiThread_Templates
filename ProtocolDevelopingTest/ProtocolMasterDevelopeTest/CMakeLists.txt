@@ -53,7 +53,7 @@ else()
 endif()
 
 #target_link_options(${PROJ_NAME} PUBLIC LINKER:-Map=${PROJ_NAME}.map)
-target_link_options(${PROJ_NAME} PRIVATE "/MAP:${PROJECT_SOURCE_DIR}/outputProject.map")
+target_link_options(${PROJ_NAME} PRIVATE "/MAP:${PROJECT_SOURCE_DIR}/outputMasterProject.map")
 #the next is only gcc option and helps us to see how many memory used
 #before using it configure the linker script file!
 #target_link_options(${PROJ_NAME} PRIVATE -Wl,--print-memory-usage)

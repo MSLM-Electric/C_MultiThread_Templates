@@ -108,8 +108,12 @@ static int immitationOfPortsBus(InterfacePortHandle_t* PortHandle) //! immitatio
 int immitationReceivingOfPortsBus(InterfacePortHandle_t* outPortHandle)
 {
 	int res = 0;
-	char buffer[300];
 	int PortNo = 0;
+	FRESULT fres = FR_OK;
+	fres = TakeGLOBMutex(&MutexFileHandle, INFINITE);
+	if (fres != FR_OK)
+		return res = -3;
+	char buffer[300];
 	//char portsBusMessageId = portsMessageId;
 
 	TakeMutex(&iofileMutex, INFINITE);
@@ -121,8 +125,9 @@ int immitationReceivingOfPortsBus(InterfacePortHandle_t* outPortHandle)
 		res = -1;
 		return res;
 	}
-	FRESULT fres = ReadTheLastLineOfFile(buffer, sizeof(buffer), f);
+	fres = ReadTheLastLineOfFile(buffer, sizeof(buffer), f);
 	ReleaseMutex(iofileMutex);
+	RealeaseGLOBMutex(&MutexFileHandle);
 	/*if (strncmp(buffer, portsMessageId, strlen(portsMessageId) - 2) == 0) {
 		buffer[strlen(portsMessageId) - 2] = PortNo;
 	}*/
@@ -137,13 +142,17 @@ int immitationReceivingOfPortsBus(InterfacePortHandle_t* outPortHandle)
 	}
 	if ((fres == FR_OK) && (strncmp(buffer, DirectionSendingOfBusMessageId, MessageIdlen) == 0)) {
 		if (outPortHandle->Status && PORT_MASTER && (DirectionSendingOfBusMessageId == slavesMessageId)) {
+#ifdef MASTER_PORT_PROJECT
 			if (ThisMastersConfigs.lastReadedLine != ThisMastersConfigs.currentIOfileLine) {
 				//Port detected a datas on Bus 
 				//we pretend that the Hardware has the big FIFO
+				//The copying should be but not in here. This is the immitation of interrupt section
+				//on bus/port by detecting datas on there. The copying must be occure on inside interrupt section. 
 				memcpy_s(InterfacePort.BufferRecved, sizeof(InterfacePort.LenDataToRecv), &buffer[strlen(slavesMessageId)], sizeof(InterfacePort.LenDataToRecv));
 				ThisMastersConfigs.lastReadedLine = ThisMastersConfigs.currentIOfileLine++;
 				//Called_RXInterrupt(&InterfacePort);
 			}
+#endif // MASTER_PORT_PROJECT
 		}
 		else if ((DirectionSendingOfBusMessageId == mastersMessageId)) {
 			;
@@ -152,7 +161,7 @@ int immitationReceivingOfPortsBus(InterfacePortHandle_t* outPortHandle)
 	}
 	else { //?
 		res = (int)fres;
-		RestartTimerWP(&outPortHandle->ReceivingTimer);
+		RestartTimerWP(&outPortHandle->ReceivingTimer); //? NOPE! delete it!
 	}
 	return res;
 }
@@ -165,12 +174,14 @@ void TransmitInterrupt(void *arg)
 	StopTimerWP(&Port->SendingTimer);
 }
 
-void Called_RXInterrupt(void* arg)
+void Called_RXInterrupt(void* arg) //ReceiveInterrupt()
 {
 	InterfacePortHandle_t* Port = (InterfacePortHandle_t*)arg;
 	Port->Status |= PORT_RECEIVED;
+#ifdef MASTER_PORT_PROJECT
 	if (InterfacePort.BufferRecved[0] == ThisMastersConfigs.SlavesAddressToTalk){ //IsThisDataForMe();
 		;
 	}
+#endif // MASTER_PORT_PROJECT
 	return;
 }
