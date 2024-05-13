@@ -9,3 +9,5 @@ add_definitions(-DIOFILE_PATH="${IOFILE_PATH}/iofile.txt")
 add_definitions(-DGLOB_MUTEX_FILE="${IOFILE_PATH}/globMutexHold.txt")  #this is glob mutex between another independent applications working with only one iofile.txt
 add_definitions(-DFILE_MUTEX_REALEASED="MUTEX_REALEASED")
 add_definitions(-DFILE_MUTEX_TAKEN="MUTEX_TAKEN")
+add_definitions(-DPROTOCOL_DEVELOPING_PROJECT)
+#add_definitions(-DDEBUG_ON_VS);

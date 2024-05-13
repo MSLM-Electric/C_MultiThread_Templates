@@ -7,32 +7,34 @@ Download this demo "*.exe" by clicking "Download raw file" and run it.
 Projects structure (folders & files)
 
 Currently working at: ProtocolDevelopTemplate Project
-<br />- ROOT_PATH (Root folder)
-<br />   |- Lib
-<br />   |   |- SimpleTimerWP.c
-<br />   |   |- SimpleTimerWP.h
-<br />   |   |- fileHandle.c
-<br />   |   |- fileHandle.h
-<br />   |   |- type_def.h
-<br />   |
-<br />   |- ProtocolDevelopingTest
-<br />   |   |- ProtocolMasterImmitationDevelopeTest_main.c
-<br />   |   |- globDefines.cmake
-<br />   |   |- HardwarePeripheral
-<br />   |   |   |- HardwareInterfaceUnit.c
-<br />   |   |   |- HardwareInterfaceUnit.h
-<br />   |   |
-<br />   |   |- IO_immitationBetweenMasterSlave
-<br />   |   |   |- iofile.txt
-<br />   |   |   |- globMutexHold.txt
-<br />   |   |   |- MasterImmitationCfg.h
-<br />   |   |   |- PortsBusMessages.h
-<br />   |   |
-<br />   |   |- ProtocolMasterDevelopeTest
-<br />   |       |- CMakeLists.txt   <-- (here our project)
-<br />   |       |- README.md        <-- (instructions to build and run)
-<br />   |
-<br />   |- ConsoleMenuOptions.c
-<br />   |- ConsoleMenuOptions.h
-<br />   |- MultiThreadSupport.c
-<br />   |- MultiThreadSupport.h
+```
+- ROOT_PATH (Root folder)
+   |- Lib
+   |   |- SimpleTimerWP.c
+   |   |- SimpleTimerWP.h
+   |   |- fileHandle.c
+   |   |- fileHandle.h
+   |   |- type_def.h
+   |
+   |- ProtocolDevelopingTest
+   |   |- ProtocolMasterImmitationDevelopeTest_main.c
+   |   |- globDefines.cmake
+   |   |- HardwarePeripheral
+   |   |   |- HardwareInterfaceUnit.c
+   |   |   |- HardwareInterfaceUnit.h
+   |   |
+   |   |- IO_immitationBetweenMasterSlave
+   |   |   |- iofile.txt
+   |   |   |- globMutexHold.txt
+   |   |   |- MasterImmitationCfg.h
+   |   |   |- PortsBusMessages.h
+   |   |
+   |   |- ProtocolMasterDevelopeTest
+   |       |- CMakeLists.txt   <-- (here our project)
+   |       |- README.md        <-- (instructions to build and run)
+   |
+   |- ConsoleMenuOptions.c
+   |- ConsoleMenuOptions.h
+   |- MultiThreadSupport.c
+   |- MultiThreadSupport.h
+```

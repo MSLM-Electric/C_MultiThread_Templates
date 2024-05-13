@@ -1,5 +1,7 @@
 #include "ConsoleMenuOptions.h"
+#ifdef PROTOCOL_DEVELOPING_PROJECT
 #include "ProtocolDevelopingTest/HardwarePeripheral/HardwareInterfaceUnit.h"
+#endif
 
 static void ShowAllStates(void);
 
@@ -108,10 +110,10 @@ void ScanCMDsScenarios(char *buffer, const int maxPossibleLen)
 {
 	//char keyboardBuffs[255]; //bad
 	//char *keyboardBuffs = (char *)malloc(255 * sizeof(char));
-#ifdef MASTER_PORT_PROJECT
 	if (ConsolesMenuHandle.CMD[MAKE_PACKET]) {
 		memset(buffer, 0, maxPossibleLen);
-		//mutxMaster//!
+#ifdef MASTER_PORT_PROJECT
+		//mutxMasterCfg//!
 		memset(&ThisMastersConfigs, 0, sizeof(ThisMastersConfigs));
 		printf_s("Enter the SLAVE Address:\n");
 		scanf_s("%d", buffer);
@@ -134,10 +136,22 @@ void ScanCMDsScenarios(char *buffer, const int maxPossibleLen)
 		memcpy_s(InterfacePort.BufferToSend, 255, buffer, 255);
 		ThisMastersConfigs.dataToWrite = InterfacePort.BufferToSend;
 		ThisMastersConfigs.Status = 1; //Masters configuration inited!
+#elif defined(SLAVE_PORT_PROJECT)
+		//mutxSlaveCfg//!
+		memset(&ThisSlavesConfigs, 0, sizeof(ThisSlavesConfigs));
+		printf("Enter this Slaves Address: ");
+		scanf_s("%d", buffer);
+		ThisSlavesConfigs.MyAddress = *(uint16_t*)&buffer[0];
+		printf("Enter the Response timeout from this Slave: ");
+		scanf_s("%d", buffer);
+		printf("\n");
+		ThisSlavesConfigs.ResponseTimeout = *(uint16_t*)&buffer[0];
+		ThisSlavesConfigs.dataFromRead = InterfacePort.BufferRecved;
+		ThisSlavesConfigs.Status = 1;
+#endif // MASTER_PORT_PROJECT
 		ConsolesMenuHandle.CMD[MAKE_PACKET] = 0;
 	}
 	else 
-#endif // MASTER_PORT_PROJECT
 		if (ConsolesMenuHandle.CMD[SET_TIMER_PERIOD]) {
 		memset(buffer, 0, maxPossibleLen);
 		printf_s("Set Monitoring Timers period:\n");

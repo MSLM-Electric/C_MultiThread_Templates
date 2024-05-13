@@ -70,11 +70,11 @@ FRESULT ReadTheLastLineOfFile(char* outBuffer, const size_t maxPossibleLen, FIL*
 #include "SimpleTimerWP.h"
 FRESULT TakeGLOBMutex(/*char* tempBuffer, const size_t maxPossibleLen,*/ FIL *f, uint32_t timeOut)
 {
-    Timerwp_t _TimeOut, readPeriod;
+    Timerwp_t _TimeOutTmr, readPeriod;
     char buffer[100];
-    InitTimerWP(&_TimeOut, (tickptr_fn*)GetTickCount);
+    InitTimerWP(&_TimeOutTmr, (tickptr_fn*)GetTickCount);
     InitTimerWP(&readPeriod, (tickptr_fn*)GetTickCount);
-    LaunchTimerWP((U32_ms)timeOut, &_TimeOut);
+    LaunchTimerWP((U32_ms)timeOut, &_TimeOutTmr);
     LaunchTimerWP((U32_ms)10, &readPeriod);
     FRESULT fres = FR_OK; //FR_NOT_READY;
     do {
@@ -90,7 +90,7 @@ FRESULT TakeGLOBMutex(/*char* tempBuffer, const size_t maxPossibleLen,*/ FIL *f,
             fseek(f, 0, SEEK_SET);
             sprintf(buffer, "%s    ", (char*)FILE_MUTEX_TAKEN);
             size_t siz = fwrite(buffer, strlen(buffer), 1, f);
-            StopTimerWP(&_TimeOut);
+            StopTimerWP(&_TimeOutTmr);
             StopTimerWP(&readPeriod);
             f_close(f);
             return fres;
@@ -98,9 +98,9 @@ FRESULT TakeGLOBMutex(/*char* tempBuffer, const size_t maxPossibleLen,*/ FIL *f,
         f_close(f);
         while (NOT IsTimerWPRinging(&readPeriod));
         RestartTimerWP(&readPeriod);
-    } while (NOT IsTimerWPRinging(&_TimeOut));
+    } while (NOT IsTimerWPRinging(&_TimeOutTmr));
     f_close(f);
-    StopTimerWP(&_TimeOut);
+    StopTimerWP(&_TimeOutTmr);
     StopTimerWP(&readPeriod);
     return FR_NOT_READY;
 }

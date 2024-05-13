@@ -149,7 +149,6 @@ DWORD WINAPI ThreadWriting(LPVOID lpParam)//rename to ThreadConsoleHandling or T
 {
 	int res = ThreadInit(lpParam);
 
-	char *str = (char *)malloc(4);
 	//char *keyboardBuff = (char *)malloc(20 * sizeof(char));
 	char keyboardBuff[255];
 	while (1)
@@ -158,18 +157,15 @@ DWORD WINAPI ThreadWriting(LPVOID lpParam)//rename to ThreadConsoleHandling or T
 		{
 			memset(keyboardBuff, 0, sizeof(keyboardBuff));
 			printf("What function to Act? Enter it here:\n");
-			scanf_s("%s", keyboardBuff/*&str*/, 255);
+			scanf_s("%s", keyboardBuff, 255);
 			printf("entered data is: %s\n", keyboardBuff);
 		}
 		ReleaseMutex(mutx);
-		if (str == NULL)
+		if (keyboardBuff == NULL)
 		{
 			printf("Memory for str alloc ERROR\t\n");
-		}else {
-			sprintf(str, keyboardBuff, 255);
-			memset(keyboardBuff, 0, sizeof(keyboardBuff));
 		}
-		SettingsCMD_Handling(str, NULL);
+		SettingsCMD_Handling(keyboardBuff, NULL);
 		WaitForSingleObject(mutx, INFINITE);
 		ScanCMDsScenarios(keyboardBuff, sizeof(keyboardBuff));
 		ReleaseMutex(mutx);
@@ -181,7 +177,7 @@ DWORD WINAPI ThreadNo2(LPVOID lpParam)
 {
 	int res = ThreadInit(lpParam);
 
-	uint8_t buttonForCallInterruptStateChange = 2;
+	uint8_t buttonForCallInterruptStateChange = 2; //!uint32_t
 	char keyboardBuff[255];
 	while (1)
 	{

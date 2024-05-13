@@ -88,21 +88,17 @@ int main()
 	InitTimerWP(&MainProgrammDelay, (tickptr_fn*)GetTickCount);
 #endif // DEBUG_ON_VS
 	LaunchTimerWP((U32_ms)2000, &MainProgrammDelay);
+	ConsolesMenuHandle.CMD[PAUSE_CONSOLE] = 1;
 
 	while (1)
 	{
+		PauseConsoleCommand = ConsolesMenuHandle.CMD[PAUSE_CONSOLE];
 		if (!PauseConsoleCommand) {
 			if (IsTimerWPRinging(&MainProgrammDelay))//Sleep(2000);
 			{
 				RestartTimerWP(&MainProgrammDelay);
 				printf("MainBckgdProccess\n");
 			}
-		}
-		if (testTimer) {
-			LaunchTimerWP((U32_ms)3000, &UsersTimer);
-		}
-		else {
-			StopTimerWP(&UsersTimer);
 		}
 	}
 	printf("endOfCycle. Bad jump! \n"); //programm execution never should get here!
@@ -112,27 +108,24 @@ DWORD WINAPI ThreadNo1(LPVOID lpParam)
 {
 	int res = ThreadInit(lpParam);
 
-	char *str = (char *)malloc(4);
 	//char *keyboardBuff = (char *)malloc(20 * sizeof(char));
-	//char keyboardBuff[20];
+	char keyboardBuff[255] = {0};
+
 	while (1)
 	{
 		WaitForSingleObject(mutx, INFINITE);
 		{
 			memset(keyboardBuff, 0, sizeof(keyboardBuff));
 			printf("What function to Act? Enter it here:\n");
-			scanf_s("%s", keyboardBuff/*&str*/, 3);
+			scanf_s("%s", keyboardBuff, 255);
 			printf("entered data is: %s\n", keyboardBuff);
 		}
 		ReleaseMutex(mutx);
-		if (str == NULL)
+		if (keyboardBuff == NULL)
 		{
 			printf("Memory for str alloc ERROR\t\n");
-		}else {
-			sprintf(str, keyboardBuff, 2);
-			memset(keyboardBuff, 0, sizeof(keyboardBuff));
 		}
-		SettingsCMD_Handling(str, NULL);
+		SettingsCMD_Handling(keyboardBuff, NULL);
 		WaitForSingleObject(mutx, INFINITE);
 		ScanCMDsScenarios(keyboardBuff, sizeof(keyboardBuff));
 		ReleaseMutex(mutx);
@@ -144,15 +137,17 @@ DWORD WINAPI ThreadNo2(LPVOID lpParam)
 {
 	int res = ThreadInit(lpParam);
 
-	uint8_t buttonForCallInterruptStateChange = 2;
+	uint32_t buttonForCallInterruptStateChange = 2;
 	while (1)
 	{
 		//Sleep(10);
 		WaitForSingleObject(mutx, INFINITE);
 		{
-			printf_s("Enter The interrupt calling state:\n");
-			scanf_s("%d", &buttonForCallInterruptStateChange);
-			printf("entered data is: %d\n", buttonForCallInterruptStateChange);
+			if (ConsolesMenuHandle.CMD[DMA_ENABLE]) {
+				printf_s("Enter The interrupt calling state:\n");
+				scanf_s("%d", &buttonForCallInterruptStateChange);
+				printf("entered data is: %d\n", buttonForCallInterruptStateChange);
+			}
 		}
 		ReleaseMutex(mutx);
 		if (buttonForCallInterruptStateChange == 1) {
