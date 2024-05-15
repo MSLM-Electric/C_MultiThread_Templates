@@ -202,18 +202,19 @@ typedef struct {
 }HardwarePort_t;
 HardwarePort_t HWPort;
 //send
-_Write(u8 *InDatas, u16 Len)
+_Write(u8 *InDatas, u16 Len) //Write()
 {
 	u16 all = 0;
-	if (InterfacePort.Status & PORT_READY) {
+	u16 res = 0;
+	if (InterfacePort.Status & (PORT_READY | PORT_SENDING | PORT_BUSY) == ONLY PORT_READY) {
 #ifdef IN_CASE_OF_8BIT_PORTION_DATAS //mb IN_CASE_OF_8BIT_SINGLE_BUFFER
-		HWPort.someSettings = 0xFF;
 		memcpy(InterfacePort.BufferToSend, InDatas, Len);
 		InterfacePort.LenDataToSend = Len;
-		HWPort.BUFFER = InterfacePort.BufferToSend[0];
-		HWPort.TXInterruptEnable = 1;
 		InterfacePort.outCursor = 0;
 		InterfacePort.outCursor++;
+		HWPort.someSettings = 0xFF;
+		HWPort.BUFFER = InterfacePort.BufferToSend[0];
+		HWPort.TXInterruptEnable = 1;
 		HWPort.StartRX = 0;
 		HWPort.StartTX = 1;
 		InterfacePort.Status |= PORT_BUSY;
@@ -225,7 +226,14 @@ _Write(u8 *InDatas, u16 Len)
 	}
 	else if (InterfacePort.Status & (all = PORT_BUSY | PORT_SENDING_LAST_BYTE /* | ???*/) == all ONLY) {
 		HWPort.clearOrResetSomeFlags = 0;
-
+		HWPort.TXInterruptEnable = 0;
+		HWPort.BUFFER = 0;
+		HWPort.someSettings = 0xFF; //mb
+#define clearFlags(x) &= ~(x) //?whaaaa!? is that possible?
+		InterfacePort.Status clearFlags(PORT_SENDING_LAST_BYTE | PORT_SENDING | PORT_BUSY); //?whaaaa!?
+		InterfacePort.Status &= ~(PORT_SENDING_LAST_BYTE | PORT_SENDING | PORT_BUSY);
+		InterfacePort.outCursor = 0;
+		StopTimerWP(&InterfacePort.SendingTimer);
 	}
 	else if (InterfacePort.Status & (all = PORT_BUSY | PORT_SENDING) == all ONLY) { //?is it has good speed execution by MCU processor if we call it from inside of interrupt?
 		HWPort.clearOrResetSomeFlags = 0;
@@ -237,11 +245,35 @@ _Write(u8 *InDatas, u16 Len)
 		InterfacePort.Status |= PORT_SENDING;
 		HWPort.StartTX = 1;
 	}
+	if (InterfacePort.Status & PORT_SENDING)
+		res = InterfacePort.outCursor;
+	//return res;
 }
 
-Receive(InterfacePortHandle_t *ifsPort)
+_Receive(InterfacePortHandle_t *ifsPort, /*const u8* outBuff, mb not needed even//?!*/ u16 maxPossibleLen)
 {
-	;
+	u16 both = 0, all = 0, res = 0;
+	u8 IsRecvTimerRinging = IsTimerWPRinging(&InterfacePort.ReceivingTimer);
+#ifdef IN_CASE_OF_8BIT_PORTION_DATAS
+	if (InterfacePort.Status & (PORT_READY | PORT_RECEIVING | PORT_BUSY) == ONLY PORT_READY) {
+		InterfacePort.LenDataToRecv = maxPossibleLen;
+		LaunchTimerWP(InterfacePort.ReceivingTimer.setVal, &InterfacePort.ReceivingTimer);
+		InterfacePort.Status |= PORT_BUSY | PORT_RECEIVING;
+		InterfacePort.Status &= PORT_RECEIVED;
+		HWPort.clearOrResetSomeFlags = 0;
+		HWPort.someSettings = 0xFF;
+		/*(u8*)&*/ InterfacePort.BufferRecved[0] = &HWPort.BUFFER; //? &
+		HWPort.RXInterruptEnable = 1;
+		HWPort.StartRX = 1;
+		//HWPort.StartTX = 0;
+	}
+	else if(InterfacePort.Status & ((both = PORT_BUSY | PORT_RECEIVING) | IsRecvTimerRinging) == both ONLY)
+	{
+		//Recv timeouts
+		InterfacePort.BufferRecved[InterfacePort.inCursor++] = HWPort.BUFFER;
+
+	}
+#endif //!IN_CASE_OF_8BIT_PORTION_DATAS
 }
 #define no_required_now 0
 __HardwareSentInterrupt()
@@ -256,7 +288,13 @@ __HardwareSentInterrupt()
 
 __HardwareReceiveInterrupt()
 {
-
+	u16 both = 0, all = 0;
+	if (InterfacePort.Status & (both = PORT_READY | PORT_RECEIVING) == both ONLY) {
+		InterfacePort.Status |= PORT_RECEIVED;
+		//..
+		_Receive(NULL, no_required_now);
+	}
+	return;
 }
 
 __TimerInterrupt() {}; //mb
