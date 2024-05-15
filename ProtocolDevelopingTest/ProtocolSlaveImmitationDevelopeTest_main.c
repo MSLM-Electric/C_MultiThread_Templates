@@ -100,6 +100,9 @@ int main()
 				printf("MainBckgdProccess\n");
 			}
 		}
+		if (ConsolesMenuHandle.CMD[START_COMMUNICATION]) {
+			;
+		}
 	}
 	printf("endOfCycle. Bad jump! \n"); //programm execution never should get here!
 }
@@ -116,7 +119,7 @@ DWORD WINAPI ThreadNo1(LPVOID lpParam)
 		WaitForSingleObject(mutx, INFINITE);
 		{
 			memset(keyboardBuff, 0, sizeof(keyboardBuff));
-			printf("What function to Act? Enter it here:\n");
+			printf("What function to Act? Enter it here: ");
 			scanf_s("%s", keyboardBuff, 255);
 			printf("entered data is: %s\n", keyboardBuff);
 		}

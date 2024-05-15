@@ -32,3 +32,4 @@ Currently working at: ProtocolDevelopTemplate Project
 	|- MultiThreadSupport.h
 
 TODO: Reading IOfile make matchable with Port.ReceivingTimer (mb, think about it again)
+TODO: Implement 8bit-Mode/None FIFO mode. Interrupt occurring after every 8bits received/sended. (After every byte)

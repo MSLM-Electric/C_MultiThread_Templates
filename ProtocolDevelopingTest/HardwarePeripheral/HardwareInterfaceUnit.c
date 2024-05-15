@@ -185,3 +185,80 @@ void Called_RXInterrupt(void* arg) //ReceiveInterrupt()
 #endif // MASTER_PORT_PROJECT
 	return;
 }
+
+#pragma region BLACKNOTE_AND_THOUGHTS
+//#define DISABLE_BLACKNOTE
+#define IN_CASE_OF_8BIT_PORTION_DATAS
+#ifndef DISABLE_BLACKNOTE
+typedef struct {
+	u8 TXInterruptEnable;
+	u8 RXInterruptEnable;
+	u32 someSettings; //Common Inits
+	u8 BUFFER;
+	u8 StartTX;
+	u8 StartRX;
+	u8 clearOrResetSomeFlags;
+	//u8 *FIFO_BUFFER
+}HardwarePort_t;
+HardwarePort_t HWPort;
+//send
+_Write(u8 *InDatas, u16 Len)
+{
+	u16 all = 0;
+	if (InterfacePort.Status & PORT_READY) {
+#ifdef IN_CASE_OF_8BIT_PORTION_DATAS //mb IN_CASE_OF_8BIT_SINGLE_BUFFER
+		HWPort.someSettings = 0xFF;
+		memcpy(InterfacePort.BufferToSend, InDatas, Len);
+		InterfacePort.LenDataToSend = Len;
+		HWPort.BUFFER = InterfacePort.BufferToSend[0];
+		HWPort.TXInterruptEnable = 1;
+		InterfacePort.outCursor = 0;
+		InterfacePort.outCursor++;
+		HWPort.StartRX = 0;
+		HWPort.StartTX = 1;
+		InterfacePort.Status |= PORT_BUSY;
+		InterfacePort.Status |= PORT_SENDING;
+		InterfacePort.Status &= ~PORT_SENDED;
+		LaunchTimerWP(InterfacePort.SendingTimer.setVal, &InterfacePort.SendingTimer);
+#elif defined(IN_CASE_OF_FIFO_TYPE)  //mb IN_CASE_OF_FIFO_BUFFER
+#endif //IN_CASE_OF_8BIT_PORTION_DATAS elif IN_CASE_OF_FIFO_TYPE
+	}
+	else if (InterfacePort.Status & (all = PORT_BUSY | PORT_SENDING_LAST_BYTE /* | ???*/) == all ONLY) {
+		HWPort.clearOrResetSomeFlags = 0;
+
+	}
+	else if (InterfacePort.Status & (all = PORT_BUSY | PORT_SENDING) == all ONLY) { //?is it has good speed execution by MCU processor if we call it from inside of interrupt?
+		HWPort.clearOrResetSomeFlags = 0;
+		if (InterfacePort.outCursor >= InterfacePort.LenDataToSend - 1)
+			InterfacePort.Status |= PORT_SENDING_LAST_BYTE;
+		HWPort.BUFFER = &InterfacePort.BufferToSend[InterfacePort.outCursor];
+		InterfacePort.outCursor++;
+		InterfacePort.Status &= ~PORT_SENDED;
+		InterfacePort.Status |= PORT_SENDING;
+		HWPort.StartTX = 1;
+	}
+}
+
+Receive(InterfacePortHandle_t *ifsPort)
+{
+	;
+}
+#define no_required_now 0
+__HardwareSentInterrupt()
+{
+	u16 both = 0;
+	u16 all = 0;
+	if (InterfacePort.Status & (both = PORT_READY | PORT_SENDING) == both ONLY) {
+		InterfacePort.Status |= PORT_SENDED; //?mb it better when flags are being handled in one place? That would be more readable
+		_Write(NULL, no_required_now);
+	}
+}
+
+__HardwareReceiveInterrupt()
+{
+
+}
+
+__TimerInterrupt() {}; //mb
+#endif // !DISABLE_BLACKNOTE
+#pragma endregion

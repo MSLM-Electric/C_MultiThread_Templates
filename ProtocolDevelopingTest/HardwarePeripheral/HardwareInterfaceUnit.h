@@ -19,14 +19,15 @@ char globMutexFile[200];
 
 enum {
 	//PORT_OFF = 0, //PORT_CLEAR,
-	PORT_READY = 1,
+	PORT_READY = 1, //mb PORT_OK
 	PORT_BUSY = 1 << 1,      //mb not needed. instead it mb use only receiving flag
 	PORT_SENDING = 1 << 2,
 	PORT_SENDED = 1 << 3,
-	PORT_RECEIVING = 1 << 4, //mb not needed
-	PORT_RECEIVED = 1 << 5,
-	PORT_ASYNC = 1 << 6,     //if zero, then it is a PORT_SYNC.  PORT_ASYNC = RS-485/CAN like interfaces.
-	PORT_MASTER = 1 << 7,    //if zero, it is SLAVE (good approach//?)
+	PORT_SENDING_LAST_BYTE = 1 << 4,
+	PORT_RECEIVING = 1 << 5, //mb not needed
+	PORT_RECEIVED = 1 << 6,
+	PORT_ASYNC = 1 << 7,     //if zero, then it is a PORT_SYNC.  PORT_ASYNC = RS-485/CAN like interfaces.
+	PORT_MASTER = 1 << 8,    //if zero, it is SLAVE (good approach//?)
 	//..
 	// PORT_ERROR //?
 }InterfacePortState_e;
@@ -38,10 +39,11 @@ typedef struct {
 	uint16_t LenDataToRecv; //mb maxPossibleDataRecv
 	Timerwp_t ReceivingTimer;     //for port timeout
 	Timerwp_t SendingTimer;       //this is for describing timeout 
-	uint16_t communicationPeriod; //Timerwp_t
+	uint16_t communicationPeriod; //!not demanded for slave //Timerwp_t
+	//uin32_t TotalCommunicationPeriod; //!not demanded for slave
 	enum InterfacePortState_e Status; //(int)
-	//u16 outCursor; //outPtr;
-	//u16 inCursor;  //inPtr;
+	u16 outCursor; //outPtr; mb outCursorPos; sendbufPos;
+	u16 inCursor;  //inPtr; 
 }InterfacePortHandle_t;
 
 InterfacePortHandle_t InterfacePort; //InterfacePort[ALL_CHANNELS] //InterfacePort[PORT0];

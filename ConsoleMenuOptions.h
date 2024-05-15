@@ -2,7 +2,8 @@
 #include "Lib/SimpleTimerWP.h"
 
 enum cmdsValEnums {
-	ALL = 1,  //it shows all states of your functns
+	cmdsValEnumsfirstINDEX = 1,
+	ALL = cmdsValEnumsfirstINDEX,  //it shows all states of your functns
 	DETAILS,
 	PAUSE_CONSOLE,
 	ENABLE_TIMER,
@@ -21,7 +22,7 @@ typedef struct {
 	enum cmdsValEnums optionId;
 }menuChoise_t;
 
-static menuChoise_t MenuOption[cmdsValEnumslastINDEX-ALL] = {
+static menuChoise_t MenuOption[cmdsValEnumslastINDEX-cmdsValEnumsfirstINDEX] = {
 	{"ALL", ALL},
 	{"DETAILS", DETAILS},
 	{"PAUSE", PAUSE_CONSOLE},
