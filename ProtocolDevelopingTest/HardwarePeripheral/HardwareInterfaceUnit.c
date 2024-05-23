@@ -62,6 +62,11 @@ int Write(InterfacePortHandle_t* PortHandle, const uint8_t *inDatas, const int s
 		HWPort.someSettings = 0xFF;
 		PortHandle->Status clearBITS(PORT_SENDING_LAST_BYTE | PORT_SENDING | PORT_BUSY);
 		StopTimerWP(&PortHandle->SendingTimer);
+		if (PortHandle->DelayedRecv.DelayedRecv) {   //???
+			void* arg = PortHandle->DelayedRecv.ifsArg; 
+			u16 Len = PortHandle->DelayedRecv.maxLen;
+			PortHandle->DelayedRecv.DelayedRecv(arg, Len);
+		}
 	}
 	else {
 		res = -4;
@@ -76,6 +81,7 @@ int Recv(InterfacePortHandle_t* PortHandle, uint8_t *outBuff, const int maxPossi
 int res = 0;
 	u8 IsRecvTimerRinging = IsTimerWPRinging(&PortHandle->ReceivingTimer);
 	if (PortHandle->Status & (PORT_READY | PORT_RECEIVING | PORT_BUSY) == ONLY PORT_READY) {
+		memset(&PortHandle->DelayedRecv, 0, sizeof(PortHandle->DelayedRecv));
 		PortHandle->LenDataToRecv = maxPossibleSize;
 		LaunchTimerWP(PortHandle->ReceivingTimer.setVal, &PortHandle->ReceivingTimer);
 		PortHandle->Status |= PORT_BUSY | PORT_RECEIVING;

@@ -187,6 +187,20 @@ DWORD WINAPI TickThread(LPVOID lpParam)
 		}else {
 			StopTimerWP(&MonitoringTim);
 		}
+#define BLACKNOTE_MAIN
+#ifdef BLACKNOTE_MAIN
+		if (IsTimerWPRinging(&InterfacePort.SendingTimer)) {
+			//.. Do sending case works
+			//..
+			StopTimerWP(&InterfacePort.SendingTimer);
+			if (InterfacePort.DelayedRecv.DelayedRecv) {
+				void* arg = InterfacePort.DelayedRecv.ifsArg;
+				u16 Len = InterfacePort.DelayedRecv.maxLen;
+				InterfacePort.DelayedRecv.DelayedRecv(arg, Len);
+			}
+		}
+#endif // BLACK_NOTE_MAIN
+
 	}
 }
 
