@@ -193,11 +193,7 @@ DWORD WINAPI TickThread(LPVOID lpParam)
 			//.. Do sending case works
 			//..
 			StopTimerWP(&InterfacePort.SendingTimer);
-			if (InterfacePort.DelayedRecv.DelayedRecv) {
-				void* arg = InterfacePort.DelayedRecv.ifsArg;
-				u16 Len = InterfacePort.DelayedRecv.maxLen;
-				InterfacePort.DelayedRecv.DelayedRecv(arg, Len);
-			}
+			//DelayedRecv //?
 		}
 #endif // BLACK_NOTE_MAIN
 
