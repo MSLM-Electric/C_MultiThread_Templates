@@ -1,5 +1,4 @@
 #include <stdint.h>
-#include "Lib/SimpleTimerWP.h" //!+ if remove it |NOTE.1|
 
 enum cmdsValEnums {
 	cmdsValEnumsfirstINDEX = 1,
@@ -38,12 +37,13 @@ static menuChoise_t MenuOption[cmdsValEnumslastINDEX-cmdsValEnumsfirstINDEX] = {
 	/*----------------------------------------------------------------------------------------*/
 };
 
+typedef void* (callback_fn)(char* buffer, const int maxPossibleLen, void* arg);
+
 struct ConsolesMenuHandle_Type {
 	uint8_t CMD[cmdsValEnumslastINDEX - cmdsValEnumsfirstINDEX];  //?!mb sounds better: IsEnabledCMD[] or IsCMDEnabled[]
-	//void *callback_fn[cmdsValEnumslastINDEX - cmdsValEnumsfirstINDEX](void *);
+	callback_fn* executeFunc[cmdsValEnumslastINDEX - cmdsValEnumsfirstINDEX];
 };
 struct ConsolesMenuHandle_Type ConsolesMenuHandle;
-extern Timerwp_t MonitoringTim; //!+ and if remove it |NOTE.2| we get the separate settings tester by console for any independent project.
 
 uint8_t StringCompareAndParseToNum(char* inBuff, uint8_t maxPossibleLen);
 void SettingsCMD_Handling(char* inBuff, const uint16_t maxPossibleLen);

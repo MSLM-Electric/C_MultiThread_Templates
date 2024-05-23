@@ -47,6 +47,12 @@ typedef u32 u32_t;
   #define FALSE 0
 #endif
 
+#ifndef UNUSED
+#define UNUSED(X) (void)X      /* To avoid gcc/g++ warnings */
+#endif // !UNUSED
+
+#define clearBITS(x) &= ~(x)
+#define setBITS(x) |= (x)
 
 #define asm __asm
 

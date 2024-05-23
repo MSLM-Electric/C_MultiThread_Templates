@@ -47,7 +47,7 @@ typedef struct {
 	u16 inCursor;  //inPtr; 
 }InterfacePortHandle_t;
 
-InterfacePortHandle_t InterfacePort; //InterfacePort[ALL_CHANNELS] //InterfacePort[PORT0];
+extern InterfacePortHandle_t InterfacePort; //InterfacePort[ALL_CHANNELS] //InterfacePort[PORT0];
 
 int Write(InterfacePortHandle_t *PortHandle, const uint8_t *inBuff, const int size);
 int Recv(InterfacePortHandle_t *PortHandle, uint8_t *outBuff, const int maxPossibleSize);
