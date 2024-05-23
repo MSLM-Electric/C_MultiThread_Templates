@@ -26,39 +26,104 @@ int InitPort(InterfacePortHandle_t* PortHandle)
 	return res;
 }
 
-int Write(InterfacePortHandle_t* PortHandle, const uint8_t *inBuff, const int size)
+int Write(InterfacePortHandle_t* PortHandle, const uint8_t *inDatas, const int size)
 {
 	int res = -1;
-	if ((PortHandle->Status & (PORT_READY | PORT_SENDING | PORT_RECEIVING /*| PORT_ASYNC*/)) == ONLY (PORT_READY /*| PORT_ASYNC*/)) {
+	//IsSendingTimerRinging = IsTimerWPRinging(&InterfacePort.SendingTimer);
+	if (PortHandle->Status & (PORT_READY | PORT_SENDING | PORT_BUSY) == ONLY PORT_READY) {
+		memcpy(PortHandle->BufferToSend, inDatas, size);
+		PortHandle->LenDataToSend = size;
+		//PortHandle->outCursor++;
+		memcpy(HWPort.FIFO_BUFFER, PortHandle->BufferToSend, PortHandle->LenDataToSend);
+		HWPort.someSettings = 0xFF;
+		HWPort.TXInterruptEnable = 1;
+		HWPort.StartRX = 0;
+		HWPort.StartTX = 1;
+		PortHandle->Status |= PORT_BUSY;
 		PortHandle->Status |= PORT_SENDING;
-		//memcpy(PortHandle->BufferToSend, inBuff, size);
-		//Launch SendingTimer;
+		PortHandle->Status &= ~PORT_SENDED;
+		PortHandle->Status &= ~PORT_RECEIVED;
+		LaunchTimerWP(PortHandle->SendingTimer.setVal, &PortHandle->SendingTimer);
 		res = immitationOfPortsBus(PortHandle);
 		if (res < 0) {
 			//PORT_ERROR//?;
-		}else{
+		}
+		else {
 			;;
 		}
 	}
-	else if((PortHandle->Status & (PORT_READY | PORT_SENDING /*| PORT_ASYNC*/)) == ONLY(PORT_READY | PORT_SENDING)) {
-		RestartTimerWP(&PortHandle->SendingTimer);
+	else if (PortHandle->Status & (PORT_BUSY | PORT_SENDING_LAST_BYTE) == ONLY PORT_BUSY | PORT_SENDING_LAST_BYTE) {
+		;;
+	}
+	else if (PortHandle->Status & (PORT_BUSY | PORT_SENDED) == ONLY PORT_BUSY | PORT_SENDED) {
+		HWPort.clearOrResetSomeFlags = 0;
+		HWPort.TXInterruptEnable = 0;
+		HWPort.clearFIFO = 1;
+		HWPort.someSettings = 0xFF;
+		PortHandle->Status clearBITS(PORT_SENDING_LAST_BYTE | PORT_SENDING | PORT_BUSY);
+		StopTimerWP(&PortHandle->SendingTimer);
 	}
 	else {
 		res = -4;
 	}
+	//if (PortHandle->Status & PORT_SENDING)
+		//res = PortHandle->outCursor;
 	return res;
 }
 
 int Recv(InterfacePortHandle_t* PortHandle, uint8_t *outBuff, const int maxPossibleSize)
 {
-	int res = 0;
-	if ((PortHandle->Status & (PORT_READY | PORT_RECEIVING)) == ONLY PORT_READY) {
-		//Enable Hardware RX Interrupt
-		PortHandle->Status |= PORT_RECEIVING;
+int res = 0;
+	u8 IsRecvTimerRinging = IsTimerWPRinging(&PortHandle->ReceivingTimer);
+	if (PortHandle->Status & (PORT_READY | PORT_RECEIVING | PORT_BUSY) == ONLY PORT_READY) {
+		PortHandle->LenDataToRecv = maxPossibleSize;
+		LaunchTimerWP(PortHandle->ReceivingTimer.setVal, &PortHandle->ReceivingTimer);
+		PortHandle->Status |= PORT_BUSY | PORT_RECEIVING;
 		PortHandle->Status &= ~PORT_RECEIVED;
-		//RestartTimerWP(&PortHandle->ReceivingTimer);
-		return res;
+		HWPort.clearOrResetSomeFlags = 0;
+		HWPort.someSettings = 0xFF;
+		HWPort.clearFIFO = 1; //?mb
+		HWPort.RXInterruptEnable = 1;
+		HWPort.StartRX = 1;
 	}
+	else if ((PortHandle->Status & (PORT_BUSY | PORT_RECEIVED)) && !IsRecvTimerRinging == ONLY PORT_BUSY | PORT_RECEIVED) {
+		//PortHandle->LenDataToRecv ..
+		PortHandle->inCursor += sizeof(HWPort.FIFO_BUFFER);
+		memcpy(PortHandle->BufferRecved, HWPort.FIFO_BUFFER, sizeof(HWPort.FIFO_BUFFER));
+		PortHandle->Status clearBITS(PORT_RECEIVED);
+		//if(PortHandle->inCursor >= PortHandle->LenDataToRecv){
+		//}
+		HWPort.clearFIFO = 1;//?mb
+		HWPort.clearOrResetSomeFlags = 0;
+		HWPort.RXInterruptEnable = 0;
+		HWPort.someSettings = 0xff;
+		HWPort.RXInterruptEnable = 1;
+		HWPort.StartRX = 1;
+	}
+	else if (PortHandle->Status & (PORT_BUSY | PORT_SENDING | PORT_RECEIVING) == ONLY PORT_BUSY | PORT_SENDING) {
+		//DoDelayedCall This function
+		if (IsTimerWPStarted(&PortHandle->SendingTimer)) {
+			PortHandle->DelayedRecv.DelayedRecv = (DelayedRecv_fn*)Recv;
+			PortHandle->DelayedRecv.ifsArg = PortHandle;
+			PortHandle->DelayedRecv.maxLen = maxPossibleSize;
+		}
+	}
+	else {
+		res = -4;
+	}
+	if (IsRecvTimerRinging && (PortHandle->Status & PORT_RECEIVING)) {
+		HWPort.clearOrResetSomeFlags = 0;
+		HWPort.RXInterruptEnable = 0;
+		HWPort.StartRX = 0;
+		HWPort.someSettings = 0xff;
+		HWPort.clearFIFO = 1;
+		//memset(HWPort.FIFO_BUFFER, 0, sizeof(HWPort.FIFO_BUFFER /*.LenDataToRecv*/));
+		StopTimerWP(&PortHandle->ReceivingTimer);
+		PortHandle->Status clearBITS(PORT_RECEIVING | PORT_BUSY);
+		PortHandle->Status |= PORT_RECEIVED; //? mb RECEIVED_TIMEOUT or RECEIVED_ALL?
+		PortHandle->LenDataToRecv = PortHandle->inCursor;
+	}
+	return res;
 }
 
 static int immitationOfPortsBus(InterfacePortHandle_t* PortHandle) //! immitationSendingOfPortsBus()
@@ -155,7 +220,10 @@ int immitationReceivingOfPortsBus(InterfacePortHandle_t* outPortHandle)
 #endif // MASTER_PORT_PROJECT
 		}
 		else if ((DirectionSendingOfBusMessageId == mastersMessageId)) {
-			;
+			if (ThisSlavesConfigs.lastReadedLine != ThisSlavesConfigs.lastReadedLine) {
+				memcpy(HWPort.FIFO_BUFFER, buffer, sizeof(buffer));
+				ThisSlavesConfigs.lastReadedLine = ThisSlavesConfigs.currentIOfileLine++;
+			}
 		}
 		Called_RXInterrupt(&InterfacePort);
 	}
@@ -189,8 +257,6 @@ void Called_RXInterrupt(void* arg) //ReceiveInterrupt()
 #pragma region BLACKNOTE_AND_THOUGHTS
 //#define DISABLE_BLACKNOTE
 #ifndef DISABLE_BLACKNOTE
-#define FEW_ONLY          //?
-#define ALL_ONLY FEW_ONLY //?
 #define IN_CASE_OF_8BIT_PORTION_DATAS
 #define IN_CASE_OF_FIFO_TYPE //disable it after
 #define no_required_now 0
@@ -227,6 +293,7 @@ _Write(u8 *InDatas, u16 Len) //Write()
 		InterfacePort.Status |= PORT_BUSY;
 		InterfacePort.Status |= PORT_SENDING;
 		InterfacePort.Status &= ~PORT_SENDED;
+		InterfacePort.Status &= ~PORT_RECEIVED;
 		LaunchTimerWP(InterfacePort.SendingTimer.setVal, &InterfacePort.SendingTimer);
 	}
 	else if (InterfacePort.Status & (all = PORT_BUSY | PORT_SENDING_LAST_BYTE /* | ???*/) == all ONLY) {
@@ -320,6 +387,7 @@ __Write(u8* InDatas, u16 Len)
 		InterfacePort.Status |= PORT_BUSY;
 		InterfacePort.Status |= PORT_SENDING;
 		InterfacePort.Status &= ~PORT_SENDED;
+		InterfacePort.Status &= ~PORT_RECEIVED;
 		LaunchTimerWP(InterfacePort.SendingTimer.setVal, &InterfacePort.SendingTimer);
 	}else if (InterfacePort.Status & (PORT_BUSY | PORT_SENDING_LAST_BYTE) == ONLY PORT_BUSY | PORT_SENDING_LAST_BYTE) {
 		;;
@@ -367,6 +435,12 @@ __Receive(InterfacePortHandle_t* ifsPort, u16 maxPossibleLen)
 		HWPort.someSettings = 0xff;
 		HWPort.RXInterruptEnable = 1;
 		HWPort.StartRX = 1;
+	}
+	else if (InterfacePort.Status & (PORT_BUSY | PORT_SENDING | PORT_RECEIVING) == ONLY PORT_BUSY | PORT_SENDING) {
+		//DoDelayedCall This function
+		InterfacePort.DelayedRecv.DelayedRecv = (DelayedRecv_fn *)_Receive;
+		InterfacePort.DelayedRecv.ifsArg = ifsPort;
+		InterfacePort.DelayedRecv.maxLen = maxPossibleLen;
 	}
 	else {
 		res = -4;

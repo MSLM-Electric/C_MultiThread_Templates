@@ -9,6 +9,24 @@
 #include "../IO_immitationBetweenMasterSlave/SlaveImmitationCfg.h"
 #endif // MASTER_PORT_PROJECT
 
+#define no_required_now 0
+#pragma region HARDWARE_PORT
+#define IN_CASE_OF_FIFO_TYPE
+typedef struct {
+	u8 TXInterruptEnable;
+	u8 RXInterruptEnable;
+	u32 someSettings; //Common Inits
+	u8 BUFFER;
+	u8 StartTX;
+	u8 StartRX;
+	u8 clearOrResetSomeFlags;
+#ifdef IN_CASE_OF_FIFO_TYPE
+	u8 FIFO_BUFFER[255];
+	u8 clearFIFO;
+#endif //!IN_CASE_OF_FIFO_TYPE
+}HardwarePort_t;
+HardwarePort_t HWPort;
+#pragma endregion
 
 #ifdef IOFILE_PATH
 char iofilePath[200];
@@ -33,6 +51,14 @@ enum {
 	// PORT_ERROR //?
 }InterfacePortState_e;
 
+
+typedef int* (DelayedRecv_fn)(void* ifsPort, u16 maxPossibleLen);
+typedef struct {
+	DelayedRecv_fn* DelayedRecv;
+	void* ifsArg;
+	u16 maxLen;
+}DelayedRecv_t;
+
 typedef struct {
 	uint8_t BufferRecved[255];
 	uint8_t BufferToSend[255];
@@ -45,11 +71,12 @@ typedef struct {
 	enum InterfacePortState_e Status; //(int)
 	u16 outCursor; //outPtr; mb outCursorPos; sendbufPos;
 	u16 inCursor;  //inPtr; 
+	DelayedRecv_t DelayedRecv;
 }InterfacePortHandle_t;
 
 extern InterfacePortHandle_t InterfacePort; //InterfacePort[ALL_CHANNELS] //InterfacePort[PORT0];
 
-int Write(InterfacePortHandle_t *PortHandle, const uint8_t *inBuff, const int size);
+int Write(InterfacePortHandle_t *PortHandle, const uint8_t *inDatas, const int size);
 int Recv(InterfacePortHandle_t *PortHandle, uint8_t *outBuff, const int maxPossibleSize);
 void TransmitInterrupt(void* arg); //Call_TXInterrupt()
 void Called_RXInterrupt(void* arg); //void ReceiveInterrupt(void* arg);
