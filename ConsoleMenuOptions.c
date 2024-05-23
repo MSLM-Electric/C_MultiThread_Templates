@@ -111,6 +111,8 @@ void ScanCMDsScenarios(char *buffer, const int maxPossibleLen)
 	//char keyboardBuffs[255]; //bad
 	//char *keyboardBuffs = (char *)malloc(255 * sizeof(char));
 	if (ConsolesMenuHandle.CMD[MAKE_PACKET]) {
+		//ConsoleMenuHandle.CMD[MAKE_PACKET].callback(void *arg); //+!  or..
+		//ConsoleMenuHandle.callback(arg)[MAKE_PACKET];
 		memset(buffer, 0, maxPossibleLen);
 #ifdef MASTER_PORT_PROJECT
 		//mutxMasterCfg//!
