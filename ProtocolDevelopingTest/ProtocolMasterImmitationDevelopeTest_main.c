@@ -94,7 +94,7 @@ int main()
 	Array_Of_Thread_Handles[4] = ThreadReadingStruct.Handle_Of_Thread;
 
 	// Wait until all threads have terminated.
-	WaitForMultipleObjects(3, Array_Of_Thread_Handles, TRUE, INFINITE);
+	WaitForMultipleObjects(4, Array_Of_Thread_Handles, TRUE, INFINITE); //?3
 
 	memset(someData, 0, sizeof(someData));
 	ReleaseMutex(mutx);  //free mutex to start program
@@ -134,7 +134,7 @@ int main()
 
 		/*Users Thread. */
 		//SendRequest(PortNo=0, SlaveAddr=1, func=3, itsMemoryAddr=0x020, qntyData=10, communPeriod=400, *); 
-		if (InterfacePort.Status) {
+		if (InterfacePort.Status & PORT_READY) {
 			LaunchTimerWP(InterfacePort.communicationPeriod, &UsersTimer);
 			if (IsTimerWPRinging(&UsersTimer)) {
 				RestartTimerWP(&UsersTimer);
@@ -211,6 +211,8 @@ DWORD WINAPI TickThread(LPVOID lpParam)
 	int res = ThreadInit(lpParam);
 
 	uint16_t testCount = 0;
+	tracePortCfg_t tracer;
+	tracePortInit(&tracer);
 	while (1)
 	{
 		if (ConsolesMenuHandle.CMD[ENABLE_TIMER]) {
@@ -220,6 +222,8 @@ DWORD WINAPI TickThread(LPVOID lpParam)
 		}else{
 			StopTimerWP(&MonitoringTim);
 		}
+		if (ConsolesMenuHandle.CMD[TRACE_PORT])
+			tracePort(&InterfacePort, &tracer);
 	}
 }
 
@@ -235,21 +239,20 @@ DWORD WINAPI ThreadReading(LPVOID lpParam) //
 	stopwatchwp_t testMeasure[2];
 	InitStopWatchWP(&testMeasure[0], (tickptr_fn*)GetTickCount);
 	InitStopWatchWP(&testMeasure[1], (tickptr_fn*)GetTickCount);
+
 	while (1)
 	{
 		if (IsTimerWPRinging(&readingIOfilePeriod)) {
 			RestartTimerWP(&readingIOfilePeriod);
-			if(InterfacePort.Status & (PORT_READY | PORT_RECEIVING) == (PORT_READY | PORT_RECEIVING))
+			if((InterfacePort.Status & (PORT_READY | PORT_RECEIVING)) == (PORT_READY | PORT_RECEIVING))
 				immitationReceivingOfPortsBus(&InterfacePort);  //reading file shouldn't be so fast!
 		}
 		if (IsTimerWPRinging(&InterfacePort.ReceivingTimer)) { //also you can put it on TickThread()
-			InterfacePort.Status &= ~PORT_RECEIVING;
-			StopTimerWP(&InterfacePort.ReceivingTimer);
+			ReceivingHandle(&InterfacePort);
 			StopWatchWP(&testMeasure[0]);
 		}
 		if (IsTimerWPRinging(&InterfacePort.SendingTimer)) {
-			InterfacePort.Status &= ~PORT_SENDING;
-			StopTimerWP(&InterfacePort.SendingTimer);
+			SendingHandle(&InterfacePort);
 			StopWatchWP(&testMeasure[1]);
 		}
 		if (IsTimerWPRinging(&MonitoringTim)) {

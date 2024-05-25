@@ -71,6 +71,7 @@ typedef struct {
 	enum InterfacePortState_e Status; //(int)
 	u16 outCursor; //outPtr; mb outCursorPos; sendbufPos;
 	u16 inCursor;  //inPtr; 
+	u16 errCnt;
 	DelayedRecv_t DelayedRecv;
 }InterfacePortHandle_t;
 
@@ -78,6 +79,8 @@ extern InterfacePortHandle_t InterfacePort; //InterfacePort[ALL_CHANNELS] //Inte
 
 int Write(InterfacePortHandle_t *PortHandle, const uint8_t *inDatas, const int size);
 int Recv(InterfacePortHandle_t *PortHandle, uint8_t *outBuff, const int maxPossibleSize);
+int SendingHandle(InterfacePortHandle_t* Port);
+int ReceivingHandle(InterfacePortHandle_t* Port);
 void TransmitInterrupt(void* arg); //Call_TXInterrupt()
 void Called_RXInterrupt(void* arg); //void ReceiveInterrupt(void* arg);
 //int SentInterrupt(void); //End of transmit callback
@@ -86,6 +89,18 @@ int immitationReceivingOfPortsBus(InterfacePortHandle_t* outPortHandle);
 FRESULT TakeGLOBMutex(/*char* tempBuffer, const size_t maxPossibleLen,*/ FIL* f, uint32_t timeOut);
 FRESULT RealeaseGLOBMutex(FIL* f);
 #endif // GLOB_MUTEX_FILE
+#define ACCUMUL_CAPACITY 200
+typedef struct {
+	Timerwp_t TraceTime; //TraceTimeToAccum
+	Timerwp_t FrequencyTrace;
+	u16 accumulatedStats[ACCUMUL_CAPACITY];
+	u16 accumArrayPos;
+}tracePortCfg_t;
+//tracePortCfg_t PortTracer;
+void tracePortInit(tracePortCfg_t* traceP);
+void tracePort(InterfacePortHandle_t* Port, tracePortCfg_t* traceP);
+void ShowTracedAccumulations(tracePortCfg_t* traceP);
+u16 BitPos(u16 Bit);
 
 
 #endif // !HARDWARE_INTERFACE_UNIT_H

@@ -32,6 +32,7 @@ set(HEADERS
 	${ROOT_SRC_DIR}/MultiThreadSupport.h
 	${LIB_DIR}/SimpleTimerWP.h
 	${LIB_DIR}/fileHandle.h
+	${LIB_DIR}/type_def.h
 	${HARDWARE_PERIPHERAL}/HardwareInterfaceUnit.h
 	${IOFILE_PATH}/MasterImmitationCfg.h
 	${IOFILE_PATH}/PortsBusMessages.h

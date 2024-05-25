@@ -16,7 +16,8 @@ uint8_t StringCompareAndParseToNum(char* inBuff, uint8_t maxPossibleLen)
 	//Users code
 	/*---------Put your Functions launch to the header file ConsoleMenuOptions.h----------*/
 	/*-------------------------------------------------------------------------------------*/
-	for (uint8_t u = 0; u < sizeof(MenuOption); u++) {
+	u8 OptnQnty = sizeof(MenuOption) / sizeof(menuChoise_t);
+	for (uint8_t u = 0; u < OptnQnty; u++) {
 		if (strncmp(inBuff, MenuOption[u].optionName, len) == 0)
 			return MenuOption[u].optionId;
 	}

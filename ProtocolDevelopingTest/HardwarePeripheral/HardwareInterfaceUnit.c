@@ -31,8 +31,8 @@ int InitPort(InterfacePortHandle_t* PortHandle)
 int Write(InterfacePortHandle_t* PortHandle, const uint8_t *inDatas, const int size)
 {
 	int res = -1;
-	//IsSendingTimerRinging = IsTimerWPRinging(&InterfacePort.SendingTimer);
-	if (PortHandle->Status & (PORT_READY | PORT_SENDING | PORT_BUSY) == ONLY PORT_READY) {
+	u8 IsSendingTimerRinging = IsTimerWPRinging(&InterfacePort.SendingTimer);
+	if ((PortHandle->Status & (PORT_READY | PORT_SENDING | PORT_BUSY)) == ONLY PORT_READY) {
 		memcpy(PortHandle->BufferToSend, inDatas, size);
 		PortHandle->LenDataToSend = size;
 		//PortHandle->outCursor++;
@@ -54,10 +54,10 @@ int Write(InterfacePortHandle_t* PortHandle, const uint8_t *inDatas, const int s
 			;;
 		}
 	}
-	else if (PortHandle->Status & (PORT_BUSY | PORT_SENDING_LAST_BYTE) == ONLY PORT_BUSY | PORT_SENDING_LAST_BYTE) {
+	else if ((PortHandle->Status & (PORT_BUSY | PORT_SENDING_LAST_BYTE)) == ONLY (PORT_BUSY | PORT_SENDING_LAST_BYTE)) {
 		;;
 	}
-	else if (PortHandle->Status & (PORT_BUSY | PORT_SENDED) == ONLY PORT_BUSY | PORT_SENDED) {
+	else if ((PortHandle->Status & (PORT_BUSY | PORT_SENDED)) == ONLY (PORT_BUSY | PORT_SENDED)) { //After fully sended through fifo (or sending last byte)
 		HWPort.clearOrResetSomeFlags = 0;
 		HWPort.TXInterruptEnable = 0;
 		HWPort.clearFIFO = 1;
@@ -73,6 +73,20 @@ int Write(InterfacePortHandle_t* PortHandle, const uint8_t *inDatas, const int s
 	else {
 		res = -4;
 	}
+	if (IsSendingTimerRinging & (PortHandle->Status & PORT_SENDING)) {
+		PortHandle->errCnt++;
+		HWPort.clearOrResetSomeFlags = 0;
+		HWPort.TXInterruptEnable = 0;
+		HWPort.clearFIFO = 1;
+		HWPort.someSettings = 0xFF;
+		PortHandle->Status clearBITS(PORT_SENDING_LAST_BYTE | PORT_SENDING | PORT_BUSY);
+		StopTimerWP(&PortHandle->SendingTimer);
+		if (PortHandle->DelayedRecv.DelayedRecv) {   //???
+			void* arg = PortHandle->DelayedRecv.ifsArg;
+			u16 Len = PortHandle->DelayedRecv.maxLen;
+			PortHandle->DelayedRecv.DelayedRecv(arg, Len);
+		}
+	}
 	//if (PortHandle->Status & PORT_SENDING)
 		//res = PortHandle->outCursor;
 	return res;
@@ -82,7 +96,7 @@ int Recv(InterfacePortHandle_t* PortHandle, uint8_t *outBuff, const int maxPossi
 {
 int res = 0;
 	u8 IsRecvTimerRinging = IsTimerWPRinging(&PortHandle->ReceivingTimer);
-	if (PortHandle->Status & (PORT_READY | PORT_RECEIVING | PORT_BUSY) == ONLY PORT_READY) {
+	if ((PortHandle->Status & (PORT_READY | PORT_RECEIVING | PORT_BUSY)) == ONLY PORT_READY) {
 		memset(&PortHandle->DelayedRecv, 0, sizeof(PortHandle->DelayedRecv));
 		PortHandle->LenDataToRecv = maxPossibleSize;
 		LaunchTimerWP(PortHandle->ReceivingTimer.setVal, &PortHandle->ReceivingTimer);
@@ -94,7 +108,7 @@ int res = 0;
 		HWPort.RXInterruptEnable = 1;
 		HWPort.StartRX = 1;
 	}
-	else if ((PortHandle->Status & (PORT_BUSY | PORT_RECEIVED)) && !IsRecvTimerRinging == ONLY PORT_BUSY | PORT_RECEIVED) {
+	else if ((PortHandle->Status & (PORT_BUSY | PORT_RECEIVED)) && !IsRecvTimerRinging == ONLY (PORT_BUSY | PORT_RECEIVED)) {
 		//PortHandle->LenDataToRecv ..
 		PortHandle->inCursor += sizeof(HWPort.FIFO_BUFFER);
 		memcpy(PortHandle->BufferRecved, HWPort.FIFO_BUFFER, sizeof(HWPort.FIFO_BUFFER));
@@ -108,8 +122,8 @@ int res = 0;
 		HWPort.RXInterruptEnable = 1;
 		HWPort.StartRX = 1;
 	}
-	else if (PortHandle->Status & (PORT_BUSY | PORT_SENDING | PORT_RECEIVING) == ONLY PORT_BUSY | PORT_SENDING) {
-		//DoDelayedCall This function
+	else if ((PortHandle->Status & (PORT_BUSY | PORT_SENDING | PORT_RECEIVING)) == ONLY (PORT_BUSY | PORT_SENDING)) {
+		//DoDelayedCall This function after sending
 		if (IsTimerWPStarted(&PortHandle->SendingTimer)) {
 			PortHandle->DelayedRecv.DelayedRecv = (DelayedRecv_fn*)Recv;
 			PortHandle->DelayedRecv.ifsArg = PortHandle;
@@ -134,6 +148,15 @@ int res = 0;
 	return res;
 }
 //#endif // IN_CASE_OF_FIFO_TYPE
+int SendingHandle(InterfacePortHandle_t* Port)
+{
+	return Write(Port, NULL, no_required_now);
+}
+
+int ReceivingHandle(InterfacePortHandle_t* Port)
+{
+	return Recv(Port, NULL, no_required_now);
+}
 
 static int immitationOfPortsBus(InterfacePortHandle_t* PortHandle) //! immitationSendingOfPortsBus()
 {
@@ -248,9 +271,9 @@ int immitationReceivingOfPortsBus(InterfacePortHandle_t* outPortHandle)
 void TransmitInterrupt(void *arg) 
 {
 	InterfacePortHandle_t* Port = (InterfacePortHandle_t *)arg;
-	if (Port->Status & (PORT_READY | PORT_SENDING) == ONLY (PORT_READY | PORT_SENDING)) {
+	if ((Port->Status & (PORT_READY | PORT_SENDING)) == ONLY (PORT_READY | PORT_SENDING)) {
 		Port->Status |= PORT_SENDED;
-		Write(NULL, NULL, no_required_now);
+		Write(Port, NULL, no_required_now);
 	}
 	//StopTimerWP(&Port->SendingTimer);
 	return;
@@ -260,11 +283,84 @@ void Called_RXInterrupt(void* arg) //ReceiveInterrupt()
 {
 	InterfacePortHandle_t* Port = (InterfacePortHandle_t*)arg;
 	Port->Status |= PORT_RECEIVED;
-	if (Port->Status & (PORT_READY | PORT_RECEIVING) == ONLY (PORT_READY | PORT_RECEIVING)) {
+	if ((Port->Status & (PORT_READY | PORT_RECEIVING)) == ONLY (PORT_READY | PORT_RECEIVING)) {
 		Port->Status |= PORT_RECEIVED;
-		Recv(NULL, NULL,no_required_now);
+		Recv(Port, NULL,no_required_now);
 	}
 	return;
+}
+
+//#ifdef TRACE_PORT_ENABLE
+//#endif // TRACE_PORT_ENABLE
+//tracePortCfg_t PortTracer;
+
+/*PORT_READY = 1,
+  PORT_BUSY = 1 << 1,
+  PORT_SENDING = 1 << 2,
+  PORT_SENDED = 1 << 3,
+  PORT_SENDING_LAST_BYTE = 1 << 4,
+  PORT_RECEIVING = 1 << 5,
+  PORT_RECEIVED = 1 << 6,
+  PORT_ASYNC = 1 << 7,
+  PORT_MASTER = 1 << 8,
+  PORT_BUFFER_FIFO = 1 << 9,*/
+static stopwatchwp_t tracemeasure;
+void tracePortInit(tracePortCfg_t* traceP)
+{
+	memset(traceP, 0, sizeof(tracePortCfg_t)); //!
+	//memset(traceP->accumulatedStats, 0, sizeof(traceP->accumulatedStats));
+	traceP->accumArrayPos = 0;
+	InitTimerWP(&traceP->TraceTime, (tickptr_fn*)GetTickCount);
+	InitTimerWP(&traceP->FrequencyTrace, (tickptr_fn*)GetTickCount);
+	LaunchTimerWP(2000, &traceP->TraceTime);
+	LaunchTimerWP(50, &traceP->FrequencyTrace);
+	InitStopWatchWP(&tracemeasure, (tickptr_fn*)GetTickCount);
+}
+void tracePort(InterfacePortHandle_t* Port, tracePortCfg_t *traceP) {
+	if (IsTimerWPRinging(&traceP->FrequencyTrace)) {
+		RestartTimerWP(&traceP->FrequencyTrace);
+		if (traceP->accumArrayPos < ACCUMUL_CAPACITY) {
+			traceP->accumulatedStats[traceP->accumArrayPos++] = Port->Status;
+		}else {
+			traceP->accumArrayPos--;
+			printf("Tracing over capacity space!\n");
+			RestartTimerWP(&traceP->TraceTime);
+			ShowTracedAccumulations(traceP);
+			traceP->accumArrayPos = 0;
+		}
+	}
+	if (IsTimerWPRinging(&traceP->TraceTime)) {
+		
+		StopWatchWP(&tracemeasure);
+		RestartTimerWP(&traceP->TraceTime);
+		ShowTracedAccumulations(traceP);
+		traceP->accumArrayPos = 0;
+	}
+
+}
+#define SET_BIT(x) (1 << x)
+void ShowTracedAccumulations(tracePortCfg_t* traceP)
+{
+	u16 bitPos = 0;
+	u16 AccumCnt = 0;
+	u8 stats[9];
+	printf("MAST  ASYN  RCVED  RCVING  SNDGLAST  SNDED  SNDING  BUSY  REDY\n");
+	for (AccumCnt; AccumCnt <= traceP->accumArrayPos; AccumCnt++) {
+		for (BitPos(PORT_READY); bitPos <= BitPos(PORT_MASTER); bitPos++) {
+			stats[bitPos] = (traceP->accumulatedStats[AccumCnt] & SET_BIT(bitPos)) > 0;
+		}
+	printf(" %d    %d     %d     %d       %d       %d      %d      %d    %d\n", stats[8], stats[7], stats[6], stats[5], stats[4], stats[3], stats[2], stats[1], stats[0]);
+	}
+	traceP->accumArrayPos = 0;
+}
+
+u16 BitPos(u16 Bit)
+{
+	u16 res = 0;
+	while ((Bit >> res) > 1) {
+		res++;
+	}
+	return res;
 }
 
 #pragma region BLACKNOTE_AND_THOUGHTS

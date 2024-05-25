@@ -53,8 +53,16 @@ typedef u32 u32_t;
 
 #define clearBITS(x) &= ~(x)
 #define setBITS(x) |= (x)
-
+//#define BITPOS(x) y = while((x >> 1) > 1){y++};
 #define asm __asm
-
+//u16 BitPos(u16 Bit);
+//u16 BitPos(u16 Bit)
+//{
+//	u16 res = 0;
+//	while ((Bit >> res) > 1) {
+//		res++;
+//	}
+//	return res;
+//}
 
 #endif// TYPE_DEF_H

@@ -68,6 +68,7 @@ void InitStopWatchWP(stopwatchwp_t* timeMeasure, tickptr_fn* SpecifyTickFunction
 
 void InitTimerWP(Timerwp_t* Timer, tickptr_fn* SpecifyTickFunction)
 {
+	memset(Timer, 0, sizeof(Timerwp_t));
 	Timer->ptrToTick = SpecifyTickFunction;
 	StopTimerWP(Timer);
 }

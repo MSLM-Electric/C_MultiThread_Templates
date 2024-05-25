@@ -55,9 +55,11 @@ void TimerCallback() //InterruptTimer
 DWORD WINAPI ThreadNo1(LPVOID lpParam);
 DWORD WINAPI ThreadNo2(LPVOID lpParam);
 DWORD WINAPI TickThread(LPVOID lpParam);
+DWORD WINAPI ThreadReading(LPVOID lParam);
 ThreadsStruct_t Thread1Struct;
 ThreadsStruct_t Thread2Struct;
 ThreadsStruct_t TickThreadStruct;
+ThreadsStruct_t ThreadReadingStruct;
 
 HANDLE sem;
 HANDLE mutx;
@@ -73,6 +75,7 @@ int main()
 	res = ThreadCreation(&ThreadNo1, &Thread1Struct, 1);
 	res = ThreadCreation(&ThreadNo2, &Thread2Struct, 2);
 	res = ThreadCreation(&TickThread, &TickThreadStruct, 4);
+	res = ThreadCreation(&ThreadReading, &ThreadReadingStruct, 5);
 
 	// Aray to store thread handles 
 	HANDLE Array_Of_Thread_Handles[4];
@@ -82,9 +85,10 @@ int main()
 	Array_Of_Thread_Handles[0] = Thread1Struct.Handle_Of_Thread;
 	Array_Of_Thread_Handles[1] = Thread2Struct.Handle_Of_Thread;
 	Array_Of_Thread_Handles[3] = TickThreadStruct.Handle_Of_Thread;
+	Array_Of_Thread_Handles[4] = ThreadReadingStruct.Handle_Of_Thread;
 
 	// Wait until all threads have terminated.
-	WaitForMultipleObjects(3, Array_Of_Thread_Handles, TRUE, INFINITE);
+	WaitForMultipleObjects(4, Array_Of_Thread_Handles, TRUE, INFINITE); //?3
 
 	memset(someData, 0, sizeof(someData));
 	ReleaseMutex(mutx);  //free mutex to start program
@@ -139,6 +143,40 @@ DWORD WINAPI ThreadNo1(LPVOID lpParam)
 		WaitForSingleObject(mutx, INFINITE);
 		ScanCMDsScenarios(keyboardBuff, sizeof(keyboardBuff));
 		ReleaseMutex(mutx);
+	}
+}
+
+DWORD WINAPI ThreadReading(LPVOID lpParam) //
+{
+	int res = ThreadInit(lpParam);
+
+	uint16_t testCountR = 0;
+	//InterfacePortHandle_t Port;
+	Timerwp_t readingIOfilePeriod;
+	InitTimerWP(&readingIOfilePeriod, (tickptr_fn*)GetTickCount);
+	LaunchTimerWP((U32_ms)1000, &readingIOfilePeriod);
+	stopwatchwp_t testMeasure[2];
+	InitStopWatchWP(&testMeasure[0], (tickptr_fn*)GetTickCount);
+	InitStopWatchWP(&testMeasure[1], (tickptr_fn*)GetTickCount);
+	while (1)
+	{
+		if (IsTimerWPRinging(&readingIOfilePeriod)) {
+			RestartTimerWP(&readingIOfilePeriod);
+			if ((InterfacePort.Status & (PORT_READY | PORT_RECEIVING)) == (PORT_READY | PORT_RECEIVING))
+				immitationReceivingOfPortsBus(&InterfacePort);  //reading file shouldn't be so fast!
+		}
+		if (IsTimerWPRinging(&InterfacePort.ReceivingTimer)) { //also you can put it on TickThread()
+			ReceivingHandle(&InterfacePort);
+			StopWatchWP(&testMeasure[0]);
+		}
+		if (IsTimerWPRinging(&InterfacePort.SendingTimer)) {
+			SendingHandle(&InterfacePort);
+			StopWatchWP(&testMeasure[1]);
+		}
+		if (IsTimerWPRinging(&MonitoringTim)) {
+			printf("Received timeout test measure: %u\n", testMeasure[0].measuredTime);
+			printf("Sending timeout test measure: %u\n", testMeasure[1].measuredTime);
+		}
 	}
 }
 

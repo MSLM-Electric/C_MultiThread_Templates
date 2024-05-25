@@ -14,6 +14,7 @@ enum cmdsValEnums {
 	START_COMMUNICATION,
 	STOP_COMMUNICATION,
 	SET_TIMER_PERIOD,
+	TRACE_PORT,
 	EXAMPLE, /*//Users code*/
 	cmdsValEnumslastINDEX
 };
@@ -34,6 +35,7 @@ static menuChoise_t MenuOption[cmdsValEnumslastINDEX - cmdsValEnumsfirstINDEX] =
 	{"STARTCOM", START_COMMUNICATION}, //"STARTCOMMUNIC"
 	{"STOPCOM", STOP_COMMUNICATION},   //"STOPCOMMUNIC"
 	{"SETPERIO", SET_TIMER_PERIOD},
+	{"TRACE", TRACE_PORT},
 	//Users code
 	/*------------------------------Put your Functions launch here----------------------------*/
 	{"EXAMPLE", EXAMPLE},
