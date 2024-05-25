@@ -1,3 +1,6 @@
+#ifndef CONSOLEMENUOPTIONS_H
+#define CONSOLEMENUOPTIONS_H
+
 #include <stdint.h>
 
 enum cmdsValEnums {
@@ -21,7 +24,7 @@ typedef struct {
 	enum cmdsValEnums optionId;
 }menuChoise_t;
 
-static menuChoise_t MenuOption[cmdsValEnumslastINDEX-cmdsValEnumsfirstINDEX] = {
+static menuChoise_t MenuOption[cmdsValEnumslastINDEX - cmdsValEnumsfirstINDEX] = {
 	{"ALL", ALL},
 	{"DETAILS", DETAILS},
 	{"PAUSE", PAUSE_CONSOLE},
@@ -49,3 +52,6 @@ uint8_t StringCompareAndParseToNum(char* inBuff, uint8_t maxPossibleLen);
 void SettingsCMD_Handling(char* inBuff, const uint16_t maxPossibleLen);
 int ScanKeyboardWithWhiteSpaces(char* inBuff, uint16_t maxPossibleLen);
 void ScanCMDsScenarios(char* buffer, const int maxPossibleLen);
+#define PORTABILITY_WITH_OLD_NAME //If you see this attached to some function, so it's for a while/temporarely. After renaming and fixing all corresponded usings the new name of func will be taken. 
+#define ExecuteConsoleMenuRegisteredCallbacksFunc ScanCMDsScenarios PORTABILITY_WITH_OLD_NAME  //ExecuteRegisteredCallbacksFuncOfCMDs
+#endif // !CONSOLEMENUOPTIONS_H

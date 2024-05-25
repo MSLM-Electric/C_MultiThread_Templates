@@ -21,6 +21,7 @@ set(SOURCES
 	${LIB_DIR}/SimpleTimerWP.c
 	${LIB_DIR}/fileHandle.c
 	${HARDWARE_PERIPHERAL}/HardwareInterfaceUnit.c
+	${IOFILE_PATH}/CmdsScenarioScripts.c
 )
 	#${ROOT_SRC_DIR}/*.c
 	#${LIB_DIR}/*.c
@@ -34,6 +35,7 @@ set(HEADERS
 	${HARDWARE_PERIPHERAL}/HardwareInterfaceUnit.h
 	${IOFILE_PATH}/MasterImmitationCfg.h
 	${IOFILE_PATH}/PortsBusMessages.h
+	${IOFILE_PATH}/CmdsScenarioScripts.h
 	#${IOFILE_PATH}/SlaveImmitationCfg.h  //not needed! Its for SlaveProtocolDeveloping
 )
 

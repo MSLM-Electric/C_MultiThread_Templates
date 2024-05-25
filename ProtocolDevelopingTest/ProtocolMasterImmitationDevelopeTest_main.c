@@ -5,6 +5,7 @@
 #include "../Lib/SimpleTimerWP.h"
 #include "../ConsoleMenuOptions.h"
 #include "IO_immitationBetweenMasterSlave/MasterImmitationCfg.h"
+#include "IO_immitationBetweenMasterSlave/CmdsScenarioScripts.h"
 
 #define false 0
 #define true 1
@@ -41,6 +42,7 @@ dma_simulate_handle_t DMAHandle;
 Timerwp_t UsersTimer;
 Timerwp_t MonitoringTim;
 /*TI*/ uint8_t testTimer = 0;
+static void RegisterCmdFunctionsCallback(void);
 
 void callback()
 {
@@ -63,11 +65,11 @@ ThreadsStruct_t Thread2Struct;
 ThreadsStruct_t TickThreadStruct;
 ThreadsStruct_t ThreadReadingStruct;
 
-static void ShowAllStates(void);
 HANDLE sem;
 HANDLE mutx;
 char keyboardBuff[20];
 uint8_t scanfIsBusy = 0;
+InterfacePortHandle_t InterfacePort;
 
 
 int main()
@@ -105,6 +107,7 @@ int main()
 #endif // DEBUG_ON_VS
 	LaunchTimerWP((U32_ms)2000, &MainProgrammDelay);
 	InitPort(&InterfacePort);
+	RegisterCmdFunctionsCallback();
 	ConsolesMenuHandle.CMD[PAUSE_CONSOLE] = 1; //enable pause initially
 	while (1)
 	{
@@ -254,4 +257,10 @@ DWORD WINAPI ThreadReading(LPVOID lpParam) //
 			printf("Sending timeout test measure: %u\n", testMeasure[1].measuredTime);
 		}
 	}
+}
+
+static void RegisterCmdFunctionsCallback(void)
+{
+	ConsolesMenuHandle.executeFunc[MAKE_PACKET] = (callback_fn*)MakingPacketScenarios;
+	ConsolesMenuHandle.executeFunc[SET_TIMER_PERIOD] = (callback_fn*)SetTimerPeriodCmdFunction;
 }

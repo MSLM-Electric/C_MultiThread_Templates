@@ -26,6 +26,8 @@ int InitPort(InterfacePortHandle_t* PortHandle)
 	return res;
 }
 
+//#ifdef IN_CASE_OF_FIFO_TYPE
+//#define IN_CASE_OF_FIFO_TYPE
 int Write(InterfacePortHandle_t* PortHandle, const uint8_t *inDatas, const int size)
 {
 	int res = -1;
@@ -131,6 +133,7 @@ int res = 0;
 	}
 	return res;
 }
+//#endif // IN_CASE_OF_FIFO_TYPE
 
 static int immitationOfPortsBus(InterfacePortHandle_t* PortHandle) //! immitationSendingOfPortsBus()
 {
@@ -226,10 +229,12 @@ int immitationReceivingOfPortsBus(InterfacePortHandle_t* outPortHandle)
 #endif // MASTER_PORT_PROJECT
 		}
 		else if ((DirectionSendingOfBusMessageId == mastersMessageId)) {
+#ifdef SLAVE_PORT_PROJECT
 			if (ThisSlavesConfigs.lastReadedLine != ThisSlavesConfigs.lastReadedLine) {
 				memcpy(HWPort.FIFO_BUFFER, buffer, sizeof(buffer));
 				ThisSlavesConfigs.lastReadedLine = ThisSlavesConfigs.currentIOfileLine++;
 			}
+#endif // SLAVE_PORT_PROJECT
 		}
 		Called_RXInterrupt(&InterfacePort);
 	}
@@ -243,25 +248,27 @@ int immitationReceivingOfPortsBus(InterfacePortHandle_t* outPortHandle)
 void TransmitInterrupt(void *arg) 
 {
 	InterfacePortHandle_t* Port = (InterfacePortHandle_t *)arg;
-	Port->Status &= ~PORT_SENDING;
-	Port->Status |= PORT_SENDED;
-	StopTimerWP(&Port->SendingTimer);
+	if (Port->Status & (PORT_READY | PORT_SENDING) == ONLY (PORT_READY | PORT_SENDING)) {
+		Port->Status |= PORT_SENDED;
+		Write(NULL, NULL, no_required_now);
+	}
+	//StopTimerWP(&Port->SendingTimer);
+	return;
 }
 
 void Called_RXInterrupt(void* arg) //ReceiveInterrupt()
 {
 	InterfacePortHandle_t* Port = (InterfacePortHandle_t*)arg;
 	Port->Status |= PORT_RECEIVED;
-#ifdef MASTER_PORT_PROJECT
-	if (InterfacePort.BufferRecved[0] == ThisMastersConfigs.SlavesAddressToTalk){ //IsThisDataForMe();
-		;
+	if (Port->Status & (PORT_READY | PORT_RECEIVING) == ONLY (PORT_READY | PORT_RECEIVING)) {
+		Port->Status |= PORT_RECEIVED;
+		Recv(NULL, NULL,no_required_now);
 	}
-#endif // MASTER_PORT_PROJECT
 	return;
 }
 
 #pragma region BLACKNOTE_AND_THOUGHTS
-//#define DISABLE_BLACKNOTE
+#define DISABLE_BLACKNOTE
 #ifndef DISABLE_BLACKNOTE
 #define IN_CASE_OF_8BIT_PORTION_DATAS
 #define IN_CASE_OF_FIFO_TYPE //disable it after
