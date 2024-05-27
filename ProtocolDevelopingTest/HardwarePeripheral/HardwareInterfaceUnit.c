@@ -349,7 +349,7 @@ void ShowTracedAccumulations(tracePortCfg_t* traceP)
 		for (BitPos(PORT_READY); bitPos <= BitPos(PORT_MASTER); bitPos++) {
 			stats[bitPos] = (traceP->accumulatedStats[AccumCnt] & SET_BIT(bitPos)) > 0;
 		}
-	printf(" %d    %d     %d     %d       %d       %d      %d      %d    %d\n", stats[8], stats[7], stats[6], stats[5], stats[4], stats[3], stats[2], stats[1], stats[0]);
+		printf("%2d%7d%6d%7d%9d%9d%7d%7d%6d\n", stats[8], stats[7], stats[6], stats[5], stats[4], stats[3], stats[2], stats[1], stats[0]);
 	}
 	traceP->accumArrayPos = 0;
 }
