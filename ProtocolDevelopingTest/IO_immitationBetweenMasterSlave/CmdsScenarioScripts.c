@@ -37,7 +37,8 @@ void MakingPacketScenarios(char* buffer, const int maxPossibleLen, void* arg)
 	printf("Enter the Response timeout from this Slave: ");
 	scanf_s("%d", buffer);
 	printf("\n");
-	ThisSlavesConfigs.ResponseTimeout = *(uint16_t*)&buffer[0];
+	if(*(uint16_t*)&buffer[0])
+		ThisSlavesConfigs.ResponseTimeout = *(uint16_t*)&buffer[0];
 	ThisSlavesConfigs.dataFromRead = InterfacePort.BufferRecved;
 	ThisSlavesConfigs.Status = 1;
 #endif // MASTER_PORT_PROJECT
@@ -53,5 +54,21 @@ void SetTimerPeriodCmdFunction(char* buffer, const int maxPossibleLen, void* arg
 	scanf_s("%d", buffer);
 	MonitoringTim.setVal = *(uint16_t*)&(buffer[0]);
 	ConsolesMenuHandle.CMD[SET_TIMER_PERIOD] = 0;
+	return;
+}
+
+void ConfigTracerParams(char* buffer, const int maxPossibleLen, void* arg)
+{
+	UNUSED(arg);
+	memset(buffer, 0, maxPossibleLen);
+	printf_s("Config Port trace:\nSet Trace time:");
+	scanf_s("%d", buffer);
+	if (*(U32_ms*)&(buffer[0]))
+		PortTracer.TraceTime.setVal = *(U32_ms*)&(buffer[0]);
+	printf_s("Set Trace frequency:\n");
+	scanf_s("%d", buffer);
+	if(*(U32_ms*)&(buffer[0]))
+		PortTracer.FrequencyTrace.setVal = *(U32_ms*)&(buffer[0]);
+	ConsolesMenuHandle.CMD[TRACE_CONFIGS] = 0;
 	return;
 }

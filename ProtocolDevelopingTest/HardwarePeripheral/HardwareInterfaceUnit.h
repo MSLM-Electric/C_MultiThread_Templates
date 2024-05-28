@@ -76,7 +76,7 @@ typedef struct {
 }InterfacePortHandle_t;
 
 extern InterfacePortHandle_t InterfacePort; //InterfacePort[ALL_CHANNELS] //InterfacePort[PORT0];
-
+int InitPort(InterfacePortHandle_t* PortHandle);
 int Write(InterfacePortHandle_t *PortHandle, const uint8_t *inDatas, const int size);
 int Recv(InterfacePortHandle_t *PortHandle, uint8_t *outBuff, const int maxPossibleSize);
 int SendingHandle(InterfacePortHandle_t* Port);
@@ -96,7 +96,7 @@ typedef struct {
 	u16 accumulatedStats[ACCUMUL_CAPACITY];
 	u16 accumArrayPos;
 }tracePortCfg_t;
-//tracePortCfg_t PortTracer;
+tracePortCfg_t PortTracer;
 void tracePortInit(tracePortCfg_t* traceP);
 void tracePort(InterfacePortHandle_t* Port, tracePortCfg_t* traceP);
 void ShowTracedAccumulations(tracePortCfg_t* traceP);

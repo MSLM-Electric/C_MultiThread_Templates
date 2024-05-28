@@ -12,6 +12,7 @@ typedef struct{
   uint16_t LenDataToTalk;
   uint16_t communicationPeriod;
   uint8_t* dataToWrite;
+  uint8_t localTimeEn;
 }thisMastercfgs_t;
 
 typedef struct {

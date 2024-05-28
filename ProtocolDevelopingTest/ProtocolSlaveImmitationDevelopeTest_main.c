@@ -98,6 +98,8 @@ int main()
 	InitTimerWP(&MainProgrammDelay, (tickptr_fn*)GetTickCount);
 #endif // DEBUG_ON_VS
 	LaunchTimerWP((U32_ms)2000, &MainProgrammDelay);
+	InitPort(&InterfacePort);
+	InterfacePort.ReceivingTimer.setVal = (U32_ms)600;
 	RegisterCmdFunctionsCallback();
 	ConsolesMenuHandle.CMD[PAUSE_CONSOLE] = 1;
 
@@ -111,8 +113,14 @@ int main()
 				printf("MainBckgdProccess\n");
 			}
 		}
-		if (ConsolesMenuHandle.CMD[START_COMMUNICATION]) {
-			;
+		if (ConsolesMenuHandle.CMD[START_COMMUNICATION && ThisSlavesConfigs.Status]) {
+			InterfacePort.ReceivingTimer.setVal = ThisSlavesConfigs.ResponseTimeout;
+			if ((!IsTimerWPStarted(&InterfacePort.ReceivingTimer)) || (IsTimerWPRinging(&InterfacePort.ReceivingTimer))) {
+				Recv(&InterfacePort, InterfacePort.BufferRecved, sizeof(InterfacePort.BufferRecved));
+			}
+			else {
+				RecvHandling(&InterfacePort);
+			}
 		}
 	}
 	printf("endOfCycle. Bad jump! \n"); //programm execution never should get here!
@@ -154,7 +162,7 @@ DWORD WINAPI ThreadReading(LPVOID lpParam) //
 	//InterfacePortHandle_t Port;
 	Timerwp_t readingIOfilePeriod;
 	InitTimerWP(&readingIOfilePeriod, (tickptr_fn*)GetTickCount);
-	LaunchTimerWP((U32_ms)1000, &readingIOfilePeriod);
+	LaunchTimerWP((U32_ms)400, &readingIOfilePeriod);
 	stopwatchwp_t testMeasure[2];
 	InitStopWatchWP(&testMeasure[0], (tickptr_fn*)GetTickCount);
 	InitStopWatchWP(&testMeasure[1], (tickptr_fn*)GetTickCount);
@@ -224,21 +232,19 @@ DWORD WINAPI TickThread(LPVOID lpParam)
 		}else {
 			StopTimerWP(&MonitoringTim);
 		}
-#define BLACKNOTE_MAIN
-#ifdef BLACKNOTE_MAIN
-		if (IsTimerWPRinging(&InterfacePort.SendingTimer)) {
-			//.. Do sending case works
-			//..
-			StopTimerWP(&InterfacePort.SendingTimer);
-			//DelayedRecv //?
-		}
-#endif // BLACK_NOTE_MAIN
-
+		if (ConsolesMenuHandle.CMD[TRACE_PORT])
+			tracePort(&InterfacePort, &PortTracer);
 	}
+}
+
+void RecvHandling(InterfacePortHandle_t* Port) 
+{
+
 }
 
 static void RegisterCmdFunctionsCallback(void)
 {
 	ConsolesMenuHandle.executeFunc[MAKE_PACKET] = (callback_fn*)MakingPacketScenarios;
 	ConsolesMenuHandle.executeFunc[SET_TIMER_PERIOD] = (callback_fn*)SetTimerPeriodCmdFunction;
+	ConsolesMenuHandle.executeFunc[TRACE_CONFIGS] = (callback_fn*)ConfigTracerParams;
 }

@@ -15,6 +15,7 @@ enum cmdsValEnums {
 	STOP_COMMUNICATION,
 	SET_TIMER_PERIOD,
 	TRACE_PORT,
+	TRACE_CONFIGS,
 	EXAMPLE, /*//Users code*/
 	cmdsValEnumslastINDEX
 };
@@ -36,6 +37,7 @@ static menuChoise_t MenuOption[cmdsValEnumslastINDEX - cmdsValEnumsfirstINDEX] =
 	{"STOPCOM", STOP_COMMUNICATION},   //"STOPCOMMUNIC"
 	{"SETPERIO", SET_TIMER_PERIOD},
 	{"TRACE", TRACE_PORT},
+	{"TRACECFG", TRACE_CONFIGS},
 	//Users code
 	/*------------------------------Put your Functions launch here----------------------------*/
 	{"EXAMPLE", EXAMPLE},

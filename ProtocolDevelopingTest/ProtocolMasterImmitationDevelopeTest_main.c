@@ -211,8 +211,7 @@ DWORD WINAPI TickThread(LPVOID lpParam)
 	int res = ThreadInit(lpParam);
 
 	uint16_t testCount = 0;
-	tracePortCfg_t tracer;
-	tracePortInit(&tracer);
+	tracePortInit(&PortTracer);
 	while (1)
 	{
 		if (ConsolesMenuHandle.CMD[ENABLE_TIMER]) {
@@ -223,7 +222,7 @@ DWORD WINAPI TickThread(LPVOID lpParam)
 			StopTimerWP(&MonitoringTim);
 		}
 		if (ConsolesMenuHandle.CMD[TRACE_PORT])
-			tracePort(&InterfacePort, &tracer);
+			tracePort(&InterfacePort, &PortTracer);
 	}
 }
 
@@ -266,4 +265,5 @@ static void RegisterCmdFunctionsCallback(void)
 {
 	ConsolesMenuHandle.executeFunc[MAKE_PACKET] = (callback_fn*)MakingPacketScenarios;
 	ConsolesMenuHandle.executeFunc[SET_TIMER_PERIOD] = (callback_fn*)SetTimerPeriodCmdFunction;
+	ConsolesMenuHandle.executeFunc[TRACE_CONFIGS] = (callback_fn*)ConfigTracerParams;
 }

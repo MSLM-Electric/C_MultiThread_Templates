@@ -15,6 +15,7 @@ int InitPort(InterfacePortHandle_t* PortHandle)
 	int res = 0;
 	iofileMutex = CreateMutexW(NULL, 1, "IOFILE_Mutex");
 	ReleaseMutex(iofileMutex);
+	RealeaseGLOBMutex(&MutexFileHandle);
 	PortHandle->Status = 0;
 #ifdef MASTER_PORT_PROJECT
 	PortHandle->Status |= PORT_MASTER;
@@ -43,8 +44,7 @@ int Write(InterfacePortHandle_t* PortHandle, const uint8_t *inDatas, const int s
 		HWPort.StartTX = 1;
 		PortHandle->Status |= PORT_BUSY;
 		PortHandle->Status |= PORT_SENDING;
-		PortHandle->Status &= ~PORT_SENDED;
-		PortHandle->Status &= ~PORT_RECEIVED;
+		PortHandle->Status clearBITS(PORT_SENDED | PORT_RECEIVED | PORT_RECEIVING);
 		LaunchTimerWP(PortHandle->SendingTimer.setVal, &PortHandle->SendingTimer);
 		res = immitationOfPortsBus(PortHandle);
 		if (res < 0) {
@@ -73,7 +73,7 @@ int Write(InterfacePortHandle_t* PortHandle, const uint8_t *inDatas, const int s
 	else {
 		res = -4;
 	}
-	if (IsSendingTimerRinging & (PortHandle->Status & PORT_SENDING)) {
+	if (IsSendingTimerRinging && (PortHandle->Status & PORT_SENDING)) {
 		PortHandle->errCnt++;
 		HWPort.clearOrResetSomeFlags = 0;
 		HWPort.TXInterruptEnable = 0;
@@ -173,8 +173,17 @@ static int immitationOfPortsBus(InterfacePortHandle_t* PortHandle) //! immitatio
 	}else {
 		DirectionSendingOfBusMessageId = slavesMessageId;
 	}
+	u16 cursorPos = 0;
+#ifdef MASTER_PORT_PROJECT
+	if (ThisMastersConfigs.localTimeEn == 1) {
+		SYSTEMTIME currTime;
+		GetLocalTime(&currTime);
+		sprintf(buffer, "%dh:%dm:%ds: ", currTime.wHour, currTime.wMinute, currTime.wSecond);
+		cursorPos = strlen(buffer);
+	}
+#endif // MASTER_PORT_PROJECT	
 	//"%s%s %s\n"
-	sprintf(buffer, "%s %s\n", DirectionSendingOfBusMessageId, PortHandle->BufferToSend); //sizes?
+	sprintf(&buffer[cursorPos], "%s %s\n", DirectionSendingOfBusMessageId, PortHandle->BufferToSend); //sizes?
 	TakeMutex(&iofileMutex, INFINITE);
 	FIL* f = &FileHandle;
 	f = fopen(iofilePath, "a+"); //a
@@ -263,7 +272,7 @@ int immitationReceivingOfPortsBus(InterfacePortHandle_t* outPortHandle)
 	}
 	else { //?
 		res = (int)fres;
-		RestartTimerWP(&outPortHandle->ReceivingTimer); //? NOPE! delete it!
+		//RestartTimerWP(&outPortHandle->ReceivingTimer); //? NOPE! delete it!
 	}
 	return res;
 }

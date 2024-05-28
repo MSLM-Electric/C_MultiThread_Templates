@@ -18,4 +18,5 @@ extern Timerwp_t MonitoringTim;
 
 void MakingPacketScenarios(char* buffer, const int maxPossibleLen, void* arg);
 void SetTimerPeriodCmdFunction(char* buffer, const int maxPossibleLen, void* arg);
+void ConfigTracerParams(char* buffer, const int maxPossibleLen, void* arg);
 #endif // !CMDSSCENARIOSCRIPT_H
