@@ -42,7 +42,7 @@ Currently working at: ProtocolDevelopTemplate Project
    
    
 ```
-The Slave Project looks almostly the same:
+The Slave Project looks almost the same:
 ```
 - ROOT_PATH (Root folder)  for Slave project
    |- Lib
