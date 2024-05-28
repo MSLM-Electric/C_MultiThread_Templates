@@ -38,6 +38,7 @@ Timerwp_t MonitoringTim;
 /*TI*/ uint8_t testTimer = 0;
 InterfacePortHandle_t InterfacePort;
 
+static void RecvHandling(InterfacePortHandle_t* Port);
 static void RegisterCmdFunctionsCallback(void);
 
 void callback()
@@ -99,9 +100,11 @@ int main()
 #endif // DEBUG_ON_VS
 	LaunchTimerWP((U32_ms)2000, &MainProgrammDelay);
 	InitPort(&InterfacePort);
-	InterfacePort.ReceivingTimer.setVal = (U32_ms)600;
+	ThisSlavesConfigs.ResponseTimeout = (U32_ms)600;
+	ThisSlavesConfigs.Status = 1; //!del it after
 	RegisterCmdFunctionsCallback();
 	ConsolesMenuHandle.CMD[PAUSE_CONSOLE] = 1;
+	ConsolesMenuHandle.CMD[READ_BUS] = 1;
 
 	while (1)
 	{
@@ -113,14 +116,19 @@ int main()
 				printf("MainBckgdProccess\n");
 			}
 		}
-		if (ConsolesMenuHandle.CMD[START_COMMUNICATION && ThisSlavesConfigs.Status]) {
+		if (ConsolesMenuHandle.CMD[START_COMMUNICATION] && ThisSlavesConfigs.Status) {
+			InterfacePort.Status |= PORT_READY;
 			InterfacePort.ReceivingTimer.setVal = ThisSlavesConfigs.ResponseTimeout;
-			if ((!IsTimerWPStarted(&InterfacePort.ReceivingTimer)) || (IsTimerWPRinging(&InterfacePort.ReceivingTimer))) {
+			if (!IsTimerWPStarted(&InterfacePort.ReceivingTimer)) {
 				Recv(&InterfacePort, InterfacePort.BufferRecved, sizeof(InterfacePort.BufferRecved));
 			}
-			else {
+			else if((InterfacePort.Status & (PORT_BUSY | PORT_RECEIVED)) == ONLY (PORT_BUSY | PORT_RECEIVED)){
 				RecvHandling(&InterfacePort);
 			}
+		}
+		else
+		{
+			InterfacePort.Status clearBITS(PORT_READY);
 		}
 	}
 	printf("endOfCycle. Bad jump! \n"); //programm execution never should get here!
@@ -170,7 +178,7 @@ DWORD WINAPI ThreadReading(LPVOID lpParam) //
 	{
 		if (IsTimerWPRinging(&readingIOfilePeriod)) {
 			RestartTimerWP(&readingIOfilePeriod);
-			if ((InterfacePort.Status & (PORT_READY | PORT_RECEIVING)) == (PORT_READY | PORT_RECEIVING))
+			if ((InterfacePort.Status & (PORT_READY | PORT_RECEIVING)) == ONLY (PORT_READY | PORT_RECEIVING))
 				immitationReceivingOfPortsBus(&InterfacePort);  //reading file shouldn't be so fast!
 		}
 		if (IsTimerWPRinging(&InterfacePort.ReceivingTimer)) { //also you can put it on TickThread()
@@ -223,6 +231,7 @@ DWORD WINAPI TickThread(LPVOID lpParam)
 	int res = ThreadInit(lpParam);
 
 	uint16_t testCount = 0;
+	tracePortInit(&PortTracer);
 	while (1)
 	{
 		if (ConsolesMenuHandle.CMD[ENABLE_TIMER]) {
@@ -237,9 +246,16 @@ DWORD WINAPI TickThread(LPVOID lpParam)
 	}
 }
 
-void RecvHandling(InterfacePortHandle_t* Port) 
+static void RecvHandling(InterfacePortHandle_t* Port) 
 {
-
+	if (HWPort.FIFO_BUFFER) {
+		if(ConsolesMenuHandle.CMD[READ_BUS])
+			printf("%s\n", HWPort.FIFO_BUFFER);
+		u8 buffer[30];
+		memset(buffer, 0, sizeof(buffer));
+		sprintf(buffer, " slave response!\n");
+		Write(Port, buffer, sizeof(buffer));
+	}
 }
 
 static void RegisterCmdFunctionsCallback(void)
@@ -247,4 +263,5 @@ static void RegisterCmdFunctionsCallback(void)
 	ConsolesMenuHandle.executeFunc[MAKE_PACKET] = (callback_fn*)MakingPacketScenarios;
 	ConsolesMenuHandle.executeFunc[SET_TIMER_PERIOD] = (callback_fn*)SetTimerPeriodCmdFunction;
 	ConsolesMenuHandle.executeFunc[TRACE_CONFIGS] = (callback_fn*)ConfigTracerParams;
+	ConsolesMenuHandle.executeFunc[SLAVE_CFG] = (callback_fn*)ConfigSlave;
 }

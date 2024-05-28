@@ -19,4 +19,7 @@ extern Timerwp_t MonitoringTim;
 void MakingPacketScenarios(char* buffer, const int maxPossibleLen, void* arg);
 void SetTimerPeriodCmdFunction(char* buffer, const int maxPossibleLen, void* arg);
 void ConfigTracerParams(char* buffer, const int maxPossibleLen, void* arg);
+#ifdef SLAVE_PORT_PROJECT
+void ConfigSlave(char* buffer, const int maxPossibleLen, void* arg);
+#endif // !SLAVE_PORT_PROJECT
 #endif // !CMDSSCENARIOSCRIPT_H

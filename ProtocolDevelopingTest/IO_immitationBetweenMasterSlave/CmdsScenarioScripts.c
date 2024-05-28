@@ -29,18 +29,7 @@ void MakingPacketScenarios(char* buffer, const int maxPossibleLen, void* arg)
 	ThisMastersConfigs.dataToWrite = InterfacePort.BufferToSend;
 	ThisMastersConfigs.Status = 1; //Masters configuration inited!
 #elif defined(SLAVE_PORT_PROJECT)
-	//mutxSlaveCfg//!
-	memset(&ThisSlavesConfigs, 0, sizeof(ThisSlavesConfigs));
-	printf("Enter this Slaves Address: ");
-	scanf_s("%d", buffer);
-	ThisSlavesConfigs.MyAddress = *(uint16_t*)&buffer[0];
-	printf("Enter the Response timeout from this Slave: ");
-	scanf_s("%d", buffer);
-	printf("\n");
-	if(*(uint16_t*)&buffer[0])
-		ThisSlavesConfigs.ResponseTimeout = *(uint16_t*)&buffer[0];
-	ThisSlavesConfigs.dataFromRead = InterfacePort.BufferRecved;
-	ThisSlavesConfigs.Status = 1;
+	;
 #endif // MASTER_PORT_PROJECT
 	ConsolesMenuHandle.CMD[MAKE_PACKET] = 0;
 	return;
@@ -72,3 +61,24 @@ void ConfigTracerParams(char* buffer, const int maxPossibleLen, void* arg)
 	ConsolesMenuHandle.CMD[TRACE_CONFIGS] = 0;
 	return;
 }
+
+#ifdef SLAVE_PORT_PROJECT
+void ConfigSlave(char* buffer, const int maxPossibleLen, void* arg)
+{
+	//mutxSlaveCfg//!
+	UNUSED(arg);
+	memset(buffer, 0, maxPossibleLen);
+	memset(&ThisSlavesConfigs, 0, sizeof(ThisSlavesConfigs));
+	printf("Enter this Slaves Address: ");
+	scanf_s("%d", buffer);
+	ThisSlavesConfigs.MyAddress = *(uint16_t*)&buffer[0];
+	printf("Enter the Response timeout from this Slave: ");
+	scanf_s("%d", buffer);
+	printf("\n");
+	if (*(uint16_t*)&buffer[0])
+		ThisSlavesConfigs.ResponseTimeout = *(uint16_t*)&buffer[0];
+	ThisSlavesConfigs.dataFromRead = InterfacePort.BufferRecved;
+	ThisSlavesConfigs.Status = 1;
+	ConsolesMenuHandle.CMD[SLAVE_CFG] = 0;
+}
+#endif //!SLAVE_PORT_PROJECT

@@ -10,12 +10,14 @@ enum cmdsValEnums {
 	PAUSE_CONSOLE,
 	ENABLE_TIMER,
 	MAKE_PACKET,
+	SLAVE_CFG,
 	DMA_ENABLE,
 	START_COMMUNICATION,
 	STOP_COMMUNICATION,
 	SET_TIMER_PERIOD,
 	TRACE_PORT,
 	TRACE_CONFIGS,
+	READ_BUS,
 	EXAMPLE, /*//Users code*/
 	cmdsValEnumslastINDEX
 };
@@ -27,20 +29,22 @@ typedef struct {
 }menuChoise_t;
 
 static menuChoise_t MenuOption[cmdsValEnumslastINDEX - cmdsValEnumsfirstINDEX] = {
-	{"ALL", ALL},
-	{"DETAILS", DETAILS},
-	{"PAUSE", PAUSE_CONSOLE},
-	{"TIMENABLE", ENABLE_TIMER},
-	{"MAKEPACK", MAKE_PACKET}, //"MAKEPACKET"
-	{"DMAONOFF", DMA_ENABLE},
-	{"STARTCOM", START_COMMUNICATION}, //"STARTCOMMUNIC"
-	{"STOPCOM", STOP_COMMUNICATION},   //"STOPCOMMUNIC"
-	{"SETPERIO", SET_TIMER_PERIOD},
-	{"TRACE", TRACE_PORT},
-	{"TRACECFG", TRACE_CONFIGS},
+	{"all", ALL},
+	{"details", DETAILS},
+	{"pause", PAUSE_CONSOLE},
+	{"timenable", ENABLE_TIMER},
+	{"makepack", MAKE_PACKET}, //"MAKEPACKET"
+	{"slavecfg", SLAVE_CFG },
+	{"dmaonoff", DMA_ENABLE},
+	{"startcom", START_COMMUNICATION}, //"STARTCOMMUNIC"
+	{"stopcom", STOP_COMMUNICATION},   //"STOPCOMMUNIC"
+	{"setperio", SET_TIMER_PERIOD},
+	{"trace", TRACE_PORT},
+	{"tracecfg", TRACE_CONFIGS},
+	{"readbus", READ_BUS},
 	//Users code
 	/*------------------------------Put your Functions launch here----------------------------*/
-	{"EXAMPLE", EXAMPLE},
+	{"example", EXAMPLE},
 	/*----------------------------------------------------------------------------------------*/
 };
 

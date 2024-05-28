@@ -9,6 +9,7 @@
 #include "../IO_immitationBetweenMasterSlave/SlaveImmitationCfg.h"
 #endif // MASTER_PORT_PROJECT
 
+#define ONLY //just nothing. Only for clarifying ports state currently
 #define no_required_now 0
 #pragma region HARDWARE_PORT
 #define IN_CASE_OF_FIFO_TYPE

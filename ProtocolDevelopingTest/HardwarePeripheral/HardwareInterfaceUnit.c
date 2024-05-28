@@ -8,8 +8,6 @@ HANDLE iofileMutex;
 FIL FileHandle;
 FIL MutexFileHandle;
 
-#define ONLY //just nothing. Only for clarifying ports state currently
-
 int InitPort(InterfacePortHandle_t* PortHandle)
 {
 	int res = 0;
