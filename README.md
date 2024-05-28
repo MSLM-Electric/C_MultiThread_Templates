@@ -41,7 +41,9 @@ Currently working at: ProtocolDevelopTemplate Project
    |- MultiThreadSupport.h
    
    
-   The Slave Project looks almost the same:
+```
+The Slave Project looks almostly the same:
+```
 - ROOT_PATH (Root folder)  for Slave project
    |- Lib
    |   |- ...
