@@ -106,7 +106,7 @@ int res = 0;
 		HWPort.RXInterruptEnable = 1;
 		HWPort.StartRX = 1;
 	}
-	else if ((PortHandle->Status & (PORT_BUSY | PORT_RECEIVED)) && !IsRecvTimerRinging == ONLY (PORT_BUSY | PORT_RECEIVED)) {
+	else if (((PortHandle->Status & (PORT_BUSY | PORT_RECEIVED)) && !IsRecvTimerRinging) == ONLY (PORT_BUSY | PORT_RECEIVED)) {
 		//PortHandle->LenDataToRecv ..
 		PortHandle->inCursor += sizeof(HWPort.FIFO_BUFFER);
 		memcpy(PortHandle->BufferRecved, HWPort.FIFO_BUFFER, sizeof(HWPort.FIFO_BUFFER));
@@ -160,7 +160,7 @@ static int immitationOfPortsBus(InterfacePortHandle_t* PortHandle) //! immitatio
 {
 	int res = 0;
 	FRESULT fres = FR_OK;
-	fres = TakeGLOBMutex(&MutexFileHandle, INFINITE);
+	fres = TakeGLOBMutex(&MutexFileHandle, INFINITE/*(U32_ms)10000*/);
 	if (fres != FR_OK)
 		return res = -3;
 	char buffer[300];
@@ -214,7 +214,7 @@ int immitationReceivingOfPortsBus(InterfacePortHandle_t* outPortHandle)
 	int res = 0;
 	int PortNo = 0;
 	FRESULT fres = FR_OK;
-	fres = TakeGLOBMutex(&MutexFileHandle, INFINITE);
+	fres = TakeGLOBMutex(&MutexFileHandle, INFINITE/*(U32_ms)10000*/);
 	if (fres != FR_OK)
 		return res = -3;
 	char buffer[300];
@@ -251,8 +251,8 @@ int immitationReceivingOfPortsBus(InterfacePortHandle_t* outPortHandle)
 				//Port detected a datas on Bus 
 				//we pretend that the Hardware has the big FIFO
 				//The copying should be but not in here. This is the immitation of interrupt section
-				//on bus/port by detecting datas on there. The copying must be occure on inside interrupt section. 
-				memcpy_s(InterfacePort.BufferRecved, sizeof(InterfacePort.LenDataToRecv), &buffer[strlen(slavesMessageId)], sizeof(InterfacePort.LenDataToRecv));
+				//on bus/port by detecting datas on there. The copying to InterfacePort.BuffRecved must be occure on inside interrupt section. 
+				memcpy(HWPort.FIFO_BUFFER, &buffer[strlen(slavesMessageId)], sizeof(HWPort.FIFO_BUFFER));
 				ThisMastersConfigs.lastReadedLine = ThisMastersConfigs.currentIOfileLine++;
 				//Called_RXInterrupt(&InterfacePort);
 			}
@@ -261,7 +261,7 @@ int immitationReceivingOfPortsBus(InterfacePortHandle_t* outPortHandle)
 		else if ((DirectionSendingOfBusMessageId == mastersMessageId)) {
 #ifdef SLAVE_PORT_PROJECT
 			if (ThisSlavesConfigs.lastReadedLine != ThisSlavesConfigs.lastReadedLine) {
-				memcpy(HWPort.FIFO_BUFFER, buffer, sizeof(buffer));
+				memcpy(HWPort.FIFO_BUFFER, &buffer[strlen(mastersMessageId)], sizeof(HWPort.FIFO_BUFFER));
 				ThisSlavesConfigs.lastReadedLine = ThisSlavesConfigs.currentIOfileLine++;
 			}
 #endif // SLAVE_PORT_PROJECT
@@ -289,7 +289,6 @@ void TransmitInterrupt(void *arg)
 void Called_RXInterrupt(void* arg) //ReceiveInterrupt()
 {
 	InterfacePortHandle_t* Port = (InterfacePortHandle_t*)arg;
-	Port->Status |= PORT_RECEIVED;
 	if ((Port->Status & (PORT_READY | PORT_RECEIVING)) == ONLY (PORT_READY | PORT_RECEIVING)) {
 		Port->Status |= PORT_RECEIVED;
 		Recv(Port, NULL,no_required_now);

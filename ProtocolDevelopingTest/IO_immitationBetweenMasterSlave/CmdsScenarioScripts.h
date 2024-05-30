@@ -22,4 +22,5 @@ void ConfigTracerParams(char* buffer, const int maxPossibleLen, void* arg);
 #ifdef SLAVE_PORT_PROJECT
 void ConfigSlave(char* buffer, const int maxPossibleLen, void* arg);
 #endif // !SLAVE_PORT_PROJECT
+void CommonConfigurate(char* buffer, const int maxPossibleLen, void* arg);
 #endif // !CMDSSCENARIOSCRIPT_H

@@ -18,6 +18,7 @@ enum cmdsValEnums {
 	TRACE_PORT,
 	TRACE_CONFIGS,
 	READ_BUS,
+	COMMON_CONFIGS,
 	EXAMPLE, /*//Users code*/
 	cmdsValEnumslastINDEX
 };
@@ -42,6 +43,7 @@ static menuChoise_t MenuOption[cmdsValEnumslastINDEX - cmdsValEnumsfirstINDEX] =
 	{"trace", TRACE_PORT},
 	{"tracecfg", TRACE_CONFIGS},
 	{"readbus", READ_BUS},
+	{"commoncfg", COMMON_CONFIGS},
 	//Users code
 	/*------------------------------Put your Functions launch here----------------------------*/
 	{"example", EXAMPLE},

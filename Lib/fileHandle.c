@@ -75,7 +75,11 @@ FRESULT TakeGLOBMutex(/*char* tempBuffer, const size_t maxPossibleLen,*/ FIL *f,
     InitTimerWP(&_TimeOutTmr, (tickptr_fn*)GetTickCount);
     InitTimerWP(&readPeriod, (tickptr_fn*)GetTickCount);
     LaunchTimerWP((U32_ms)timeOut, &_TimeOutTmr);
+#ifdef MASTER_PORT_PROJECT
     LaunchTimerWP((U32_ms)10, &readPeriod);
+#elif SLAVE_PORT_PROJECT
+    LaunchTimerWP((U32_ms)11, &readPeriod);
+#endif // MASTER_PORT_PROJECT
     FRESULT fres = FR_OK; //FR_NOT_READY;
     do {
         f = fopen(GLOB_MUTEX_FILE, "r+");

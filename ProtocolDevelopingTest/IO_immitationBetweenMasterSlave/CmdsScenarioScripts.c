@@ -1,4 +1,8 @@
 #include "CmdsScenarioScripts.h"
+//#include "../../Lib/fileHandle.h"
+
+//FIL MutexFileHandle;
+//FIL ScanfMutex;
 
 void MakingPacketScenarios(char* buffer, const int maxPossibleLen, void* arg)
 {
@@ -82,3 +86,16 @@ void ConfigSlave(char* buffer, const int maxPossibleLen, void* arg)
 	ConsolesMenuHandle.CMD[SLAVE_CFG] = 0;
 }
 #endif //!SLAVE_PORT_PROJECT
+
+void CommonConfigurate(char* buffer, const int maxPossibleLen, void* arg)
+{
+	//TakeGLOBMutex(&ScanfMutex, 0xFFFF);
+#ifdef MASTER_PORT_PROJECT
+	MakingPacketScenarios(buffer, maxPossibleLen, arg);
+#elif SLAVE_PORT_PROJECT
+	ConfigSlave(buffer, maxPossibleLen, arg);
+#endif // MASTER_PORT_PROJECT
+	ConfigTracerParams(buffer, maxPossibleLen, arg);
+	ConsolesMenuHandle.CMD[COMMON_CONFIGS] = 0;
+	//RealeaseGLOBMutex(&ScanfMutex);
+}
