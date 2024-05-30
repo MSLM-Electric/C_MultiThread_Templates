@@ -10,8 +10,6 @@
 #define false 0
 #define true 1
 
-void SettingsCMD_Handling(char* inBuff, const uint16_t maxPossibleLen);
-int ScanKeyboardWithWhiteSpaces(char* inBuff, uint16_t maxPossibleLen);
 thisMastercfgs_t MasterInterface;
 
 uint8_t someData[128] = {0};

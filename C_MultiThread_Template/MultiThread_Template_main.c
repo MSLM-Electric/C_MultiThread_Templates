@@ -91,6 +91,7 @@ int main()
 
 	while (1)
 	{
+		PauseConsoleCommand = ConsolesMenuHandle.CMD[PAUSE_CONSOLE];
 		if (!PauseConsoleCommand) {
 			if (IsTimerWPRinging(&MainProgrammDelay))//Sleep(2000);
 			{
@@ -98,6 +99,7 @@ int main()
 				printf("MainBckgdProccess\n");
 			}
 		}
+		testTimer = ConsolesMenuHandle.CMD[ENABLE_TIMER];
 		if (testTimer) {
 			LaunchTimerWP((U32_ms)3000, &UsersTimer);
 		}
@@ -112,63 +114,26 @@ DWORD WINAPI ThreadNo1(LPVOID lpParam)
 {
 	int res = ThreadInit(lpParam);
 
-	char *str = (char *)malloc(4);
 	//char *keyboardBuff = (char *)malloc(20 * sizeof(char));
-	//char keyboardBuff[20];
+	char keyboardBuff[255];
 	while (1)
 	{
 		WaitForSingleObject(mutx, INFINITE);
 		{
 			memset(keyboardBuff, 0, sizeof(keyboardBuff));
 			printf("What function to Act? Enter it here:\n");
-			scanf_s("%s", keyboardBuff/*&str*/, 3);
+			scanf_s("%s", keyboardBuff, 255);
 			printf("entered data is: %s\n", keyboardBuff);
 		}
 		ReleaseMutex(mutx);
-		if (str == NULL)
+		if (keyboardBuff == NULL)
 		{
 			printf("Memory for str alloc ERROR\t\n");
-		}else {
-			sprintf(str, keyboardBuff, 2);
-			memset(keyboardBuff, 0, sizeof(keyboardBuff));
 		}
-		
-		switch (StringCompareAndParseToNum(str, NULL)) //maybe we need do it in another way
-		{
-		//Users code
-		/*------------------------------Put your Functions launch here----------------------------*/
-		//case EXAMPLE: {
-		//	ExampleOfYourFunctions();
-		//}break;
-		/*----------------------------------------------------------------------------------------*/
-		case ALL: {
-			ShowAllStates();
-		}break;
-		case DETAILS: {
-			MoreDetailsInShowing = ~MoreDetailsInShowing & 0x01;
-			if (MoreDetailsInShowing)
-				printf("DETAILS ON!\n");
-			else
-				printf("DETAILS OFF!\n");
-		}break;
-		case PAUSE_CONSOLE: {
-			PauseConsoleCommand = ~PauseConsoleCommand & 0x01;
-			if (PauseConsoleCommand)
-				printf("Pause Console ON: Mainbackground process don't show!\n");
-			else
-				printf("Pause Console OFF: Show Mainbackground process!\n");
-		}break;
-		case ENABLE_TIMER: {
-			testTimer =  ~testTimer & 0x01;
-			if (testTimer)
-				printf("Timer ENABLED!\n");
-			else
-				printf("Timer DISABLED!\n");
-		}break;
-		default:
-			break;
-		}
-		memset(str, 0, 2); //memsetstr
+		SettingsCMD_Handling(keyboardBuff, NULL);
+		WaitForSingleObject(mutx, INFINITE);
+		ScanCMDsScenarios(keyboardBuff, sizeof(keyboardBuff));
+		ReleaseMutex(mutx);
 	}
 }
 
@@ -219,32 +184,4 @@ DWORD WINAPI TickThread(LPVOID lpParam)
 			catchPoint = 1;
 		}
 	}
-}
-
-
-static void ShowAllStates(void)
-{
-#ifdef DEBUG /*|| ENABLE_SOME_STATES_MONITORING*/
-	printf("\n\n\n..............\n");
-	printf("State 1: = %d\n", State1);
-	printf("State 2: = %d\n", State2);
-	printf("State 3: = %d\n", State3);
-	printf("..............\n");
-#define MORE_DETAILS_SHOW 1
-#if (MORE_DETAILS_SHOW == 1)
-	if (MoreDetailsInShowing) {
-		if (State1.Status & OPEN) {
-			printf("+--> State1.member: = %d\n", State1.member);
-		}
-		if (State2.Status & OPEN) {
-			printf("+--> State2.member: = %d\n", State2.member);
-		}
-		if (State3.Status & OPEN) {
-			printf("+--> State3 - Status: = %d\n", State3.Status);
-			printf("+--> State3 - member: = %d\n", State3.member);
-		}
-	}	
-#endif
-#endif
-	return;
 }

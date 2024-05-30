@@ -2,6 +2,7 @@
 #define CONSOLEMENUOPTIONS_H
 
 #include <stdint.h>
+#include "Lib/type_def.h"
 
 enum cmdsValEnums {
 	cmdsValEnumsfirstINDEX = 1,

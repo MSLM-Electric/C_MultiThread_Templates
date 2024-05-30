@@ -254,7 +254,6 @@ int immitationReceivingOfPortsBus(InterfacePortHandle_t* outPortHandle)
 				//on bus/port by detecting datas on there. The copying to InterfacePort.BuffRecved must be occure on inside interrupt section. 
 				memcpy(HWPort.FIFO_BUFFER, &buffer[strlen(slavesMessageId)], sizeof(HWPort.FIFO_BUFFER));
 				ThisMastersConfigs.lastReadedLine = ThisMastersConfigs.currentIOfileLine++;
-				//Called_RXInterrupt(&InterfacePort);
 			}
 #endif // MASTER_PORT_PROJECT
 		}
