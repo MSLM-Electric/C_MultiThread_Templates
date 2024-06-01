@@ -18,6 +18,7 @@ out
 !Debug/*.exe
 !Release/*.exe
 C_MultiThread_Template/TestAnotherApproach.c
+C_MultiThread_Template/MutexImplementing_main.c
 !ProtocolDevelopingTest/ProtocolMasterDevelopeTest/ProtocolMasterDevelopeTest.sln
 !ProtocolDevelopingTest/ProtocolSlaveDevelopeTest/ProtocolSlaveDevelopeTest.sln
 !ProtocolDevelopingTest/ProtocolMasterDevelopeTest/Debug/*.exe

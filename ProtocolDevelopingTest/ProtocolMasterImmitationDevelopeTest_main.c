@@ -265,4 +265,5 @@ static void RegisterCmdFunctionsCallback(void)
 	ConsolesMenuHandle.executeFunc[SET_TIMER_PERIOD] = (callback_fn*)SetTimerPeriodCmdFunction;
 	ConsolesMenuHandle.executeFunc[TRACE_CONFIGS] = (callback_fn*)ConfigTracerParams;
 	ConsolesMenuHandle.executeFunc[COMMON_CONFIGS] = (callback_fn*)CommonConfigurate;
+	ConsolesMenuHandle.executeFunc[DEFAULT_CONFIGS] = (callback_fn*)SetDefaultConfig;
 }
