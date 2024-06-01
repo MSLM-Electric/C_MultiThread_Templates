@@ -6,6 +6,7 @@
 #include "HardwarePeripheral/HardwareInterfaceUnit.h"
 #include "../Lib/type_def.h"
 #include "IO_immitationBetweenMasterSlave/CmdsScenarioScripts.h"
+#include "IO_immitationBetweenMasterSlave/iosocket.h"
 
 #define false 0
 #define true 1
@@ -77,9 +78,10 @@ int main()
 	res = ThreadCreation(&ThreadNo2, &Thread2Struct, 2);
 	res = ThreadCreation(&TickThread, &TickThreadStruct, 4);
 	res = ThreadCreation(&ThreadReading, &ThreadReadingStruct, 5);
+	res = ThreadCreation(&ioserversock_task, &ioserversock_struct, 6);
 
 	// Aray to store thread handles 
-	HANDLE Array_Of_Thread_Handles[4];
+	HANDLE Array_Of_Thread_Handles[6];
 	// Store Thread handles in Array of Thread
 	// Handles as per the requirement
 	// of WaitForMultipleObjects() 
@@ -87,6 +89,7 @@ int main()
 	Array_Of_Thread_Handles[1] = Thread2Struct.Handle_Of_Thread;
 	Array_Of_Thread_Handles[3] = TickThreadStruct.Handle_Of_Thread;
 	Array_Of_Thread_Handles[4] = ThreadReadingStruct.Handle_Of_Thread;
+	Array_Of_Thread_Handles[5] = ioserversock_struct.Handle_Of_Thread;
 
 	// Wait until all threads have terminated.
 	WaitForMultipleObjects(4, Array_Of_Thread_Handles, TRUE, INFINITE); //?3

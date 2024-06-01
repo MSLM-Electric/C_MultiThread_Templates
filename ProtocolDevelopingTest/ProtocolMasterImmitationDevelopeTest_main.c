@@ -81,11 +81,8 @@ int main()
 	res = ThreadCreation(&ThreadNo2, &Thread2Struct, 2);
 	res = ThreadCreation(&TickThread, &TickThreadStruct, 4);
 	res = ThreadCreation(&ThreadReading, &ThreadReadingStruct, 5);
-#ifdef MASTER_PORT_PROJECT
 	res = ThreadCreation(&ioclientsock_task, &ioclientsock_struct, 6);
-#elif SLAVE_PORT_PROJECT
-	res = ThreadCreation(&ioserversock_task, &ioserversock_struct, 6); //? its not needed!
-#endif // MASTER_PORT_PROJECT
+
 
 	// Aray to store thread handles 
 	HANDLE Array_Of_Thread_Handles[6];
