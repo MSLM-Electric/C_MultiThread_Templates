@@ -99,3 +99,41 @@ void CommonConfigurate(char* buffer, const int maxPossibleLen, void* arg)
 	ConsolesMenuHandle.CMD[COMMON_CONFIGS] = 0;
 	//RealeaseGLOBMutex(&ScanfMutex);
 }
+
+void SetDefaultConfig(char* buffer, const int maxPossibleLen, void* arg)
+{
+	UNUSED(arg);
+	memset(buffer, 0, maxPossibleLen);
+#ifdef MASTER_PORT_PROJECT
+	memset(&ThisMastersConfigs, 0, sizeof(ThisMastersConfigs));
+	ThisMastersConfigs.SlavesAddressToTalk = 5;
+	printf_s("Entered the SLAVE Address: %d\n", ThisMastersConfigs.SlavesAddressToTalk);
+	ThisMastersConfigs.function = 3;
+	printf_s("Entered the function: %d\n", ThisMastersConfigs.function);
+	ThisMastersConfigs.AddressOfSlavesMemoryToTalk = 20;
+	printf_s("Entered the address of SLAVE Memory to talk: %d\n", ThisMastersConfigs.AddressOfSlavesMemoryToTalk);
+	ThisMastersConfigs.LenDataToTalk = 10;
+	printf_s("Entered the length data for talking: %d\n", ThisMastersConfigs.LenDataToTalk);
+	ThisMastersConfigs.communicationPeriod = 1000;
+	printf_s("Entered the communication period: %d ms\n", ThisMastersConfigs.communicationPeriod);
+	sprintf(buffer, "GREETINGS FOR COMMUNICATION WITH ME!");
+	printf_s("Entered the array of data to write: %s\n", buffer);
+	memset(buffer, 0, maxPossibleLen);
+	memcpy_s(InterfacePort.BufferToSend, 255, buffer, 255);
+	ThisMastersConfigs.dataToWrite = InterfacePort.BufferToSend;
+	ThisMastersConfigs.Status = 1; //Masters configuration inited!
+#elif SLAVE_PORT_PROJECT
+	memset(&ThisSlavesConfigs, 0, sizeof(ThisSlavesConfigs));
+	ThisSlavesConfigs.MyAddress = 5;
+	printf("Enter this Slaves Address: %d\n", ThisSlavesConfigs.MyAddress);
+	ThisSlavesConfigs.ResponseTimeout = 300; //400; //200
+	printf("Enter the Response timeout from this Slave: %d ms\n", ThisSlavesConfigs.ResponseTimeout);
+	ThisSlavesConfigs.dataFromRead = InterfacePort.BufferRecved;
+	ThisSlavesConfigs.Status = 1;
+#endif // MASTER_PORT_PROJECT
+	PortTracer.TraceTime.setVal = 500;
+	printf_s("Config Port trace:\nSet Trace time: %d ms\n", PortTracer.TraceTime.setVal);
+	PortTracer.FrequencyTrace.setVal = 20;
+	printf_s("Set Trace frequency: %d ms\n", PortTracer.FrequencyTrace.setVal);
+	ConsolesMenuHandle.CMD[DEFAULT_CONFIGS] = 0;
+}

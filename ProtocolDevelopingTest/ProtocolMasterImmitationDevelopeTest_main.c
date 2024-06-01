@@ -10,8 +10,6 @@
 #define false 0
 #define true 1
 
-void SettingsCMD_Handling(char* inBuff, const uint16_t maxPossibleLen);
-int ScanKeyboardWithWhiteSpaces(char* inBuff, uint16_t maxPossibleLen);
 thisMastercfgs_t MasterInterface;
 
 uint8_t someData[128] = {0};
@@ -267,4 +265,5 @@ static void RegisterCmdFunctionsCallback(void)
 	ConsolesMenuHandle.executeFunc[SET_TIMER_PERIOD] = (callback_fn*)SetTimerPeriodCmdFunction;
 	ConsolesMenuHandle.executeFunc[TRACE_CONFIGS] = (callback_fn*)ConfigTracerParams;
 	ConsolesMenuHandle.executeFunc[COMMON_CONFIGS] = (callback_fn*)CommonConfigurate;
+	ConsolesMenuHandle.executeFunc[DEFAULT_CONFIGS] = (callback_fn*)SetDefaultConfig;
 }

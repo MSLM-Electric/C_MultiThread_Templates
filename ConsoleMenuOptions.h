@@ -2,6 +2,7 @@
 #define CONSOLEMENUOPTIONS_H
 
 #include <stdint.h>
+#include "Lib/type_def.h"
 
 enum cmdsValEnums {
 	cmdsValEnumsfirstINDEX = 1,
@@ -19,6 +20,7 @@ enum cmdsValEnums {
 	TRACE_CONFIGS,
 	READ_BUS,
 	COMMON_CONFIGS,
+	DEFAULT_CONFIGS,
 	EXAMPLE, /*//Users code*/
 	cmdsValEnumslastINDEX
 };
@@ -44,6 +46,7 @@ static menuChoise_t MenuOption[cmdsValEnumslastINDEX - cmdsValEnumsfirstINDEX] =
 	{"tracecfg", TRACE_CONFIGS},
 	{"readbus", READ_BUS},
 	{"commoncfg", COMMON_CONFIGS},
+	{"defcfg", DEFAULT_CONFIGS},
 	//Users code
 	/*------------------------------Put your Functions launch here----------------------------*/
 	{"example", EXAMPLE},

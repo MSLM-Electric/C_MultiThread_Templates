@@ -1,7 +1,5 @@
+#include <stdio.h>
 #include "ConsoleMenuOptions.h"
-#ifdef PROTOCOL_DEVELOPING_PROJECT
-#include "ProtocolDevelopingTest/HardwarePeripheral/HardwareInterfaceUnit.h"
-#endif
 
 static void ShowAllStates(void);
 
