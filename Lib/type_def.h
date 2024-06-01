@@ -47,6 +47,11 @@ typedef u32 u32_t;
   #define FALSE 0
 #endif
 
+#ifndef NOT
+#define NOT !
+#endif // !NOT
+
+
 #ifndef UNUSED
 #define UNUSED(X) (void)X      /* To avoid gcc/g++ warnings */
 #endif // !UNUSED

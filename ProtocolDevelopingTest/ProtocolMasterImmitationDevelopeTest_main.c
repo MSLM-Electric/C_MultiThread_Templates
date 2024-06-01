@@ -6,6 +6,7 @@
 #include "../ConsoleMenuOptions.h"
 #include "IO_immitationBetweenMasterSlave/MasterImmitationCfg.h"
 #include "IO_immitationBetweenMasterSlave/CmdsScenarioScripts.h"
+#include "IO_immitationBetweenMasterSlave/iosocket.h"
 
 #define false 0
 #define true 1
@@ -80,9 +81,14 @@ int main()
 	res = ThreadCreation(&ThreadNo2, &Thread2Struct, 2);
 	res = ThreadCreation(&TickThread, &TickThreadStruct, 4);
 	res = ThreadCreation(&ThreadReading, &ThreadReadingStruct, 5);
+#ifdef MASTER_PORT_PROJECT
+	res = ThreadCreation(&ioclientsock_task, &ioclientsock_struct, 6);
+#elif SLAVE_PORT_PROJECT
+	res = ThreadCreation(&ioserversock_task, &ioserversock_struct, 6); //? its not needed!
+#endif // MASTER_PORT_PROJECT
 
 	// Aray to store thread handles 
-	HANDLE Array_Of_Thread_Handles[5];
+	HANDLE Array_Of_Thread_Handles[6];
 	// Store Thread handles in Array of Thread
 	// Handles as per the requirement
 	// of WaitForMultipleObjects() 
@@ -90,9 +96,10 @@ int main()
 	Array_Of_Thread_Handles[1] = Thread2Struct.Handle_Of_Thread;
 	Array_Of_Thread_Handles[3] = TickThreadStruct.Handle_Of_Thread;
 	Array_Of_Thread_Handles[4] = ThreadReadingStruct.Handle_Of_Thread;
+	Array_Of_Thread_Handles[5] = ioclientsock_struct.Handle_Of_Thread;
 
 	// Wait until all threads have terminated.
-	WaitForMultipleObjects(4, Array_Of_Thread_Handles, TRUE, INFINITE); //?3
+	WaitForMultipleObjects(5, Array_Of_Thread_Handles, TRUE, INFINITE); //?3
 
 	memset(someData, 0, sizeof(someData));
 	ReleaseMutex(mutx);  //free mutex to start program
@@ -141,6 +148,18 @@ int main()
 				}
 			}
 		}
+
+		//socket client example:
+		/*SOCKET sock = INVALID_SOCKET;
+		int iFamily = AF_INET;
+		int iType = 0;
+		int iProtocol = 0;
+		IPPORT_BIFFUDP;
+		socket(iFamily, iType, iProtocol);
+		;*/
+
+		//socket server example:
+
 	}
 	printf("endOfCycle. Bad jump! \n"); //programm execution never should get here!
 }

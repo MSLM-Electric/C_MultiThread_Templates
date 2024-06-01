@@ -22,6 +22,8 @@ set(SOURCES
 	${LIB_DIR}/fileHandle.c
 	${HARDWARE_PERIPHERAL}/HardwareInterfaceUnit.c
 	${IOFILE_PATH}/CmdsScenarioScripts.c
+	${IOFILE_PATH}/iosocket.c
+	${IOFILE_PATH}/ioclientsocket.c
 )
 	#${ROOT_SRC_DIR}/*.c
 	#${LIB_DIR}/*.c
@@ -37,6 +39,7 @@ set(HEADERS
 	${IOFILE_PATH}/MasterImmitationCfg.h
 	${IOFILE_PATH}/PortsBusMessages.h
 	${IOFILE_PATH}/CmdsScenarioScripts.h
+	${IOFILE_PATH}/iosocket.h
 	#${IOFILE_PATH}/SlaveImmitationCfg.h  //not needed! Its for SlaveProtocolDeveloping
 )
 

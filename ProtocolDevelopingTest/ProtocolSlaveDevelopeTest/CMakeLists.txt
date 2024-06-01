@@ -22,6 +22,7 @@ set(SOURCES
 	${LIB_DIR}/fileHandle.c
 	${HARDWARE_PERIPHERAL}/HardwareInterfaceUnit.c
 	${IOFILE_PATH}/CmdsScenarioScripts.c
+	${IOFILE_PATH}/ioserversocket.c
 )
 	#${ROOT_SRC_DIR}/*.c
 	#${LIB_DIR}/*.c
@@ -38,6 +39,7 @@ set(HEADERS
 	${IOFILE_PATH}/SlaveImmitationCfg.h
 	${IOFILE_PATH}/PortsBusMessages.h
 	${IOFILE_PATH}/CmdsScenarioScripts.h
+	${IOFILE_PATH}/iosocket.h
 )
 
 #add_library(ProtocolDevelopeLibrary STATIC ${SOURCES} ${HEADERS})
