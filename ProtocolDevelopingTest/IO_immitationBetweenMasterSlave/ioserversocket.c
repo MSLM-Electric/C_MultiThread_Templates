@@ -13,7 +13,7 @@
 #pragma comment(lib, "Ws2_32.lib")
 
 #define DEFAULT_BUFLEN 512
-#define DEFAULT_PORT 502//27015
+#define DEFAULT_PORT 502//27015//
 
 Timerwp_t ioserverResponsePeriod;
 
@@ -24,11 +24,11 @@ DWORD WINAPI ioserversock_task(LPVOID lpParam)
     int iResult;
     WSADATA wsaData;
 
-    SOCKET ConnectSocket = INVALID_SOCKET;
-    struct sockaddr_in clientService;
+    SOCKET ListenSocket = INVALID_SOCKET;
+    struct sockaddr_in serverService;
 
     int recvbuflen = DEFAULT_BUFLEN;
-    char* sendbuf = "Client: sending data test";
+    char* sendbuf = "Server: sending data test";
     char recvbuf[DEFAULT_BUFLEN] = "";
 
     //----------------------
@@ -41,8 +41,8 @@ DWORD WINAPI ioserversock_task(LPVOID lpParam)
 
     //----------------------
     // Create a SOCKET for connecting to server
-    ConnectSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (ConnectSocket == INVALID_SOCKET) {
+    ListenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); //IPPROTO_UDP
+    if (ListenSocket == INVALID_SOCKET) {
         wprintf(L"socket failed with error: %ld\n", WSAGetLastError());
         WSACleanup();
         return 1;
@@ -51,21 +51,30 @@ DWORD WINAPI ioserversock_task(LPVOID lpParam)
     //----------------------
     // The sockaddr_in structure specifies the address family,
     // IP address, and port of the server to be connected to.
-    clientService.sin_family = AF_INET;
-    clientService.sin_addr.s_addr = inet_addr("192.168.88.250");//inet_addr("127.0.0.1");
-    clientService.sin_port = htons(DEFAULT_PORT);
+    serverService.sin_family = AF_INET;
+    serverService.sin_addr.s_addr = inet_addr("192.168.88.250");//inet_addr("127.0.0.1");
+    serverService.sin_port = htons(DEFAULT_PORT);
 
     //----------------------
     // Connect to server.
-    iResult = connect(ConnectSocket, (SOCKADDR*)&clientService, sizeof(clientService));
+    iResult = bind(ListenSocket, (SOCKADDR*)&serverService, sizeof(serverService));
     if (iResult == SOCKET_ERROR) {
         wprintf(L"connect failed with error: %d\n", WSAGetLastError());
-        closesocket(ConnectSocket);
+        closesocket(ListenSocket);
         WSACleanup();
         return 1;
     }
+
+    iResult = listen(ListenSocket, SOMAXCONN);
+    if (iResult == SOCKET_ERROR) {
+        printf("listen failed with error: %d\n", WSAGetLastError());
+        closesocket(ListenSocket);
+        WSACleanup();
+        return 1;
+    }
+
     InitTimerWP(&ioserverResponsePeriod, (tickptr_fn*)GetTickCount);
-    LaunchTimerWP((U32_ms)1000, &ioserverResponsePeriod);
+    LaunchTimerWP((U32_ms)1000*20, &ioserverResponsePeriod);
 
     for (;;)
     {
@@ -73,10 +82,10 @@ DWORD WINAPI ioserversock_task(LPVOID lpParam)
         while (NOT IsTimerWPRinging(&ioserverResponsePeriod));
         //----------------------
         // Send an initial buffer
-        iResult = send(ConnectSocket, sendbuf, (int)strlen(sendbuf), 0);
+        iResult = send(ListenSocket, sendbuf, (int)strlen(sendbuf), 0);
         if (iResult == SOCKET_ERROR) {
             wprintf(L"send failed with error: %d\n", WSAGetLastError());
-            closesocket(ConnectSocket);
+            closesocket(ListenSocket);
             WSACleanup();
             return 1;  //?! Exits in here!
         }
@@ -84,10 +93,10 @@ DWORD WINAPI ioserversock_task(LPVOID lpParam)
         printf("Bytes Sent: %d\n", iResult);
 
         // shutdown the connection since no more data will be sent
-        iResult = shutdown(ConnectSocket, SD_SEND);
+        iResult = shutdown(ListenSocket, SD_SEND);
         if (iResult == SOCKET_ERROR) {
             wprintf(L"shutdown failed with error: %d\n", WSAGetLastError());
-            closesocket(ConnectSocket);
+            closesocket(ListenSocket);
             WSACleanup();
             return 1;
         }
@@ -95,7 +104,7 @@ DWORD WINAPI ioserversock_task(LPVOID lpParam)
         // Receive until the peer closes the connection
         do {
 
-            iResult = recv(ConnectSocket, recvbuf, recvbuflen, 0);
+            iResult = recv(ListenSocket, recvbuf, recvbuflen, 0);
             if (iResult > 0)
                 wprintf(L"Bytes received: %d\n", iResult);
             else if (iResult == 0)
@@ -107,7 +116,7 @@ DWORD WINAPI ioserversock_task(LPVOID lpParam)
 
 
         // close the socket
-        iResult = closesocket(ConnectSocket);
+        iResult = closesocket(ListenSocket);
         if (iResult == SOCKET_ERROR) {
             wprintf(L"close failed with error: %d\n", WSAGetLastError());
             WSACleanup();

@@ -71,7 +71,7 @@ int Write(InterfacePortHandle_t* PortHandle, const uint8_t *inDatas, const int s
 	else {
 		res = -4;
 	}
-	if (IsSendingTimerRinging && (PortHandle->Status & PORT_SENDING)) {
+	if (IsSendingTimerRinging && (PortHandle->Status & STILL PORT_SENDING)) {
 		PortHandle->errCnt++;
 		HWPort.clearOrResetSomeFlags = 0;
 		HWPort.TXInterruptEnable = 0;
@@ -131,7 +131,7 @@ int res = 0;
 	else {
 		res = -4;
 	}
-	if (IsRecvTimerRinging && (PortHandle->Status & PORT_RECEIVING)) {
+	if (IsRecvTimerRinging && (PortHandle->Status & STILL PORT_RECEIVING)) {
 		HWPort.clearOrResetSomeFlags = 0;
 		HWPort.RXInterruptEnable = 0;
 		HWPort.StartRX = 0;

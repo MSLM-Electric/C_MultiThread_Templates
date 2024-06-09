@@ -13,7 +13,7 @@
 #pragma comment(lib, "Ws2_32.lib")
 
 #define DEFAULT_BUFLEN 512
-#define DEFAULT_PORT 502//27015
+#define DEFAULT_PORT 502//27015//
 
 Timerwp_t ioclientrequestPeriod;
 
@@ -41,7 +41,7 @@ DWORD WINAPI ioclientsock_task(LPVOID lpParam)
 
     //----------------------
     // Create a SOCKET for connecting to server
-    ConnectSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    ConnectSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); //IPPROTO_UDP
     if (ConnectSocket == INVALID_SOCKET) {
         wprintf(L"socket failed with error: %ld\n", WSAGetLastError());
         WSACleanup();

@@ -4,7 +4,16 @@
 #define     __O     volatile                  /*!< defines 'write only' permissions     */
 #define     __IO    volatile                  /*!< defines 'read / write' permissions   */
 
+#if defined __MINGW32__
+#define MCU_PACK __attribute__((packed, gcc_struct))
+#elif defined DEBUG_ON_VS
+#define STRINGIFY(a) #a
+#define PRAGMA _Pragma
+#define MCU_PACK PRAGMA(STRINGIFY(pack(push, 4)))
+#define END_MCU_PACK PRAGMA(STRINGIFY(pack(pop)))
+#else
 #define MCU_PACK __attribute__((packed))
+#endif
 typedef signed long long int s64;
 typedef signed long int s32;
 typedef signed short s16;
@@ -50,6 +59,24 @@ typedef u32 u32_t;
 #ifndef NOT
 #define NOT !
 #endif // !NOT
+
+#ifndef ONLY
+#define ONLY  //!just for beautyfying and readabiling/readability code
+#endif // !ONLY
+
+#ifndef STILL
+#define STILL  //!just for beautyfying and readabiling code
+#endif // !STILL
+
+#ifndef NOTHING
+#define NOTHING 0 //!just for beautyfying and readability code
+#endif // !NOTHING
+
+#ifndef SOMETHING 
+#ifdef NULL
+#define SOMETHING ~NULL
+#endif // NULL
+#endif // !SOMETHING 
 
 
 #ifndef UNUSED
