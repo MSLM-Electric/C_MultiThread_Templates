@@ -14,6 +14,7 @@
 uint8_t someData[128] = {0};
 uint8_t getData[1024];
 uint16_t catchPoint = 0;
+extern SOCKET ListenSocket;
 
 /*DE*/ uint8_t MoreDetailsInShowing = 0;
 /*PA*/ uint8_t PauseConsoleCommand = 0;
@@ -78,7 +79,7 @@ int main()
 	res = ThreadCreation(&ThreadNo2, &Thread2Struct, 2);
 	res = ThreadCreation(&TickThread, &TickThreadStruct, 4);
 	res = ThreadCreation(&ThreadReading, &ThreadReadingStruct, 5);
-	res = ThreadCreation(&ioserversock_task, &ioserversock_struct, 6);
+	//res = ThreadCreation(&ioserversock_task, &ioserversock_struct, 6);
 
 	// Aray to store thread handles 
 	HANDLE Array_Of_Thread_Handles[6];
@@ -89,7 +90,7 @@ int main()
 	Array_Of_Thread_Handles[1] = Thread2Struct.Handle_Of_Thread;
 	Array_Of_Thread_Handles[3] = TickThreadStruct.Handle_Of_Thread;
 	Array_Of_Thread_Handles[4] = ThreadReadingStruct.Handle_Of_Thread;
-	Array_Of_Thread_Handles[5] = ioserversock_struct.Handle_Of_Thread;
+	//Array_Of_Thread_Handles[5] = ioserversock_struct.Handle_Of_Thread;
 
 	// Wait until all threads have terminated.
 	WaitForMultipleObjects(4, Array_Of_Thread_Handles, TRUE, INFINITE); //?3
@@ -103,6 +104,7 @@ int main()
 #endif // DEBUG_ON_VS
 	LaunchTimerWP((U32_ms)2000, &MainProgrammDelay);
 	InitPort(&InterfacePort);
+	CreateServerAndListen();
 	ThisSlavesConfigs.ResponseTimeout = (U32_ms)600;
 	ThisSlavesConfigs.Status = 1; //!del it after
 	RegisterCmdFunctionsCallback();

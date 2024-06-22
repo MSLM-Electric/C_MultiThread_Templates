@@ -24,7 +24,7 @@ DWORD WINAPI ioserversock_task(LPVOID lpParam)
     int iResult;
     WSADATA wsaData;
 
-    SOCKET ListenSocket = INVALID_SOCKET;
+    ListenSocket = INVALID_SOCKET;
     struct sockaddr_in serverService;
 
     int recvbuflen = DEFAULT_BUFLEN;
@@ -41,7 +41,7 @@ DWORD WINAPI ioserversock_task(LPVOID lpParam)
 
     //----------------------
     // Create a SOCKET for connecting to server
-    ListenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); //IPPROTO_UDP
+    ListenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); //SOCK_DGRAM, IPPROTO_UDP - in case of udp not required to listen
     if (ListenSocket == INVALID_SOCKET) {
         wprintf(L"socket failed with error: %ld\n", WSAGetLastError());
         WSACleanup();
@@ -126,4 +126,71 @@ DWORD WINAPI ioserversock_task(LPVOID lpParam)
         WSACleanup();
     }
     return 0;
+}
+
+int CreateServerAndListen(void)
+{
+    //----------------------
+    // Declare and initialize variables.
+    int iResult;
+    WSADATA wsaData;
+
+    SOCKET ListenSocket = INVALID_SOCKET;
+    struct sockaddr_in serverService;
+
+    int recvbuflen = DEFAULT_BUFLEN;
+    char* sendbuf = "Server: sending data test";
+    char recvbuf[DEFAULT_BUFLEN] = "";
+
+    //----------------------
+    // Initialize Winsock
+    iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (iResult != NO_ERROR) {
+        wprintf(L"WSAStartup failed with error: %d\n", iResult);
+        return 1;
+    }
+
+    //----------------------
+    // Create a SOCKET for connecting to server
+    ListenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); //IPPROTO_UDP
+    if (ListenSocket == INVALID_SOCKET) {
+        wprintf(L"socket failed with error: %ld\n", WSAGetLastError());
+        WSACleanup();
+        return 1;
+    }
+
+    //----------------------
+    // The sockaddr_in structure specifies the address family,
+    // IP address, and port of the server to be connected to.
+    serverService.sin_family = AF_INET;
+    serverService.sin_addr.s_addr = inet_addr("192.168.88.250");//inet_addr("127.0.0.1");
+    serverService.sin_port = htons(DEFAULT_PORT);
+
+    //----------------------
+    // Connect to server.
+    iResult = bind(ListenSocket, (SOCKADDR*)&serverService, sizeof(serverService));
+    if (iResult == SOCKET_ERROR) {
+        wprintf(L"connect failed with error: %d\n", WSAGetLastError());
+        closesocket(ListenSocket);
+        WSACleanup();
+        return 1;
+    }
+
+    Timerwp_t TryListeningPeriod;
+    InitTimerWP(&TryListeningPeriod, (tickptr_fn*)GetTickCount);
+    LaunchTimerWP((U32_ms)1000, &TryListeningPeriod);
+
+    iResult = SOCKET_ERROR;
+    do {
+        if (IsTimerWPRinging(&TryListeningPeriod)) {
+            iResult = listen(ListenSocket, SOMAXCONN);
+            if (iResult == SOCKET_ERROR) {
+                RestartTimerWP(&TryListeningPeriod);
+                printf("listen failed with error: %d\n", WSAGetLastError());
+                //closesocket(ListenSocket);
+                //WSACleanup();
+                //return 1;
+            }
+        }
+    } while (iResult == SOCKET_ERROR);
 }

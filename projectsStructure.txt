@@ -62,3 +62,4 @@ Currently working at: ProtocolDevelopTemplate Project
 TODO: Reading IOfile make matchable with Port.ReceivingTimer (mb, think about it again)
 TODO: Implement 8bit-Mode/None FIFO mode. Interrupt occurring after every 8bits received/sended. (After every byte)
 TODO: Use #include <WinSock2.h> for IO between Master & Slaves
+THOUGHTS: Mb for simulating the communication of ports bus using UDP is more flexible and familiar/closer to real hardware communications on buses.

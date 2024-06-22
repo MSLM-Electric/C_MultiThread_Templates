@@ -18,6 +18,7 @@ uint8_t getData[1024];
 uint16_t catchPoint = 0;
 extern char iofilePath[] = IOFILE_PATH;
 extern char globMutexFile[] = GLOB_MUTEX_FILE;
+extern SOCKET ConnectSocket;
 
 /*DE*/ uint8_t MoreDetailsInShowing = 0;
 /*PA*/ uint8_t PauseConsoleCommand = 0;
@@ -81,11 +82,11 @@ int main()
 	res = ThreadCreation(&ThreadNo2, &Thread2Struct, 2);
 	res = ThreadCreation(&TickThread, &TickThreadStruct, 4);
 	res = ThreadCreation(&ThreadReading, &ThreadReadingStruct, 5);
-	res = ThreadCreation(&ioclientsock_task, &ioclientsock_struct, 6);
+	//res = ThreadCreation(&ioclientsock_task, &ioclientsock_struct, 6);
 
 
 	// Aray to store thread handles 
-	HANDLE Array_Of_Thread_Handles[6];
+	HANDLE Array_Of_Thread_Handles[5];
 	// Store Thread handles in Array of Thread
 	// Handles as per the requirement
 	// of WaitForMultipleObjects() 
@@ -93,7 +94,7 @@ int main()
 	Array_Of_Thread_Handles[1] = Thread2Struct.Handle_Of_Thread;
 	Array_Of_Thread_Handles[3] = TickThreadStruct.Handle_Of_Thread;
 	Array_Of_Thread_Handles[4] = ThreadReadingStruct.Handle_Of_Thread;
-	Array_Of_Thread_Handles[5] = ioclientsock_struct.Handle_Of_Thread;
+	//Array_Of_Thread_Handles[5] = ioclientsock_struct.Handle_Of_Thread;
 
 	// Wait until all threads have terminated.
 	WaitForMultipleObjects(5, Array_Of_Thread_Handles, TRUE, INFINITE); //?3
@@ -109,6 +110,7 @@ int main()
 #endif // DEBUG_ON_VS
 	LaunchTimerWP((U32_ms)2000, &MainProgrammDelay);
 	InitPort(&InterfacePort);
+	CreateClientAndConnect();
 	RegisterCmdFunctionsCallback();
 	ConsolesMenuHandle.CMD[PAUSE_CONSOLE] = 1; //enable pause initially
 	while (1)
@@ -248,7 +250,7 @@ DWORD WINAPI ThreadReading(LPVOID lpParam) //
 	//InterfacePortHandle_t Port;
 	Timerwp_t readingIOfilePeriod;
 	InitTimerWP(&readingIOfilePeriod, (tickptr_fn*)GetTickCount);
-	LaunchTimerWP((U32_ms)1000, &readingIOfilePeriod);
+	LaunchTimerWP((U32_ms)/*1000*/50, &readingIOfilePeriod);
 	stopwatchwp_t testMeasure[2];
 	InitStopWatchWP(&testMeasure[0], (tickptr_fn*)GetTickCount);
 	InitStopWatchWP(&testMeasure[1], (tickptr_fn*)GetTickCount);

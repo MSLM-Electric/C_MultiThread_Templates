@@ -1,6 +1,15 @@
 #include "HardwareInterfaceUnit.h"
 #include "../IO_immitationBetweenMasterSlave/PortsBusMessages.h"
 #include "../../MultiThreadSupport.h"
+#ifdef HANDLING_WITH_IOFILE
+#else
+#include "../IO_immitationBetweenMasterSlave/iosocket.h"
+//if MASTER
+extern SOCKET ConnectSocket;
+//else SLAVE
+extern SOCKET ListenSocket;
+#endif // HANDLING_WITH_IOFILE
+
 
 char mastersMessageId[] = MASTER_MESSAGE_ID;
 char slavesMessageId[] = SLAVE_MESSAGE_ID;
@@ -159,10 +168,12 @@ int ReceivingHandle(InterfacePortHandle_t* Port)
 static int immitationOfPortsBus(InterfacePortHandle_t* PortHandle) //! immitationSendingOfPortsBus()
 {
 	int res = 0;
+#ifdef HANDLING_WITH_IOFILE
 	FRESULT fres = FR_OK;
 	fres = TakeGLOBMutex(&MutexFileHandle, INFINITE/*(U32_ms)10000*/);
 	if (fres != FR_OK)
 		return res = -3;
+#endif
 	char buffer[300];
 	//char portsBusMessageId = portsMessageId;
 	char* DirectionSendingOfBusMessageId;
@@ -182,6 +193,8 @@ static int immitationOfPortsBus(InterfacePortHandle_t* PortHandle) //! immitatio
 #endif // MASTER_PORT_PROJECT	
 	//"%s%s %s\n"
 	sprintf(&buffer[cursorPos], "%s %s\n", DirectionSendingOfBusMessageId, PortHandle->BufferToSend); //sizes?
+	size_t siz;
+#ifdef HANDLING_WITH_IOFILE
 	TakeMutex(&iofileMutex, INFINITE);
 	FIL* f = &FileHandle;
 	f = fopen(iofilePath, "a+"); //a
@@ -191,20 +204,27 @@ static int immitationOfPortsBus(InterfacePortHandle_t* PortHandle) //! immitatio
 		res = -1;
 		return res;
 	}
-	size_t siz = fwrite(buffer, strlen(buffer), 1/*??*/, f);// fwprintf, .._s
+	siz = fwrite(buffer, strlen(buffer), 1/*??*/, f);// fwprintf, .._s
 	fclose(f);
 	ReleaseMutex(iofileMutex);
 	RealeaseGLOBMutex(&MutexFileHandle);
-	res = (int)siz;
-	commonMasterSlaveCfgs_t* currentObjCfg;
-#ifdef MASTER_PORT_PROJECT
-	currentObjCfg = &ThisMastersConfigs;
 #else
-	currentObjCfg = &ThisSlavesConfigs;
+	//res = shutdown(ConnectSocket, SD_RECEIVE);
+	siz = send(ConnectSocket, buffer, strlen(buffer), 0);
+	res = recv(ConnectSocket, buffer, strlen(buffer), 0);
+#endif //HANDLING_WITH_IOFILE
+	if (siz == res) {
+		//res = (int)siz;
+		commonMasterSlaveCfgs_t* currentObjCfg;
+#ifdef MASTER_PORT_PROJECT
+		currentObjCfg = &ThisMastersConfigs;
+#else
+		currentObjCfg = &ThisSlavesConfigs;
 #endif // MASTER_PORT_PROJECT
-	if (res > 0) {
-		currentObjCfg/*[PortNo]*/->currentIOfileLine++;
-		TransmitInterrupt(PortHandle); //Called_TXInterrupt()
+		if (res > 0) {
+			currentObjCfg/*[PortNo]*/->currentIOfileLine++;
+			TransmitInterrupt(PortHandle); //Called_TXInterrupt()
+		}
 	}
 	return res;
 }
@@ -214,12 +234,14 @@ int immitationReceivingOfPortsBus(InterfacePortHandle_t* outPortHandle)
 	int res = 0;
 	int PortNo = 0;
 	FRESULT fres = FR_OK;
+#ifdef HANDLING_WITH_IOFILE
 	fres = TakeGLOBMutex(&MutexFileHandle, INFINITE/*(U32_ms)10000*/);
 	if (fres != FR_OK)
 		return res = -3;
+#endif
 	char buffer[300];
 	//char portsBusMessageId = portsMessageId;
-
+#ifdef HANDLING_WITH_IOFILE
 	TakeMutex(&iofileMutex, INFINITE);
 	FIL* f = &FileHandle;
 	f = fopen(iofilePath, "r"); //!+ fopen_s(&file, fname, "r")  use this, more safely
@@ -232,6 +254,9 @@ int immitationReceivingOfPortsBus(InterfacePortHandle_t* outPortHandle)
 	fres = ReadTheLastLineOfFile(buffer, sizeof(buffer), f);
 	ReleaseMutex(iofileMutex);
 	RealeaseGLOBMutex(&MutexFileHandle);
+#else
+	res = recv(ConnectSocket, buffer, sizeof(buffer), 0);
+#endif // HANDLING_WITH_IOFILE
 	/*if (strncmp(buffer, portsMessageId, strlen(portsMessageId) - 2) == 0) {
 		buffer[strlen(portsMessageId) - 2] = PortNo;
 	}*/

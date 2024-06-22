@@ -4,7 +4,6 @@
 
 #define WIN32_LEAN_AND_MEAN
 
-#include <winsock2.h>
 #include <Ws2tcpip.h>
 #include <stdio.h>
 #include "iosocket.h"
@@ -16,6 +15,7 @@
 #define DEFAULT_PORT 502//27015//
 
 Timerwp_t ioclientrequestPeriod;
+//Timerwp_t Timers[4];
 
 DWORD WINAPI ioclientsock_task(LPVOID lpParam) 
 {
@@ -24,7 +24,7 @@ DWORD WINAPI ioclientsock_task(LPVOID lpParam)
     int iResult;
     WSADATA wsaData;
 
-    SOCKET ConnectSocket = INVALID_SOCKET;
+    ConnectSocket = INVALID_SOCKET;
     struct sockaddr_in clientService;
 
     int recvbuflen = DEFAULT_BUFLEN;
@@ -41,7 +41,7 @@ DWORD WINAPI ioclientsock_task(LPVOID lpParam)
 
     //----------------------
     // Create a SOCKET for connecting to server
-    ConnectSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); //IPPROTO_UDP
+    ConnectSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); //SOCK_DGRAM, IPPROTO_UDP - in case of udp not required to connect
     if (ConnectSocket == INVALID_SOCKET) {
         wprintf(L"socket failed with error: %ld\n", WSAGetLastError());
         WSACleanup();
@@ -117,4 +117,74 @@ DWORD WINAPI ioclientsock_task(LPVOID lpParam)
         WSACleanup();
     }
     return 0;
+}
+
+
+int CreateClientAndConnect(void)
+{
+    //----------------------
+// Declare and initialize variables.
+    int iResult;
+    WSADATA wsaData;
+
+    SOCKET ConnectSocket = INVALID_SOCKET;
+    struct sockaddr_in clientService;
+
+    int recvbuflen = DEFAULT_BUFLEN;
+    char* sendbuf = "Client: sending data test";
+    char recvbuf[DEFAULT_BUFLEN] = "";
+
+    //----------------------
+    // Initialize Winsock
+    iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (iResult != NO_ERROR) {
+        wprintf(L"WSAStartup failed with error: %d\n", iResult);
+        return 1;
+    }
+
+    //----------------------
+    // Create a SOCKET for connecting to server
+    ConnectSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); //IPPROTO_UDP
+    if (ConnectSocket == INVALID_SOCKET) {
+        wprintf(L"socket failed with error: %ld\n", WSAGetLastError());
+        WSACleanup();
+        return 1;
+    }
+
+    //----------------------
+    // The sockaddr_in structure specifies the address family,
+    // IP address, and port of the server to be connected to.
+    clientService.sin_family = AF_INET;
+    clientService.sin_addr.s_addr = inet_addr("192.168.88.250");//inet_addr("127.0.0.1");
+    clientService.sin_port = htons(DEFAULT_PORT);
+
+
+    Timerwp_t TryConnectPeriod;
+    InitTimerWP(&TryConnectPeriod, (tickptr_fn*)GetTickCount);
+    LaunchTimerWP((U32_ms)1000, &TryConnectPeriod);
+    //----------------------
+    // Connect to server.
+    iResult = SOCKET_ERROR;
+    do {
+        if (IsTimerWPRinging(&TryConnectPeriod)) {
+            iResult = connect(ConnectSocket, (SOCKADDR*)&clientService, sizeof(clientService));
+            if (iResult == SOCKET_ERROR) {
+                RestartTimerWP(&TryConnectPeriod);
+                wprintf(L"connect failed with error: %d\n", WSAGetLastError());
+                //closesocket(ConnectSocket);
+                //WSACleanup();
+                //return 1;
+            }
+        }
+    } while (iResult == SOCKET_ERROR);
+}
+
+int ClientSend(const u8* buffer, const u16 bufflen, const u16 timeout)
+{
+
+}
+
+int ClientRecv(u8* buffRead, u16* sizeRead, const u16 timeout)
+{
+
 }
