@@ -152,7 +152,7 @@ int CreateServerAndListen(void)
 
     //----------------------
     // Create a SOCKET for connecting to server
-    ListenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); //IPPROTO_UDP
+    ListenSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP); //SOCK_STREAM, IPPROTO_TCP
     if (ListenSocket == INVALID_SOCKET) {
         wprintf(L"socket failed with error: %ld\n", WSAGetLastError());
         WSACleanup();

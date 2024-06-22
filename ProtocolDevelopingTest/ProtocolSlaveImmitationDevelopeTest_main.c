@@ -127,9 +127,9 @@ int main()
 			if (!IsTimerWPStarted(&InterfacePort.ReceivingTimer)) {
 				Recv(&InterfacePort, InterfacePort.BufferRecved, sizeof(InterfacePort.BufferRecved));
 			}
-			else if((InterfacePort.Status & (PORT_BUSY | PORT_RECEIVED)) == ONLY (PORT_BUSY | PORT_RECEIVED)){
+			/*else if((InterfacePort.Status & (PORT_BUSY | PORT_RECEIVED)) == ONLY (PORT_BUSY | PORT_RECEIVED)){ //looks useless
 				RecvHandling(&InterfacePort);
-			}
+			}*/
 		}
 		else
 		{
@@ -183,12 +183,18 @@ DWORD WINAPI ThreadReading(LPVOID lpParam) //
 	{
 		if (IsTimerWPRinging(&readingIOfilePeriod)) {
 			RestartTimerWP(&readingIOfilePeriod);
-			if ((InterfacePort.Status & (PORT_READY | PORT_RECEIVING)) == ONLY (PORT_READY | PORT_RECEIVING))
+			if ((InterfacePort.Status & (PORT_BUSY | PORT_RECEIVING)) == ONLY (PORT_BUSY | PORT_RECEIVING)) //?PORT_READY
 				immitationReceivingOfPortsBus(&InterfacePort);  //reading file shouldn't be so fast!
 		}
-		if (IsTimerWPRinging(&InterfacePort.ReceivingTimer)) { //also you can put it on TickThread()
-			ReceivingHandle(&InterfacePort);
-			StopWatchWP(&testMeasure[0]);
+		if (InterfacePort.Status & PORT_RECEIVED_ALL) { //?md don't use this on interrupt section
+			RecvHandling(&InterfacePort); //if it for me AnswerToMaster()
+			InterfacePort.Status clearBITS(PORT_RECEIVED_ALL);
+		}
+		if ((InterfacePort.Status & (PORT_BUSY | PORT_RECEIVED | PORT_RECEIVED_ALL)) == ONLY PORT_BUSY) {
+			if (IsTimerWPRinging(&InterfacePort.ReceivingTimer)) { //also you can put it on TickThread()
+				ReceivingHandle(&InterfacePort);
+				StopWatchWP(&testMeasure[0]);
+			}
 		}
 		if (IsTimerWPRinging(&InterfacePort.SendingTimer)) {
 			SendingHandle(&InterfacePort);
@@ -256,6 +262,10 @@ static void RecvHandling(InterfacePortHandle_t* Port)
 	if (HWPort.FIFO_BUFFER) {
 		if(ConsolesMenuHandle.CMD[READ_BUS])
 			printf("%s\n", HWPort.FIFO_BUFFER);
+		//IsThisPacketForMe(HWPort.FIFO_BUFFER){
+			//////CopyThisDatasTo();
+			//Write(); //Responce to Master 
+		//}
 		u8 buffer[30];
 		memset(buffer, 0, sizeof(buffer));
 		sprintf(buffer, " slave response!\n");

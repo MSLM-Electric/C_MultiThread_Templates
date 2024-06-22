@@ -52,7 +52,7 @@ int Write(InterfacePortHandle_t* PortHandle, const uint8_t *inDatas, const int s
 		HWPort.StartTX = 1;
 		PortHandle->Status |= PORT_BUSY;
 		PortHandle->Status |= PORT_SENDING;
-		PortHandle->Status clearBITS(PORT_SENDED | PORT_RECEIVED | PORT_RECEIVING);
+		PortHandle->Status clearBITS(PORT_SENDED | PORT_RECEIVED | PORT_RECEIVING | PORT_RECEIVED_ALL/*//?mb all not needed here*/);
 		LaunchTimerWP(PortHandle->SendingTimer.setVal, &PortHandle->SendingTimer);
 		res = immitationOfPortsBus(PortHandle);
 		if (res < 0) {
@@ -87,6 +87,9 @@ int Write(InterfacePortHandle_t* PortHandle, const uint8_t *inDatas, const int s
 		HWPort.TXInterruptEnable = 0;
 		HWPort.clearFIFO = 1;
 		HWPort.someSettings = 0xFF;
+		//Error occur. Successfull sending should not reach Sending timeout! If SendingTimer Ringed then:
+		//PortHandle->Status setBITS(PORT_ERROR);
+		//PortHandle->sendErrCnt;
 		PortHandle->Status clearBITS(PORT_SENDING_LAST_BYTE | PORT_SENDING | PORT_BUSY);
 		StopTimerWP(&PortHandle->SendingTimer);
 		if (PortHandle->DelayedRecv.DelayedRecv) {   //??? DelayedRecvAskedToDoAfterSending
@@ -108,8 +111,8 @@ int res = 0;
 		memset(&PortHandle->DelayedRecv, 0, sizeof(PortHandle->DelayedRecv));
 		PortHandle->LenDataToRecv = maxPossibleSize;
 		LaunchTimerWP(PortHandle->ReceivingTimer.setVal, &PortHandle->ReceivingTimer);
-		PortHandle->Status |= PORT_BUSY | PORT_RECEIVING;
-		PortHandle->Status &= ~PORT_RECEIVED;
+		PortHandle->Status setBITS(PORT_BUSY | PORT_RECEIVING);
+		PortHandle->Status clearBITS(PORT_RECEIVED | PORT_RECEIVED_ALL);
 		HWPort.clearOrResetSomeFlags = 0;
 		HWPort.someSettings = 0xFF;
 		HWPort.clearFIFO = 1; //?mb
@@ -149,9 +152,19 @@ int res = 0;
 		HWPort.clearFIFO = 1;
 		//memset(HWPort.FIFO_BUFFER, 0, sizeof(HWPort.FIFO_BUFFER /*.LenDataToRecv*/));
 		StopTimerWP(&PortHandle->ReceivingTimer);
-		PortHandle->Status clearBITS(PORT_RECEIVING | PORT_BUSY);
-		PortHandle->Status |= PORT_RECEIVED; //? mb RECEIVED_TIMEOUT or RECEIVED_ALL?
+		PortHandle->Status clearBITS(PORT_RECEIVING | PORT_BUSY | PORT_RECEIVED);
+		if (PortHandle->inCursor != 0) {
+			PortHandle->Status |= PORT_RECEIVED_ALL;//PORT_RECEIVED; //? mb RECEIVED_TIMEOUT or RECEIVED_ALL? ALL better
+			PortHandle->Status clearBITS(PORT_ERROR);
+		}
+		else
+		{
+			//Port not received data;
+			PortHandle->Status setBITS(PORT_ERROR);
+			//PortHandle->RecvErrCnt++;
+		}
 		PortHandle->LenDataToRecv = PortHandle->inCursor;
+	
 	}
 	return res;
 }
@@ -169,13 +182,9 @@ int ReceivingHandle(InterfacePortHandle_t* Port)
 static int immitationOfPortsBus(InterfacePortHandle_t* PortHandle) //! immitationSendingOfPortsBus()
 {
 	int res = 0;
-#ifdef HANDLING_WITH_IOFILE
-	FRESULT fres = FR_OK;
-	fres = TakeGLOBMutex(&MutexFileHandle, INFINITE/*(U32_ms)10000*/);
-	if (fres != FR_OK)
-		return res = -3;
-#endif
 	char buffer[300];
+	SOCKADDR_IN remoteNodeAddr;
+	int remoteNodeAddrSize = sizeof(remoteNodeAddr);
 	//char portsBusMessageId = portsMessageId;
 	char* DirectionSendingOfBusMessageId;
 	if (PortHandle->Status & PORT_MASTER) {
@@ -195,27 +204,11 @@ static int immitationOfPortsBus(InterfacePortHandle_t* PortHandle) //! immitatio
 	//"%s%s %s\n"
 	sprintf(&buffer[cursorPos], "%s %s\n", DirectionSendingOfBusMessageId, PortHandle->BufferToSend); //sizes?
 	size_t siz;
-#ifdef HANDLING_WITH_IOFILE
-	TakeMutex(&iofileMutex, INFINITE);
-	FIL* f = &FileHandle;
-	f = fopen(iofilePath, "a+"); //a
-	if (f == NULL) {
-		//fclose(f);
-		ReleaseMutex(iofileMutex);
-		res = -1;
-		return res;
-	}
-	siz = fwrite(buffer, strlen(buffer), 1/*??*/, f);// fwprintf, .._s
-	fclose(f);
-	ReleaseMutex(iofileMutex);
-	RealeaseGLOBMutex(&MutexFileHandle);
-#else
 	//res = shutdown(ConnectSocket, SD_RECEIVE);
 	TakeMutex(SocketMutex, maxDELAY);
-	siz = send(ConnectSocket, buffer, strlen(buffer), 0);
-	res = recv(ConnectSocket, buffer, strlen(buffer), 0);
+	siz = sendto(ConnectSocket, buffer, strlen(buffer), 0, &remoteNodeAddr, &remoteNodeAddrSize);
+	res = recvfrom(ConnectSocket, buffer, strlen(buffer), 0, &remoteNodeAddr, &remoteNodeAddrSize);
 	ReleaseMutex(SocketMutex);
-#endif //HANDLING_WITH_IOFILE
 	if (siz == res) {
 		//res = (int)siz;
 		commonMasterSlaveCfgs_t* currentObjCfg;
@@ -234,34 +227,18 @@ static int immitationOfPortsBus(InterfacePortHandle_t* PortHandle) //! immitatio
 
 int immitationReceivingOfPortsBus(InterfacePortHandle_t* outPortHandle)
 {
+	SOCKADDR_IN remoteNodeAddr;
+	int remoteNodeAddrSize = sizeof(remoteNodeAddr);
 	int res = 0;
 	int PortNo = 0;
 	FRESULT fres = FR_OK;
-#ifdef HANDLING_WITH_IOFILE
-	fres = TakeGLOBMutex(&MutexFileHandle, INFINITE/*(U32_ms)10000*/);
-	if (fres != FR_OK)
-		return res = -3;
-#endif
 	char buffer[300];
 	//char portsBusMessageId = portsMessageId;
-#ifdef HANDLING_WITH_IOFILE
-	TakeMutex(&iofileMutex, INFINITE);
-	FIL* f = &FileHandle;
-	f = fopen(iofilePath, "r"); //!+ fopen_s(&file, fname, "r")  use this, more safely
-	if (f == NULL) {
-		//fclose(f);
-		ReleaseMutex(iofileMutex);
-		res = -1;
-		return res;
+	if (NOT IsTimerWPRinging(&outPortHandle->ReceivingTimer)) {
+		TakeMutex(SocketMutex, maxDELAY);
+		res = recvfrom(ConnectSocket, buffer, sizeof(buffer), 0, (SOCKADDR *)&remoteNodeAddr, &remoteNodeAddrSize);
+		ReleaseMutex(SocketMutex);
 	}
-	fres = ReadTheLastLineOfFile(buffer, sizeof(buffer), f);
-	ReleaseMutex(iofileMutex);
-	RealeaseGLOBMutex(&MutexFileHandle);
-#else
-	TakeMutex(SocketMutex, maxDELAY);
-	res = recv(ConnectSocket, buffer, sizeof(buffer), 0);
-	ReleaseMutex(SocketMutex);
-#endif // HANDLING_WITH_IOFILE
 	/*if (strncmp(buffer, portsMessageId, strlen(portsMessageId) - 2) == 0) {
 		buffer[strlen(portsMessageId) - 2] = PortNo;
 	}*/

@@ -120,7 +120,7 @@ DWORD WINAPI ioclientsock_task(LPVOID lpParam)
 }
 
 
-int CreateClientAndConnect(void)
+int CreateClientSocket(void)
 {
     //----------------------
 // Declare and initialize variables.

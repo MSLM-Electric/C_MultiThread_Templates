@@ -48,9 +48,10 @@ enum {
 	PORT_ASYNC = 1 << 7,     //if zero, then it is a PORT_SYNC.  PORT_ASYNC = RS-485/CAN like interfaces.
 	PORT_MASTER = 1 << 8,    //if zero, it is SLAVE (good approach//?)
 	PORT_BUFFER_FIFO = 1 << 9, //if zero, it is simple 8bit buffer //PORT_BUFF_FIFO_ENABLED
+	PORT_RECEIVED_ALL = 1 << 10,
 	//PORT_USING_ON_BACKGND = 1 << 10, //?mb not needed!
 	//..
-	// PORT_ERROR //?
+	PORT_ERROR = 1 << 11,
 }InterfacePortState_e;
 
 

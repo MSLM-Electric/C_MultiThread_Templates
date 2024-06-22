@@ -4,6 +4,7 @@ project(ProtocolSlaveDevelopeTest)
 set(PROJ_NAME ProtocolSlaveDevelopeTest)
 
 add_definitions(-DSLAVE_PORT_PROJECT)
+add_definitions(-D_WINSOCKAPI_)
 
 set(ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../")
 #on Lib located inc and src

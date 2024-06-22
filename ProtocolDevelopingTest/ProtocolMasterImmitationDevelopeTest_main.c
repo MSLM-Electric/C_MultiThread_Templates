@@ -44,6 +44,7 @@ Timerwp_t UsersTimer;
 Timerwp_t MonitoringTim;
 /*TI*/ uint8_t testTimer = 0;
 static void RegisterCmdFunctionsCallback(void);
+static void RecvHandling(InterfacePortHandle_t* Port);
 
 void callback()
 {
@@ -128,8 +129,7 @@ int main()
 		else {	;/*stoptimer*/ }
 
 		if (ConsolesMenuHandle.CMD[START_COMMUNICATION] && ThisMastersConfigs.Status) { //mutxMaster//!
-			//if (InterfacePort.Status & 0x2)
-				InterfacePort.Status |= PORT_READY;
+			InterfacePort.Status |= PORT_READY;
 			InterfacePort.communicationPeriod = ThisMastersConfigs.communicationPeriod;
 			//InterfacePort.Status = ThisMastersConfigs.Status; //Port ready to communicating
 			InterfacePort.LenDataToSend = ThisMastersConfigs.LenDataToTalk;
@@ -251,9 +251,15 @@ DWORD WINAPI ThreadReading(LPVOID lpParam) //
 			if((InterfacePort.Status & (PORT_READY | PORT_RECEIVING)) == (PORT_READY | PORT_RECEIVING))
 				immitationReceivingOfPortsBus(&InterfacePort);  //reading file shouldn't be so fast!
 		}
-		if (IsTimerWPRinging(&InterfacePort.ReceivingTimer)) { //also you can put it on TickThread()
-			ReceivingHandle(&InterfacePort);
-			StopWatchWP(&testMeasure[0]);
+		if (InterfacePort.Status & PORT_RECEIVED_ALL) { //?mb don't use this on interrupt section
+			RecvHandling(&InterfacePort); //CheckRecvedData()
+			InterfacePort.Status clearBITS(PORT_RECEIVED_ALL);
+		}
+		if ((InterfacePort.Status & (PORT_BUSY | PORT_RECEIVED | PORT_RECEIVED_ALL)) == ONLY PORT_BUSY) {
+			if (IsTimerWPRinging(&InterfacePort.ReceivingTimer)) { //also you can put it on TickThread()
+				ReceivingHandle(&InterfacePort);
+				StopWatchWP(&testMeasure[0]);
+			}
 		}
 		if (IsTimerWPRinging(&InterfacePort.SendingTimer)) {
 			SendingHandle(&InterfacePort);
@@ -263,6 +269,17 @@ DWORD WINAPI ThreadReading(LPVOID lpParam) //
 			printf("Received timeout test measure: %u\n", testMeasure[0].measuredTime);
 			printf("Sending timeout test measure: %u\n", testMeasure[1].measuredTime);
 		}
+	}
+}
+
+static void RecvHandling(InterfacePortHandle_t* Port)
+{
+	if (HWPort.FIFO_BUFFER) {
+		if (ConsolesMenuHandle.CMD[READ_BUS])
+			printf("%s\n", HWPort.FIFO_BUFFER);
+		//IsThisPacketForMe(HWPort.FIFO_BUFFER){
+			//CopyThisDatasTo();
+		//}
 	}
 }
 
