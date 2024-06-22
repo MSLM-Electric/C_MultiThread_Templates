@@ -175,7 +175,7 @@ DWORD WINAPI ThreadReading(LPVOID lpParam) //
 	//InterfacePortHandle_t Port;
 	Timerwp_t readingIOfilePeriod;
 	InitTimerWP(&readingIOfilePeriod, (tickptr_fn*)GetTickCount);
-	LaunchTimerWP((U32_ms)400, &readingIOfilePeriod);
+	LaunchTimerWP((U32_ms)/*400*/50, &readingIOfilePeriod);
 	stopwatchwp_t testMeasure[2];
 	InitStopWatchWP(&testMeasure[0], (tickptr_fn*)GetTickCount);
 	InitStopWatchWP(&testMeasure[1], (tickptr_fn*)GetTickCount);

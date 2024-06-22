@@ -4,6 +4,7 @@ project(ProtocolMasterDevelopeTest)
 set(PROJ_NAME ProtocolMasterDevelopeTest)
 
 add_definitions(-DMASTER_PORT_PROJECT)
+add_definitions(-D_WINSOCKAPI_)
 
 set(ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../")
 #on Lib located inc and src
@@ -22,7 +23,7 @@ set(SOURCES
 	${LIB_DIR}/fileHandle.c
 	${HARDWARE_PERIPHERAL}/HardwareInterfaceUnit.c
 	${IOFILE_PATH}/CmdsScenarioScripts.c
-	${IOFILE_PATH}/iosocket.c
+	#${IOFILE_PATH}/iosocket.c
 	${IOFILE_PATH}/ioclientsocket.c
 )
 	#${ROOT_SRC_DIR}/*.c

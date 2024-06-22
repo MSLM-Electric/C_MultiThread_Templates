@@ -19,6 +19,7 @@ uint16_t catchPoint = 0;
 extern char iofilePath[] = IOFILE_PATH;
 extern char globMutexFile[] = GLOB_MUTEX_FILE;
 extern SOCKET ConnectSocket;
+extern HANDLE SocketMutex;
 
 /*DE*/ uint8_t MoreDetailsInShowing = 0;
 /*PA*/ uint8_t PauseConsoleCommand = 0;
@@ -147,18 +148,6 @@ int main()
 				}
 			}
 		}
-
-		//socket client example:
-		/*SOCKET sock = INVALID_SOCKET;
-		int iFamily = AF_INET;
-		int iType = 0;
-		int iProtocol = 0;
-		IPPORT_BIFFUDP;
-		socket(iFamily, iType, iProtocol);
-		;*/
-
-		//socket server example:
-
 	}
 	printf("endOfCycle. Bad jump! \n"); //programm execution never should get here!
 }

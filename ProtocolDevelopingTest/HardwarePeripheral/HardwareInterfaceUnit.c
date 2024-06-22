@@ -8,6 +8,7 @@
 extern SOCKET ConnectSocket;
 //else SLAVE
 extern SOCKET ListenSocket;
+extern HANDLE SocketMutex;
 #endif // HANDLING_WITH_IOFILE
 
 
@@ -71,7 +72,7 @@ int Write(InterfacePortHandle_t* PortHandle, const uint8_t *inDatas, const int s
 		HWPort.someSettings = 0xFF;
 		PortHandle->Status clearBITS(PORT_SENDING_LAST_BYTE | PORT_SENDING | PORT_BUSY);
 		StopTimerWP(&PortHandle->SendingTimer);
-		if (PortHandle->DelayedRecv.DelayedRecv) {   //???
+		if (PortHandle->DelayedRecv.DelayedRecv) {   //??? DelayedRecvAskedToDoAfterSending
 			void* arg = PortHandle->DelayedRecv.ifsArg; 
 			u16 Len = PortHandle->DelayedRecv.maxLen;
 			PortHandle->DelayedRecv.DelayedRecv(arg, Len);
@@ -88,7 +89,7 @@ int Write(InterfacePortHandle_t* PortHandle, const uint8_t *inDatas, const int s
 		HWPort.someSettings = 0xFF;
 		PortHandle->Status clearBITS(PORT_SENDING_LAST_BYTE | PORT_SENDING | PORT_BUSY);
 		StopTimerWP(&PortHandle->SendingTimer);
-		if (PortHandle->DelayedRecv.DelayedRecv) {   //???
+		if (PortHandle->DelayedRecv.DelayedRecv) {   //??? DelayedRecvAskedToDoAfterSending
 			void* arg = PortHandle->DelayedRecv.ifsArg;
 			u16 Len = PortHandle->DelayedRecv.maxLen;
 			PortHandle->DelayedRecv.DelayedRecv(arg, Len);
@@ -130,7 +131,7 @@ int res = 0;
 		HWPort.StartRX = 1;
 	}
 	else if ((PortHandle->Status & (PORT_BUSY | PORT_SENDING | PORT_RECEIVING)) == ONLY (PORT_BUSY | PORT_SENDING)) {
-		//DoDelayedCall This function after sending
+		//Set DoDelayedCall callback for This function after sending if user asked to do it before
 		if (IsTimerWPStarted(&PortHandle->SendingTimer)) {
 			PortHandle->DelayedRecv.DelayedRecv = (DelayedRecv_fn*)Recv;
 			PortHandle->DelayedRecv.ifsArg = PortHandle;
@@ -210,8 +211,10 @@ static int immitationOfPortsBus(InterfacePortHandle_t* PortHandle) //! immitatio
 	RealeaseGLOBMutex(&MutexFileHandle);
 #else
 	//res = shutdown(ConnectSocket, SD_RECEIVE);
+	TakeMutex(SocketMutex, maxDELAY);
 	siz = send(ConnectSocket, buffer, strlen(buffer), 0);
 	res = recv(ConnectSocket, buffer, strlen(buffer), 0);
+	ReleaseMutex(SocketMutex);
 #endif //HANDLING_WITH_IOFILE
 	if (siz == res) {
 		//res = (int)siz;
@@ -255,7 +258,9 @@ int immitationReceivingOfPortsBus(InterfacePortHandle_t* outPortHandle)
 	ReleaseMutex(iofileMutex);
 	RealeaseGLOBMutex(&MutexFileHandle);
 #else
+	TakeMutex(SocketMutex, maxDELAY);
 	res = recv(ConnectSocket, buffer, sizeof(buffer), 0);
+	ReleaseMutex(SocketMutex);
 #endif // HANDLING_WITH_IOFILE
 	/*if (strncmp(buffer, portsMessageId, strlen(portsMessageId) - 2) == 0) {
 		buffer[strlen(portsMessageId) - 2] = PortNo;
