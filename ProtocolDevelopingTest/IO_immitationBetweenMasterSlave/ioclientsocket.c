@@ -12,9 +12,10 @@
 #pragma comment(lib, "Ws2_32.lib")
 
 #define DEFAULT_BUFLEN 512
-#define DEFAULT_PORT 502//27015//
+#define DEFAULT_PORT 27015//502
 
 Timerwp_t ioclientrequestPeriod;
+Timerwp_t ioclientRecvPeriod;
 //Timerwp_t Timers[4];
 
 DWORD WINAPI ioclientsock_task(LPVOID lpParam) 
@@ -41,7 +42,7 @@ DWORD WINAPI ioclientsock_task(LPVOID lpParam)
 
     //----------------------
     // Create a SOCKET for connecting to server
-    ConnectSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); //SOCK_DGRAM, IPPROTO_UDP - in case of udp not required to connect
+    ConnectSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP); //SOCK_DGRAM, IPPROTO_UDP - in case of udp not required to connect
     if (ConnectSocket == INVALID_SOCKET) {
         wprintf(L"socket failed with error: %ld\n", WSAGetLastError());
         WSACleanup();
@@ -55,17 +56,16 @@ DWORD WINAPI ioclientsock_task(LPVOID lpParam)
     clientService.sin_addr.s_addr = inet_addr("192.168.88.250");//inet_addr("127.0.0.1");
     clientService.sin_port = htons(DEFAULT_PORT);
 
-    //----------------------
-    // Connect to server.
-    iResult = connect(ConnectSocket, (SOCKADDR*)&clientService, sizeof(clientService));
-    if (iResult == SOCKET_ERROR) {
-        wprintf(L"connect failed with error: %d\n", WSAGetLastError());
-        closesocket(ConnectSocket);
-        WSACleanup();
-        return 1;
-    }
     InitTimerWP(&ioclientrequestPeriod, (tickptr_fn*)GetTickCount);
     LaunchTimerWP((U32_ms)1000, &ioclientrequestPeriod);
+    InitTimerWP(&ioclientRecvPeriod, (tickptr_fn*)GetTickCount);
+    LaunchTimerWP((U32_ms)1000, &ioclientRecvPeriod);
+    SOCKADDR_IN remoteNodeAddr;
+    int remoteNodeAddrSize = sizeof(remoteNodeAddr);
+    remoteNodeAddrSize = sizeof(clientService);
+    char buffer[300];
+    int res = 0;
+    sprintf(buffer, "client send requests!\n\0");
 
     for (;;)
     {
@@ -73,49 +73,36 @@ DWORD WINAPI ioclientsock_task(LPVOID lpParam)
         while (NOT IsTimerWPRinging(&ioclientrequestPeriod));
         //----------------------
         // Send an initial buffer
-        iResult = send(ConnectSocket, sendbuf, (int)strlen(sendbuf), 0);
-        if (iResult == SOCKET_ERROR) {
-            wprintf(L"send failed with error: %d\n", WSAGetLastError());
-            closesocket(ConnectSocket);
-            WSACleanup();
-            return 1;  //?! Exits in here!
-        }
+        res = sendto(ConnectSocket, buffer, strlen(buffer), 0, &clientService, &remoteNodeAddrSize);
+        //if (res == SOCKET_ERROR) {
+        //    wprintf(L"send failed with error: %d\n", WSAGetLastError());
+        //    closesocket(ConnectSocket);
+        //    WSACleanup();
+        //    return 1;  //?! Exits in here!
+        //}
 
-        printf("Bytes Sent: %d\n", iResult);
+        printf("Bytes Sent: %d\n", res);
 
-        // shutdown the connection since no more data will be sent
-        iResult = shutdown(ConnectSocket, SD_SEND);
-        if (iResult == SOCKET_ERROR) {
-            wprintf(L"shutdown failed with error: %d\n", WSAGetLastError());
-            closesocket(ConnectSocket);
-            WSACleanup();
-            return 1;
-        }
-
-        // Receive until the peer closes the connection
+        RestartTimerWP(&ioclientRecvPeriod);
         do {
+            res = recvfrom(ConnectSocket, buffer, sizeof(buffer), 0, &clientService, &remoteNodeAddrSize);
+            if (IsTimerWPRinging(&ioclientRecvPeriod)) {
+                printf("client not fully recved");
+                res = -1;
+                break;
+            }
 
-            iResult = recv(ConnectSocket, recvbuf, recvbuflen, 0);
-            if (iResult > 0)
-                wprintf(L"Bytes received: %d\n", iResult);
-            else if (iResult == 0)
-                wprintf(L"Connection closed\n");
-            else
-                wprintf(L"recv failed with error: %d\n", WSAGetLastError());
-
-        } while (iResult > 0);
-
-
-        // close the socket
-        iResult = closesocket(ConnectSocket);
-        if (iResult == SOCKET_ERROR) {
-            wprintf(L"close failed with error: %d\n", WSAGetLastError());
-            WSACleanup();
-            return 1;
-        }
-
-        WSACleanup();
+        } while (res > 0);        
     }
+    // close the socket
+    iResult = closesocket(ConnectSocket);
+    if (iResult == SOCKET_ERROR) {
+        wprintf(L"close failed with error: %d\n", WSAGetLastError());
+        WSACleanup();
+        return 1;
+    }
+
+    WSACleanup();
     return 0;
 }
 

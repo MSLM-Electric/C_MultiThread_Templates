@@ -80,23 +80,26 @@ int main()
 	mutx = CreateMutexW(NULL, 1, "Mutex");
 
 	int res = 0;
-	res = ThreadCreation(&ThreadWriting, &Thread1Struct, 1);
+	//res = ThreadCreation(&ThreadWriting, &Thread1Struct, 1);
 	res = ThreadCreation(&ThreadNo2, &Thread2Struct, 2);
 	res = ThreadCreation(&TickThread, &TickThreadStruct, 4);
 	res = ThreadCreation(&ThreadReading, &ThreadReadingStruct, 5);
-	//res = ThreadCreation(&ioclientsock_task, &ioclientsock_struct, 6);
-
+#ifdef SEPARATE_SOCKETS_TESTING
+	res = ThreadCreation(&ioclientsock_task, &ioclientsock_struct, 6);
+#endif // SEPARATE_SOCKETS_TESTING
 
 	// Aray to store thread handles 
-	HANDLE Array_Of_Thread_Handles[5];
+	HANDLE Array_Of_Thread_Handles[6]; //?5
 	// Store Thread handles in Array of Thread
 	// Handles as per the requirement
 	// of WaitForMultipleObjects() 
-	Array_Of_Thread_Handles[0] = Thread1Struct.Handle_Of_Thread;
+	//Array_Of_Thread_Handles[0] = Thread1Struct.Handle_Of_Thread;
 	Array_Of_Thread_Handles[1] = Thread2Struct.Handle_Of_Thread;
 	Array_Of_Thread_Handles[3] = TickThreadStruct.Handle_Of_Thread;
 	Array_Of_Thread_Handles[4] = ThreadReadingStruct.Handle_Of_Thread;
-	//Array_Of_Thread_Handles[5] = ioclientsock_struct.Handle_Of_Thread;
+#ifdef SEPARATE_SOCKETS_TESTING
+	Array_Of_Thread_Handles[5] = ioclientsock_struct.Handle_Of_Thread;
+#endif // SEPARATE_SOCKETS_TESTING
 
 	// Wait until all threads have terminated.
 	WaitForMultipleObjects(5, Array_Of_Thread_Handles, TRUE, INFINITE); //?3
@@ -112,7 +115,9 @@ int main()
 #endif // DEBUG_ON_VS
 	LaunchTimerWP((U32_ms)2000, &MainProgrammDelay);
 	InitPort(&InterfacePort);
-	CreateClientAndConnect();
+#ifndef SEPARATE_SOCKETS_TESTING
+	CreateClientSocket();
+#endif // !SEPARATE_SOCKETS_TESTING
 	RegisterCmdFunctionsCallback();
 	ConsolesMenuHandle.CMD[PAUSE_CONSOLE] = 1; //enable pause initially
 	while (1)

@@ -12,3 +12,4 @@ add_definitions(-DFILE_MUTEX_REALEASED="MUTEX_REALEASED")
 add_definitions(-DFILE_MUTEX_TAKEN="MUTEX_TAKEN")
 add_definitions(-DPROTOCOL_DEVELOPING_PROJECT)
 #add_definitions(-DDEBUG_ON_VS);
+add_definitions(-DSEPARATE_SOCKETS_TESTING) #SEPARATE_TESTING_SOCKETS sounds better

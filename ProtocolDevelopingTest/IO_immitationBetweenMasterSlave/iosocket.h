@@ -21,9 +21,9 @@ HANDLE SocketMutex;
 
 DWORD WINAPI ioclientsock_task(LPVOID lpParam);
 ThreadsStruct_t ioclientsock_struct;
-int CreateClientAndConnect(void);
+int CreateClientSocket(void);
 DWORD WINAPI ioserversock_task(LPVOID lpParam);
 ThreadsStruct_t ioserversock_struct;
-int CreateServerAndListen(void);
+int CreateServerSocket(void);
 
 #endif //IOSOCKET_H

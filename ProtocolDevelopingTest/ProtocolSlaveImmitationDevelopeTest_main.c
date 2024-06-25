@@ -75,25 +75,27 @@ int main()
 	mutx = CreateMutexW(NULL, 1, "Mutex");
 
 	int res = 0;
-	res = ThreadCreation(&ThreadNo1, &Thread1Struct, 1);
+	//res = ThreadCreation(&ThreadNo1, &Thread1Struct, 1);
 	res = ThreadCreation(&ThreadNo2, &Thread2Struct, 2);
 	res = ThreadCreation(&TickThread, &TickThreadStruct, 4);
 	res = ThreadCreation(&ThreadReading, &ThreadReadingStruct, 5);
-	//res = ThreadCreation(&ioserversock_task, &ioserversock_struct, 6);
-
+#ifdef SEPARATE_SOCKETS_TESTING
+	res = ThreadCreation(&ioserversock_task, &ioserversock_struct, 6);
+#endif 
 	// Aray to store thread handles 
 	HANDLE Array_Of_Thread_Handles[6];
 	// Store Thread handles in Array of Thread
 	// Handles as per the requirement
 	// of WaitForMultipleObjects() 
-	Array_Of_Thread_Handles[0] = Thread1Struct.Handle_Of_Thread;
+	//Array_Of_Thread_Handles[0] = Thread1Struct.Handle_Of_Thread;
 	Array_Of_Thread_Handles[1] = Thread2Struct.Handle_Of_Thread;
 	Array_Of_Thread_Handles[3] = TickThreadStruct.Handle_Of_Thread;
 	Array_Of_Thread_Handles[4] = ThreadReadingStruct.Handle_Of_Thread;
-	//Array_Of_Thread_Handles[5] = ioserversock_struct.Handle_Of_Thread;
-
+#ifdef SEPARATE_SOCKETS_TESTING
+	Array_Of_Thread_Handles[5] = ioserversock_struct.Handle_Of_Thread;
+#endif
 	// Wait until all threads have terminated.
-	WaitForMultipleObjects(4, Array_Of_Thread_Handles, TRUE, INFINITE); //?3
+	WaitForMultipleObjects(5, Array_Of_Thread_Handles, TRUE, INFINITE); //?3 //?4
 
 	memset(someData, 0, sizeof(someData));
 	ReleaseMutex(mutx);  //free mutex to start program
@@ -104,7 +106,9 @@ int main()
 #endif // DEBUG_ON_VS
 	LaunchTimerWP((U32_ms)2000, &MainProgrammDelay);
 	InitPort(&InterfacePort);
-	CreateServerAndListen();
+#ifndef SEPARATE_SOCKETS_TESTING
+	CreateServerSocket();
+#endif // !SEPARATE_SOCKETS_TESTING
 	ThisSlavesConfigs.ResponseTimeout = (U32_ms)600;
 	ThisSlavesConfigs.Status = 1; //!del it after
 	RegisterCmdFunctionsCallback();
