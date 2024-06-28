@@ -57,7 +57,7 @@ DWORD WINAPI ioclientsock_task(LPVOID lpParam)
     clientService.sin_port = htons(DEFAULT_PORT);
 
     InitTimerWP(&ioclientrequestPeriod, (tickptr_fn*)GetTickCount);
-    LaunchTimerWP((U32_ms)1000, &ioclientrequestPeriod);
+    LaunchTimerWP((U32_ms)2000, &ioclientrequestPeriod);
     InitTimerWP(&ioclientRecvPeriod, (tickptr_fn*)GetTickCount);
     LaunchTimerWP((U32_ms)1000, &ioclientRecvPeriod);
     SOCKADDR_IN remoteNodeAddr;
@@ -84,7 +84,7 @@ DWORD WINAPI ioclientsock_task(LPVOID lpParam)
         printf("Bytes Sent: %d\n", res);
 
         RestartTimerWP(&ioclientRecvPeriod);
-        do {
+        /*do {
             res = recvfrom(ConnectSocket, buffer, sizeof(buffer), 0, &clientService, &remoteNodeAddrSize);
             if (IsTimerWPRinging(&ioclientRecvPeriod)) {
                 printf("client not fully recved");
@@ -92,7 +92,7 @@ DWORD WINAPI ioclientsock_task(LPVOID lpParam)
                 break;
             }
 
-        } while (res > 0);        
+        } while (res > 0);*/
     }
     // close the socket
     iResult = closesocket(ConnectSocket);
