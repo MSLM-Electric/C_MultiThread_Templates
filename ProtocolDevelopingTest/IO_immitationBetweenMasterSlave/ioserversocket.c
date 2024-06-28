@@ -41,8 +41,10 @@ DWORD WINAPI ioserversock_task(LPVOID lpParam)
 
     //----------------------
     // Create a SOCKET for connecting to server
-    //ListenSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP); //SOCK_DGRAM, IPPROTO_UDP - in case of udp not required to listen    
+    ListenSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP); //SOCK_DGRAM, IPPROTO_UDP - in case of udp not required to listen    
+#ifdef WSA_IN_MAIN_INIT_SECTION
     ListenSocket = WSASocketW(AF_INET, SOCK_DGRAM, IPPROTO_UDP, 0, 0, WSA_FLAG_OVERLAPPED);
+#endif
     if (ListenSocket == INVALID_SOCKET) {
         wprintf(L"socket failed with error: %ld\n", WSAGetLastError());
         WSACleanup();
@@ -78,6 +80,8 @@ DWORD WINAPI ioserversock_task(LPVOID lpParam)
     int siz = sizeof(buffer);
     //sprintf(buffer, "server respond");
 
+#ifdef WSA_IN_MAIN_INIT_SECTION
+{
     WSABUF wsabuf;
     WSAEVENT Event;
     WSAOVERLAPPED overl;
@@ -85,6 +89,14 @@ DWORD WINAPI ioserversock_task(LPVOID lpParam)
     wsabuf.buf = buffer; //буфер для приема
     wsabuf.len = sizeof(buffer);
     memset(buffer, 0, sizeof(buffer));
+}
+#endif
+    fd_set set;
+    struct timeval timeout;
+    FD_ZERO(&set); /* clear the set */
+    FD_SET(ListenSocket, &set); /* add our file descriptor to the set */
+    timeout.tv_sec = 3;
+    timeout.tv_usec = 0;
 
     for (;;)
     {
@@ -94,16 +106,7 @@ DWORD WINAPI ioserversock_task(LPVOID lpParam)
         
         do {
             //res = recvfrom(ListenSocket, buffer, sizeof(buffer), 0, &serverService, &remoteNodeAddrSize); //?strlen(buffer) is dangerous when receiving
-            res = recvWithTimeout(ListenSocket, &wsabuf, &Event, &overl, 3000);
-            siz = strlen(buffer);
-            if (IsTimerWPRinging(&ioserverRecvPeriod) || (res < 0)) {
-                printf("server not fully recved\n");
-                res = -1;
-                break;
-            }
-            if (res >= 0) {
-                printf("look, we recv!\n");
-            }
+            int res = recvWithTimeout(ListenSocket, &set, buffer, sizeof(buffer), &timeout, &serverService, &remoteNodeAddrSize);
         } while (res > 0);
         //----------------------
         // Send an initial buffer
@@ -204,6 +207,37 @@ int CreateServerSocket(void)
     } while (iResult == SOCKET_ERROR);
 }
 
+int recvWithTimeout(SOCKET ListenSocket, fd_set *readfds, char* buffer, int buffLen, const TIMEVAL* timeout, SOCKADDR_IN *serverService, int *remoteNodeAddrSize)
+{
+    int res = 0;
+    int recvSize = 0;
+    res = select(ListenSocket + 1, readfds, NULL, NULL, timeout);
+    switch (res)
+    {
+    case SOCKET_ERROR:
+        printf("sock error!\n");
+        FD_SET(ListenSocket, readfds); //+!!
+        //closesocket(ListenSocket);
+        //res = bind(ListenSocket, serverService, remoteNodeAddrSize);
+        break;
+    case 0:
+        printf("timeout occured\n");
+        break;
+    default:
+        recvSize = recvfrom(ListenSocket, buffer, buffLen, 0, serverService, remoteNodeAddrSize);
+        if (recvSize == SOCKET_ERROR)
+            printf("read failed\n");
+        else if (recvSize == 0)
+            printf("peer disconnected\n");
+        else {
+            printf("read successful!\n");
+        }
+        break;
+    }
+    return res;
+}
+
+#ifdef WSA_IN_MAIN_INIT_SECTION
 int recvWithTimeout(SOCKET ListenSocket, WSABUF *wsabuf, WSAEVENT Event, WSAOVERLAPPED *overl, DWORD timeout)
 {
     int res = 0;
@@ -217,3 +251,4 @@ int recvWithTimeout(SOCKET ListenSocket, WSABUF *wsabuf, WSAEVENT Event, WSAOVER
     WSAGetOverlappedResult(ListenSocket, &overl, &sr, FALSE, &flag);
     return res;
 }
+#endif

@@ -25,6 +25,8 @@ int CreateClientSocket(void);
 DWORD WINAPI ioserversock_task(LPVOID lpParam);
 ThreadsStruct_t ioserversock_struct;
 int CreateServerSocket(void);
+int recvWithTimeout(SOCKET ListenSocket, fd_set* readfds, char* buffer, int buffLen, const TIMEVAL* timeout, SOCKADDR_IN* serverService, int* remoteNodeAddrSize);
+#ifdef WSA_IN_MAIN_INIT_SECTION
 int recvWithTimeout(SOCKET ListenSocket, WSABUF *wsabuf, WSAEVENT Event, WSAOVERLAPPED* overl, DWORD timeout);
-
+#endif //!WSA_IN_MAIN_INIT_SECTION
 #endif //IOSOCKET_H
