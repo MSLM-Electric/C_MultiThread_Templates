@@ -104,14 +104,14 @@ DWORD WINAPI ioserversock_task(LPVOID lpParam)
         //while (NOT IsTimerWPRinging(&ioserverResponsePeriod));
         RestartTimerWP(&ioserverRecvPeriod);
         
-        do {
-            //res = recvfrom(ListenSocket, buffer, sizeof(buffer), 0, &serverService, &remoteNodeAddrSize); //?strlen(buffer) is dangerous when receiving
+        //do {
+            memset(buffer, 0, sizeof(buffer));
             int res = recvWithTimeout(ListenSocket, &set, buffer, sizeof(buffer), &timeout, &serverService, &remoteNodeAddrSize);
-        } while (res > 0);
+        //} while (res > 0);
         //----------------------
         // Send an initial buffer
         if (res != -1) {
-            buffer[res] = 0;
+            buffer[/*res*/strlen(buffer)] = 0;
             printf("server recved: %s\n", buffer);
             sprintf(buffer, "server responds!\n\0");
             res = sendto(ListenSocket, buffer, strlen(buffer), 0, &serverService, &remoteNodeAddrSize);
@@ -211,29 +211,35 @@ int recvWithTimeout(SOCKET ListenSocket, fd_set *readfds, char* buffer, int buff
 {
     int res = 0;
     int recvSize = 0;
+    uint8_t printingDebugCmd = 1;
+    stopwatchwp_t selectMeasure;
+    InitStopWatchWP(&selectMeasure, (tickptr_fn*)GetTickCount);
+    StopWatchWP(&selectMeasure);
     res = select(ListenSocket + 1, readfds, NULL, NULL, timeout);
     switch (res)
     {
     case SOCKET_ERROR:
-        printf("sock error!\n");
+        DEBUG_PRINT(printingDebugCmd, ("sock error!\n"));
         FD_SET(ListenSocket, readfds); //+!!
         //closesocket(ListenSocket);
         //res = bind(ListenSocket, serverService, remoteNodeAddrSize);
         break;
     case 0:
-        printf("timeout occured\n");
+        DEBUG_PRINT(printingDebugCmd, ("timeout occured\n"));
         break;
     default:
         recvSize = recvfrom(ListenSocket, buffer, buffLen, 0, serverService, remoteNodeAddrSize);
         if (recvSize == SOCKET_ERROR)
-            printf("read failed\n");
+            DEBUG_PRINT(printingDebugCmd, ("read failed\n"));
         else if (recvSize == 0)
-            printf("peer disconnected\n");
+            DEBUG_PRINT(printingDebugCmd, ("peer disconnected\n"));
         else {
-            printf("read successful!\n");
+            DEBUG_PRINT(printingDebugCmd, ("read successful!\n"));
         }
         break;
     }
+    StopWatchWP(&selectMeasure);
+    DEBUG_PRINT(printingDebugCmd, ("sockets select func measure:%d\n", selectMeasure.measuredTime));
     return res;
 }
 

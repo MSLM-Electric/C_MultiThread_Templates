@@ -17,8 +17,6 @@
 * 2. Redistributions in binary form must reproduce the above copyright notice,
 * this list of conditionsand the following disclaimer in the documentation
 * and /or other materials provided with the distribution.
-* 3. The name of the author may not be used to endorse or promote products
-* derived from this software without specific prior written permission.
 *
 * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
 * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
@@ -32,6 +30,7 @@
 	* OF SUCH DAMAGE.
 
 	Author: github.com/MSLM-Electric/
+	E-mail: mslmelectric@gmail.com
 */
 
 #include "SimpleTimerWP.h"  //WP means "WITH POINTER". 
@@ -56,9 +55,10 @@ or just:
 InitStopWatchWP(&microsecondT, (tickptr_fn*)usTick);
 InitTimerWP(&MyTimer1, (tickptr_fn*)HAL_GetTick); //for MyTimer1 use the HAL_GetTick() fucntion;
 */
-
+#ifdef USE_REGISTERING_TIMERS_WITH_CALLBACK
 /*static*/ Timerwp_t* RegisteredTimers[MAX_REGISTER_NUM];
 static uint8_t NRegister = 0;
+#endif
 
 void InitStopWatchWP(stopwatchwp_t* timeMeasure, tickptr_fn* SpecifyTickFunction)
 {
@@ -66,11 +66,18 @@ void InitStopWatchWP(stopwatchwp_t* timeMeasure, tickptr_fn* SpecifyTickFunction
 	timeMeasure->ptrToTick = SpecifyTickFunction;
 }
 
+void InitStopWatchGroup(stopwatchwp_t *stopwatchArr, tickptr_fn* SpecifyTickFunction, uint8_t qnty)
+{
+	uint8_t u;
+	for (u = 0; u < qnty; u++) {
+		InitStopWatchWP(&stopwatchArr[u], SpecifyTickFunction);
+	}
+}
+
 void InitTimerWP(Timerwp_t* Timer, tickptr_fn* SpecifyTickFunction)
 {
 	memset(Timer, 0, sizeof(Timerwp_t));
 	Timer->ptrToTick = SpecifyTickFunction;
-	StopTimerWP(Timer);
 }
 
 //StopWatchPointToPointStart(&watch);
@@ -130,7 +137,7 @@ void LaunchTimerWP(uint32_t time, Timerwp_t* Timer)
 	return;
 }
 
-void StopTimerWP(Timerwp_t* Timer) //or RestartTimer
+void StopTimerWP(Timerwp_t* Timer)
 {
 	if (Timer != NULL) {
 		//if (Timer->ptrToTick == NULL)
@@ -140,6 +147,34 @@ void StopTimerWP(Timerwp_t* Timer) //or RestartTimer
 		Timer->Start = 0;
 	}
 	return;
+}
+
+void InitTimerGroup(Timerwp_t* ArrTimers, tickptr_fn* SpecifyTickFunction, uint8_t qntyTimers, uint32_t setVals)
+{
+	for (uint8_t u = 0; u < qntyTimers; u++)
+	{
+		InitTimerWP(&ArrTimers[u], SpecifyTickFunction);
+		ArrTimers[u].setVal = setVals;
+	}
+}
+
+void StopTimerGroup(Timerwp_t* ArrTimers, uint8_t qntyTimers)
+{
+	for (uint8_t u = 0; u < qntyTimers; u++)
+	{
+		StopTimerWP(&ArrTimers[u]);
+	}
+}
+
+uint8_t RestartTimerGroup(Timerwp_t* ArrTimers, uint8_t qntyTimers)
+{
+	uint8_t res = 0;
+	for (uint8_t u = 0; u < qntyTimers; u++)
+	{
+		//if (ArrTimers[u].TimType != PERIODIC_TIMER)
+			res |= RestartTimerWP(&ArrTimers[u]);
+	}
+	return res;
 }
 
 uint8_t IsTimerWPStarted(Timerwp_t* Timer) {
@@ -155,9 +190,11 @@ uint8_t IsTimerWPRinging(Timerwp_t* Timer) {
 	if (Timer != NULL) {
 		if (Timer->ptrToTick == NULL)
 			return 0;
-        uint32_t tickTime = (uint32_t)(Timer->ptrToTick());
-		if (((tickTime - Timer->launchedTime) > Timer->setVal) * Timer->Start)
-			return 1; //yes, timer is ringing!
+		if (Timer->Start) {
+			uint32_t tickTime = (uint32_t)(Timer->ptrToTick());
+			if ((tickTime - Timer->launchedTime) >= Timer->setVal)
+				return 1; //yes, timer is ringing!
+		}
 	}
 	return 0; //nope!
 }
@@ -174,13 +211,16 @@ uint8_t RestartTimerWP(Timerwp_t* Timer)
 }
 
 #ifdef USE_REGISTERING_TIMERS_WITH_CALLBACK
-uint8_t RegisterTimerCallback(Timerwp_t* Timer, timerwpcallback_fn* ThisTimerCallback, enum timerType_enum timType, tickptr_fn *SpecifyTickFunc)
+uint8_t RegisterTimerCallback(Timerwp_t* Timer, timerwpcallback_fn* ThisTimerCallback, timerType_enum timType, tickptr_fn *SpecifyTickFunc)
 {
 	if (NRegister) {
-		if (NRegister < MAX_REGISTER_NUM)
-			Timer->next = (Timerwp_t *)RegisteredTimers[NRegister - 1];
-		else
+		if (NRegister > MAX_REGISTER_NUM-1)
 			return 240;
+		for (uint8_t k = 0; k <= NRegister; k++) {  //Check timers existance  //Double registering protection
+			if ((Timer == RegisteredTimers[k]))
+				return 242; //This timer already registered!
+		}		
+		Timer->next = (Timerwp_t *)RegisteredTimers[NRegister - 1];
 	}
 	Timer->RegisteredCallback = ThisTimerCallback;
 	RegisteredTimers[NRegister] = Timer;
@@ -246,11 +286,36 @@ uint8_t RegisteredTimersCallbackHandle(Timerwp_t* Timer)
 	return 0;
 }
 
-uint8_t getRegistersMaxIndex(void)
+uint8_t getRegisterTimersMaxIndex(void)
 {
 	if (NRegister > 0) {
 		return NRegister - 1;
 	}
-	return 255; //bad res!
+	return 0; //255 bad res! //maybe it has sense to return 0 even when error; cause the protections on functions already prepared! (If don't to do it that mayb very dangerous code while using RegisteredTimersCallbackHandle(RegisteredTimers[255])!)
 }
 #endif // USE_REGISTERING_TIMERS_WITH_CALLBACK
+
+#ifdef USING_RTOS
+#ifndef taskYIELD
+//#include "cmsis_os.h" //as Example. //put here the Task switch context macro from your RTOS or include the RTOS header
+#ifdef DEBUG_ON_VS
+#define taskYIELD()
+#endif // DEBUG_ON_VS
+#endif // !taskYIELD
+void TaskYieldWithinSpecifiedTime(const uint32_t time, Timerwp_t* Timer)
+{
+	LaunchTimerWP(time, Timer);
+	while (!IsTimerWPRinging(Timer))
+	{
+		taskYIELD();
+	}
+	StopTimerWP(Timer);
+}
+#endif // USING_RTOS
+
+void catchBreakPoint(uint32_t* var)
+{
+	*var = *var + 1;
+	*var = *var - 1;
+	return;
+}

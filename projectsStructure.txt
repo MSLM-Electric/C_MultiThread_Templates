@@ -64,3 +64,4 @@ TODO: Implement 8bit-Mode/None FIFO mode. Interrupt occurring after every 8bits 
 TODO: Use #include <WinSock2.h> for IO between Master & Slaves
 THOUGHTS: Mb for simulating the communication of ports bus using UDP is more flexible and familiar/closer to real hardware communications on buses.
 TODO: !! First of all do tests separately on ioserver_task and ioclient_task. Then disable those tasks and do the rest works.
+TEST: Look at using select() example. https://stackoverflow.com/questions/30395258/setting-timeout-to-recv-function

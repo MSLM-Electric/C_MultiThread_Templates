@@ -97,4 +97,18 @@ typedef u32 u32_t;
 //	return res;
 //}
 
+#ifndef DEBUG_PRINT
+#define DEBUG_PRINT(enable, message) do{\
+                                     if(enable)\
+                                        printf message;\
+                                    }while(0)\
+
+#endif // !DEBUG_PRINT
+
+
+#define LINE_EXECUTE_PRINT(x) do{\
+                            if(x)\
+                                printf("line executed: %s: %d\n", __FILE__, __LINE__); \
+                        }while(0)\
+
 #endif// TYPE_DEF_H
