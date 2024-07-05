@@ -67,11 +67,6 @@ DWORD WINAPI ioserversock_task(LPVOID lpParam)
         return 1;
     }
 
-    InitTimerWP(&ioserverResponsePeriod, (tickptr_fn*)GetTickCount);
-    LaunchTimerWP((U32_ms)1000, &ioserverResponsePeriod);
-    InitTimerWP(&ioserverRecvPeriod, (tickptr_fn*)GetTickCount);
-    LaunchTimerWP((U32_ms)3000, &ioserverRecvPeriod);
-
     SOCKADDR_IN remoteNodeAddr;
     int remoteNodeAddrSize = sizeof(remoteNodeAddr);
     remoteNodeAddrSize = sizeof(serverService);
@@ -80,21 +75,10 @@ DWORD WINAPI ioserversock_task(LPVOID lpParam)
     int siz = sizeof(buffer);
     //sprintf(buffer, "server respond");
 
-#ifdef WSA_IN_MAIN_INIT_SECTION
-{
-    WSABUF wsabuf;
-    WSAEVENT Event;
-    WSAOVERLAPPED overl;
-    Event = WSACreateEvent();
-    wsabuf.buf = buffer; //буфер для приема
-    wsabuf.len = sizeof(buffer);
-    memset(buffer, 0, sizeof(buffer));
-}
-#endif
     fd_set set;
-    struct timeval timeout;
     FD_ZERO(&set); /* clear the set */
     FD_SET(ListenSocket, &set); /* add our file descriptor to the set */
+    struct timeval timeout;
     timeout.tv_sec = 3;
     timeout.tv_usec = 0;
 
@@ -102,17 +86,14 @@ DWORD WINAPI ioserversock_task(LPVOID lpParam)
     {
         //RestartTimerWP(&ioserverResponsePeriod);
         //while (NOT IsTimerWPRinging(&ioserverResponsePeriod));
-        RestartTimerWP(&ioserverRecvPeriod);
-        
-        //do {
-            memset(buffer, 0, sizeof(buffer));
-            int res = recvWithTimeout(ListenSocket, &set, buffer, sizeof(buffer), &timeout, &serverService, &remoteNodeAddrSize);
-        //} while (res > 0);
+     
+        memset(buffer, 0, sizeof(buffer));
+        int res = recvWithTimeout(ListenSocket, &set, buffer, sizeof(buffer), &timeout, &serverService, &remoteNodeAddrSize);
         //----------------------
         // Send an initial buffer
         if (res != -1) {
             buffer[/*res*/strlen(buffer)] = 0;
-            printf("server recved: %s\n", buffer);
+            DEBUG_PRINTF(1, ("server recved: %s\n", buffer));
             sprintf(buffer, "server responds!\n\0");
             res = sendto(ListenSocket, buffer, strlen(buffer), 0, &serverService, &remoteNodeAddrSize);
         }
@@ -126,7 +107,7 @@ DWORD WINAPI ioserversock_task(LPVOID lpParam)
         //    return 1;  //?! Exits in here!
         //}
 
-        printf("Bytes Sent: %d\n", res);   
+        DEBUG_PRINTF(1, ("Bytes Sent: %d\n", res));
     }
     // close the socket
     iResult = closesocket(ListenSocket);
@@ -188,73 +169,19 @@ int CreateServerSocket(void)
         return 1;
     }
 
-    Timerwp_t TryListeningPeriod;
-    InitTimerWP(&TryListeningPeriod, (tickptr_fn*)GetTickCount);
-    LaunchTimerWP((U32_ms)1000, &TryListeningPeriod);
+    int remoteNodeAddrSize = sizeof(serverService);
+    remoteNodeAddrSize = sizeof(SOCKADDR_IN);
 
-    iResult = SOCKET_ERROR;
-    do {
-        if (IsTimerWPRinging(&TryListeningPeriod)) {
-            iResult = listen(ListenSocket, SOMAXCONN);
-            if (iResult == SOCKET_ERROR) {
-                RestartTimerWP(&TryListeningPeriod);
-                printf("listen failed with error: %d\n", WSAGetLastError());
-                //closesocket(ListenSocket);
-                //WSACleanup();
-                //return 1;
-            }
-        }
-    } while (iResult == SOCKET_ERROR);
-}
+    fd_set set;
+    FD_ZERO(&set); /* clear the set */
+    FD_SET(ListenSocket, &set); /* add our file descriptor to the set */
+    //struct timeval timeout;
+    //timeout.tv_sec = 3;
+    //timeout.tv_usec = 0;
 
-int recvWithTimeout(SOCKET ListenSocket, fd_set *readfds, char* buffer, int buffLen, const TIMEVAL* timeout, SOCKADDR_IN *serverService, int *remoteNodeAddrSize)
-{
-    int res = 0;
-    int recvSize = 0;
-    uint8_t printingDebugCmd = 1;
-    stopwatchwp_t selectMeasure;
-    InitStopWatchWP(&selectMeasure, (tickptr_fn*)GetTickCount);
-    StopWatchWP(&selectMeasure);
-    res = select(ListenSocket + 1, readfds, NULL, NULL, timeout);
-    switch (res)
-    {
-    case SOCKET_ERROR:
-        DEBUG_PRINT(printingDebugCmd, ("sock error!\n"));
-        FD_SET(ListenSocket, readfds); //+!!
-        //closesocket(ListenSocket);
-        //res = bind(ListenSocket, serverService, remoteNodeAddrSize);
-        break;
-    case 0:
-        DEBUG_PRINT(printingDebugCmd, ("timeout occured\n"));
-        break;
-    default:
-        recvSize = recvfrom(ListenSocket, buffer, buffLen, 0, serverService, remoteNodeAddrSize);
-        if (recvSize == SOCKET_ERROR)
-            DEBUG_PRINT(printingDebugCmd, ("read failed\n"));
-        else if (recvSize == 0)
-            DEBUG_PRINT(printingDebugCmd, ("peer disconnected\n"));
-        else {
-            DEBUG_PRINT(printingDebugCmd, ("read successful!\n"));
-        }
-        break;
-    }
-    StopWatchWP(&selectMeasure);
-    DEBUG_PRINT(printingDebugCmd, ("sockets select func measure:%d\n", selectMeasure.measuredTime));
-    return res;
+    ListenSocketIfs.Socket = ListenSocket;
+    memcpy(&ListenSocketIfs.interfaceService, &serverService, sizeof(struct sockaddr_in));
+    ListenSocketIfs.remoteNodeAddrSize = remoteNodeAddrSize;
+    memcpy(&ListenSocketIfs.set, &set, sizeof(fd_set));
+    return 0;
 }
-
-#ifdef WSA_IN_MAIN_INIT_SECTION
-int recvWithTimeout(SOCKET ListenSocket, WSABUF *wsabuf, WSAEVENT Event, WSAOVERLAPPED *overl, DWORD timeout)
-{
-    int res = 0;
-    memset(overl, 0x0, sizeof(WSAOVERLAPPED));
-    overl->hEvent = *(HANDLE*)Event;
-    //overl->hEvent = Event;
-    DWORD recb = wsabuf->len, flag = 0, sr = 0;
-    res = WSARecv(ListenSocket, wsabuf, 1, &recb, &flag, &overl, 0);
-    WSAWaitForMultipleEvents(1, Event, FALSE, timeout, FALSE); //wait 20 secs.
-    WSAResetEvent(Event);
-    WSAGetOverlappedResult(ListenSocket, &overl, &sr, FALSE, &flag);
-    return res;
-}
-#endif

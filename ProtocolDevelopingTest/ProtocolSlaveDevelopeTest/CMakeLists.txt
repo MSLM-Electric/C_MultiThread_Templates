@@ -24,6 +24,7 @@ set(SOURCES
 	${HARDWARE_PERIPHERAL}/HardwareInterfaceUnit.c
 	${IOFILE_PATH}/CmdsScenarioScripts.c
 	${IOFILE_PATH}/ioserversocket.c
+	${IOFILE_PATH}/iosocket.c
 )
 	#${ROOT_SRC_DIR}/*.c
 	#${LIB_DIR}/*.c

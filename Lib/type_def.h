@@ -97,13 +97,13 @@ typedef u32 u32_t;
 //	return res;
 //}
 
-#ifndef DEBUG_PRINT
-#define DEBUG_PRINT(enable, message) do{\
+#ifndef DEBUG_PRINTF
+#define DEBUG_PRINTF(enable, message) do{\
                                      if(enable)\
                                         printf message;\
                                     }while(0)\
 
-#endif // !DEBUG_PRINT
+#endif // !DEBUG_PRINTF
 
 
 #define LINE_EXECUTE_PRINT(x) do{\

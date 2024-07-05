@@ -145,25 +145,18 @@ int CreateClientSocket(void)
     clientService.sin_addr.s_addr = inet_addr("192.168.88.250");//inet_addr("127.0.0.1");
     clientService.sin_port = htons(DEFAULT_PORT);
 
+    int remoteNodeAddrSize = sizeof(clientService);
+    remoteNodeAddrSize = sizeof(SOCKADDR_IN);
 
-    Timerwp_t TryConnectPeriod;
-    InitTimerWP(&TryConnectPeriod, (tickptr_fn*)GetTickCount);
-    LaunchTimerWP((U32_ms)1000, &TryConnectPeriod);
-    //----------------------
-    // Connect to server.
-    iResult = SOCKET_ERROR;
-    do {
-        if (IsTimerWPRinging(&TryConnectPeriod)) {
-            iResult = connect(ConnectSocket, (SOCKADDR*)&clientService, sizeof(clientService));
-            if (iResult == SOCKET_ERROR) {
-                RestartTimerWP(&TryConnectPeriod);
-                wprintf(L"connect failed with error: %d\n", WSAGetLastError());
-                //closesocket(ConnectSocket);
-                //WSACleanup();
-                //return 1;
-            }
-        }
-    } while (iResult == SOCKET_ERROR);
+    fd_set set;
+    FD_ZERO(&set); /* clear the set */
+    FD_SET(ConnectSocket, &set); /* add our file descriptor to the set */
+
+    ConnectSocketIfs.Socket = ConnectSocket;
+    memcpy(&ConnectSocketIfs.interfaceService, &clientService, sizeof(SOCKADDR_IN));
+    ConnectSocketIfs.remoteNodeAddrSize = remoteNodeAddrSize;
+    memcpy(&ConnectSocketIfs.set, &set, sizeof(fd_set));
+    return 0;
 }
 
 int ClientSend(const u8* buffer, const u16 bufflen, const u16 timeout)
