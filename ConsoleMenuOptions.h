@@ -21,6 +21,7 @@ enum cmdsValEnums {
 	READ_BUS,
 	COMMON_CONFIGS,
 	DEFAULT_CONFIGS,
+	RESET_PORT,
 	EXAMPLE, /*//Users code*/
 	cmdsValEnumslastINDEX
 };
@@ -47,6 +48,7 @@ static menuChoise_t MenuOption[cmdsValEnumslastINDEX - cmdsValEnumsfirstINDEX] =
 	{"readbus", READ_BUS},
 	{"commoncfg", COMMON_CONFIGS},
 	{"defcfg", DEFAULT_CONFIGS},
+	{"rstport", RESET_PORT},
 	//Users code
 	/*------------------------------Put your Functions launch here----------------------------*/
 	{"example", EXAMPLE},
