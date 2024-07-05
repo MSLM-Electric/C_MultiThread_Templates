@@ -17,6 +17,7 @@
 Timerwp_t ioserverResponsePeriod;
 Timerwp_t ioserverRecvPeriod;
 
+#ifdef SEPARATE_TESTING_SOCKETS
 DWORD WINAPI ioserversock_task(LPVOID lpParam)
 {
     //----------------------
@@ -120,6 +121,7 @@ DWORD WINAPI ioserversock_task(LPVOID lpParam)
     WSACleanup();
     return 0;
 }
+#endif // !SEPARATE_TESTING_SOCKETS
 
 int CreateServerSocket(void)
 {
@@ -184,4 +186,13 @@ int CreateServerSocket(void)
     ListenSocketIfs.remoteNodeAddrSize = remoteNodeAddrSize;
     memcpy(&ListenSocketIfs.set, &set, sizeof(fd_set));
     return 0;
+}
+
+int recvWithTimeoutToServer(char* buffer, const int buffLen, const U32_ms timeout)
+{
+    int res = 0;
+    struct timeval TimeOutVal = ConvertTo_timeval(timeout);
+    res = recvWithTimeout(ListenSocketIfs.Socket, &ListenSocketIfs.set, buffer, buffLen, &TimeOutVal,
+        &ListenSocketIfs.interfaceService, &ListenSocketIfs.remoteNodeAddrSize);
+    return res;
 }

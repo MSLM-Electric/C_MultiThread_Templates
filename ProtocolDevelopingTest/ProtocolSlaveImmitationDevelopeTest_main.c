@@ -79,7 +79,7 @@ int main()
 	res = ThreadCreation(&ThreadNo2, &Thread2Struct, 2);
 	res = ThreadCreation(&TickThread, &TickThreadStruct, 4);
 	res = ThreadCreation(&ThreadReading, &ThreadReadingStruct, 5);
-#ifdef SEPARATE_SOCKETS_TESTING
+#ifdef SEPARATE_TESTING_SOCKETS
 	res = ThreadCreation(&ioserversock_task, &ioserversock_struct, 6);
 #endif 
 	// Aray to store thread handles 
@@ -91,7 +91,7 @@ int main()
 	Array_Of_Thread_Handles[1] = Thread2Struct.Handle_Of_Thread;
 	Array_Of_Thread_Handles[3] = TickThreadStruct.Handle_Of_Thread;
 	Array_Of_Thread_Handles[4] = ThreadReadingStruct.Handle_Of_Thread;
-#ifdef SEPARATE_SOCKETS_TESTING
+#ifdef SEPARATE_TESTING_SOCKETS
 	Array_Of_Thread_Handles[5] = ioserversock_struct.Handle_Of_Thread;
 #endif
 	// Wait until all threads have terminated.
@@ -106,9 +106,9 @@ int main()
 #endif // DEBUG_ON_VS
 	LaunchTimerWP((U32_ms)2000, &MainProgrammDelay);
 	InitPort(&InterfacePort);
-#ifndef SEPARATE_SOCKETS_TESTING
+#ifndef SEPARATE_TESTING_SOCKETS
 	CreateServerSocket();
-#endif // !SEPARATE_SOCKETS_TESTING
+#endif // !SEPARATE_TESTING_SOCKETS
 	ThisSlavesConfigs.ResponseTimeout = (U32_ms)600;
 	ThisSlavesConfigs.Status = 1; //!del it after
 	RegisterCmdFunctionsCallback();

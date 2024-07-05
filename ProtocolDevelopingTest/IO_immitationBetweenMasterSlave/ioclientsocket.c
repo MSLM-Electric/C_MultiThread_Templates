@@ -18,6 +18,7 @@ Timerwp_t ioclientrequestPeriod;
 Timerwp_t ioclientRecvPeriod;
 //Timerwp_t Timers[4];
 
+#ifdef SEPARATE_TESTING_SOCKETS
 DWORD WINAPI ioclientsock_task(LPVOID lpParam) 
 {
     //----------------------
@@ -105,7 +106,7 @@ DWORD WINAPI ioclientsock_task(LPVOID lpParam)
     WSACleanup();
     return 0;
 }
-
+#endif // !SEPARATE_TESTING_SOCKETS
 
 int CreateClientSocket(void)
 {
@@ -157,6 +158,15 @@ int CreateClientSocket(void)
     ConnectSocketIfs.remoteNodeAddrSize = remoteNodeAddrSize;
     memcpy(&ConnectSocketIfs.set, &set, sizeof(fd_set));
     return 0;
+}
+
+int recvWithTimeoutToClient(char* buffer, const int buffLen, const U32_ms timeout)
+{
+    int res = 0;
+    struct timeval TimeOutVal = ConvertTo_timeval(timeout);
+    res = recvWithTimeout(ConnectSocketIfs.Socket, &ConnectSocketIfs.set, buffer, buffLen, &TimeOutVal,
+        &ConnectSocketIfs.interfaceService, &ConnectSocketIfs.remoteNodeAddrSize);
+    return res;
 }
 
 int ClientSend(const u8* buffer, const u16 bufflen, const u16 timeout)

@@ -36,7 +36,9 @@ int CreateClientSocket(void);
 DWORD WINAPI ioserversock_task(LPVOID lpParam);
 ThreadsStruct_t ioserversock_struct;
 int CreateServerSocket(void);
-int recvWithTimeout(SOCKET ListenSocket, fd_set* readfds, char* buffer, int buffLen, const TIMEVAL* timeout, SOCKADDR_IN* serverService, int* remoteNodeAddrSize);
+int recvWithTimeoutToServer(char* buffer, const int buffLen, const U32_ms timeout);
+int recvWithTimeoutToClient(char* buffer, const int buffLen, const U32_ms timeout);
+int recvWithTimeout(SOCKET Socket, fd_set* readfds, char* buffer, int buffLen, const TIMEVAL* timeout, SOCKADDR_IN* serverService, int* remoteNodeAddrSize);
 U32_ms ConvertTo_ms(struct timeval timeValue);
 struct timeval ConvertTo_timeval(const U32_ms u32val);
 #ifdef WSA_IN_MAIN_INIT_SECTION

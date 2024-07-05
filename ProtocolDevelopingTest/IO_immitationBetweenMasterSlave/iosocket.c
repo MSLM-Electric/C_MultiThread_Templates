@@ -1,6 +1,6 @@
 #include "iosocket.h"
 
-int recvWithTimeout(SOCKET ListenSocket, fd_set* readfds, char* buffer, int buffLen, const TIMEVAL* timeout, SOCKADDR_IN* serverService, int* remoteNodeAddrSize)
+int recvWithTimeout(SOCKET Socket, fd_set* readfds, char* buffer, int buffLen, const TIMEVAL* timeout, SOCKADDR_IN* serverService, int* remoteNodeAddrSize)
 {
     int res = 0;
     int recvSize = 0;
@@ -8,20 +8,20 @@ int recvWithTimeout(SOCKET ListenSocket, fd_set* readfds, char* buffer, int buff
     stopwatchwp_t selectMeasure;
     InitStopWatchWP(&selectMeasure, (tickptr_fn*)GetTickCount);
     StopWatchWP(&selectMeasure);
-    res = select(ListenSocket + 1, readfds, NULL, NULL, timeout);
+    res = select(Socket + 1, readfds, NULL, NULL, timeout);
     switch (res)
     {
     case SOCKET_ERROR:
         DEBUG_PRINTF(printingDebugCmd, ("sock error!\n"));
-        FD_SET(ListenSocket, readfds); //+!!
-        //closesocket(ListenSocket);
-        //res = bind(ListenSocket, serverService, remoteNodeAddrSize);
+        FD_SET(Socket, readfds); //+!!
+        //closesocket(Socket);
+        //res = bind(Socket, serverService, remoteNodeAddrSize);
         break;
     case 0:
         DEBUG_PRINTF(printingDebugCmd, ("timeout occured\n"));
         break;
     default:
-        recvSize = recvfrom(ListenSocket, buffer, buffLen, 0, serverService, remoteNodeAddrSize);
+        recvSize = recvfrom(Socket, buffer, buffLen, 0, serverService, remoteNodeAddrSize);
         if (recvSize == SOCKET_ERROR)
             DEBUG_PRINTF(printingDebugCmd, ("read failed\n"));
         else if (recvSize == 0)

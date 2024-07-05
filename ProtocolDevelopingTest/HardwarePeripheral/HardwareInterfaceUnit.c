@@ -193,21 +193,24 @@ static int immitationOfPortsBus(InterfacePortHandle_t* PortHandle) //! immitatio
 		DirectionSendingOfBusMessageId = slavesMessageId;
 	}
 	u16 cursorPos = 0;
+	SOCKET* SocketHandle;
 #ifdef MASTER_PORT_PROJECT
+	SocketHandle = &ConnectSocketIfs.Socket;
 	if (ThisMastersConfigs.localTimeEn == 1) {
 		SYSTEMTIME currTime;
 		GetLocalTime(&currTime);
 		sprintf(buffer, "%dh:%dm:%ds: ", currTime.wHour, currTime.wMinute, currTime.wSecond);
 		cursorPos = strlen(buffer);
 	}
+#elif SLAVE_PORT_PROJECT
+	SocketHandle = &ListenSocketIfs.Socket;
 #endif // MASTER_PORT_PROJECT	
 	//"%s%s %s\n"
 	sprintf(&buffer[cursorPos], "%s %s\n", DirectionSendingOfBusMessageId, PortHandle->BufferToSend); //sizes?
 	size_t siz;
 	//res = shutdown(ConnectSocket, SD_RECEIVE);
 	TakeMutex(SocketMutex, maxDELAY);
-	siz = sendto(ConnectSocket, buffer, strlen(buffer), 0, &remoteNodeAddr, &remoteNodeAddrSize);
-	res = recvfrom(ConnectSocket, buffer, strlen(buffer), 0, &remoteNodeAddr, &remoteNodeAddrSize);
+	siz = sendto(*SocketHandle, buffer, strlen(buffer), 0, &remoteNodeAddr, &remoteNodeAddrSize);
 	ReleaseMutex(SocketMutex);
 	if (siz == res) {
 		//res = (int)siz;
@@ -236,8 +239,18 @@ int immitationReceivingOfPortsBus(InterfacePortHandle_t* outPortHandle)
 	//char portsBusMessageId = portsMessageId;
 	if (NOT IsTimerWPRinging(&outPortHandle->ReceivingTimer)) {
 		TakeMutex(SocketMutex, maxDELAY);
-		res = recvfrom(ConnectSocket, buffer, sizeof(buffer), 0, (SOCKADDR *)&remoteNodeAddr, &remoteNodeAddrSize);
+		res = 
+#ifdef MASTER_PORT_PROJECT
+			recvWithTimeoutToClient
+#elif SLAVE_PORT_PROJECT
+			recvWithTimeoutToServer
+#endif // MASTER_PORT_PROJECT
+		(buffer, sizeof(buffer), (U32_ms)100);
 		ReleaseMutex(SocketMutex);
+		if (res == 0) {
+			DEBUG_PRINTF(1, ("Timeout occured!"));
+			res == -1;
+		}
 	}
 	/*if (strncmp(buffer, portsMessageId, strlen(portsMessageId) - 2) == 0) {
 		buffer[strlen(portsMessageId) - 2] = PortNo;

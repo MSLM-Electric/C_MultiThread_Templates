@@ -84,9 +84,9 @@ int main()
 	res = ThreadCreation(&ThreadNo2, &Thread2Struct, 2);
 	res = ThreadCreation(&TickThread, &TickThreadStruct, 4);
 	res = ThreadCreation(&ThreadReading, &ThreadReadingStruct, 5);
-#ifdef SEPARATE_SOCKETS_TESTING
+#ifdef SEPARATE_TESTING_SOCKETS
 	res = ThreadCreation(&ioclientsock_task, &ioclientsock_struct, 6);
-#endif // SEPARATE_SOCKETS_TESTING
+#endif // SEPARATE_TESTING_SOCKETS
 
 	// Aray to store thread handles 
 	HANDLE Array_Of_Thread_Handles[6]; //?5
@@ -97,9 +97,9 @@ int main()
 	Array_Of_Thread_Handles[1] = Thread2Struct.Handle_Of_Thread;
 	Array_Of_Thread_Handles[3] = TickThreadStruct.Handle_Of_Thread;
 	Array_Of_Thread_Handles[4] = ThreadReadingStruct.Handle_Of_Thread;
-#ifdef SEPARATE_SOCKETS_TESTING
+#ifdef SEPARATE_TESTING_SOCKETS
 	Array_Of_Thread_Handles[5] = ioclientsock_struct.Handle_Of_Thread;
-#endif // SEPARATE_SOCKETS_TESTING
+#endif // SEPARATE_TESTING_SOCKETS
 
 	// Wait until all threads have terminated.
 	WaitForMultipleObjects(5, Array_Of_Thread_Handles, TRUE, INFINITE); //?3
@@ -115,9 +115,9 @@ int main()
 #endif // DEBUG_ON_VS
 	LaunchTimerWP((U32_ms)2000, &MainProgrammDelay);
 	InitPort(&InterfacePort);
-#ifndef SEPARATE_SOCKETS_TESTING
+#ifndef SEPARATE_TESTING_SOCKETS
 	CreateClientSocket();
-#endif // !SEPARATE_SOCKETS_TESTING
+#endif // !SEPARATE_TESTING_SOCKETS
 	RegisterCmdFunctionsCallback();
 	ConsolesMenuHandle.CMD[PAUSE_CONSOLE] = 1; //enable pause initially
 	while (1)
@@ -253,7 +253,7 @@ DWORD WINAPI ThreadReading(LPVOID lpParam) //
 	{
 		if (IsTimerWPRinging(&readingIOfilePeriod)) {
 			RestartTimerWP(&readingIOfilePeriod);
-			if((InterfacePort.Status & (PORT_READY | PORT_RECEIVING)) == (PORT_READY | PORT_RECEIVING))
+			if((InterfacePort.Status & (PORT_BUSY | PORT_RECEIVING)) == (PORT_BUSY | PORT_RECEIVING))
 				immitationReceivingOfPortsBus(&InterfacePort);  //reading file shouldn't be so fast!
 		}
 		if (InterfacePort.Status & PORT_RECEIVED_ALL) { //?mb don't use this on interrupt section

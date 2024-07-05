@@ -23,7 +23,7 @@ set(SOURCES
 	${LIB_DIR}/fileHandle.c
 	${HARDWARE_PERIPHERAL}/HardwareInterfaceUnit.c
 	${IOFILE_PATH}/CmdsScenarioScripts.c
-	#${IOFILE_PATH}/iosocket.c
+	${IOFILE_PATH}/iosocket.c
 	${IOFILE_PATH}/ioclientsocket.c
 )
 	#${ROOT_SRC_DIR}/*.c
