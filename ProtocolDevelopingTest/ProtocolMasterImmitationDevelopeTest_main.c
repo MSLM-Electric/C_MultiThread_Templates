@@ -79,21 +79,22 @@ int main()
 	sem = CreateSemaphoreW(NULL, 3, 3, "NT5BBSEM");
 	mutx = CreateMutexW(NULL, 1, "Mutex");
 
-	int res = 0;
-	//res = ThreadCreation(&ThreadWriting, &Thread1Struct, 1);
-	res = ThreadCreation(&ThreadNo2, &Thread2Struct, 2);
-	res = ThreadCreation(&TickThread, &TickThreadStruct, 4);
-	res = ThreadCreation(&ThreadReading, &ThreadReadingStruct, 5);
-#ifdef SEPARATE_TESTING_SOCKETS
-	res = ThreadCreation(&ioclientsock_task, &ioclientsock_struct, 6);
-#endif // SEPARATE_TESTING_SOCKETS
-
 	// Aray to store thread handles 
 	HANDLE Array_Of_Thread_Handles[6]; //?5
 	// Store Thread handles in Array of Thread
 	// Handles as per the requirement
 	// of WaitForMultipleObjects() 
-	//Array_Of_Thread_Handles[0] = Thread1Struct.Handle_Of_Thread;
+
+	int res = 0;
+	res = ThreadCreation(&ThreadNo2, &Thread2Struct, 2);
+	res = ThreadCreation(&TickThread, &TickThreadStruct, 4);
+	res = ThreadCreation(&ThreadReading, &ThreadReadingStruct, 5);
+#ifdef SEPARATE_TESTING_SOCKETS
+	res = ThreadCreation(&ioclientsock_task, &ioclientsock_struct, 6);
+#else
+	res = ThreadCreation(&ThreadWriting, &Thread1Struct, 1);
+	Array_Of_Thread_Handles[0] = Thread1Struct.Handle_Of_Thread;
+#endif // SEPARATE_TESTING_SOCKETS
 	Array_Of_Thread_Handles[1] = Thread2Struct.Handle_Of_Thread;
 	Array_Of_Thread_Handles[3] = TickThreadStruct.Handle_Of_Thread;
 	Array_Of_Thread_Handles[4] = ThreadReadingStruct.Handle_Of_Thread;
@@ -138,6 +139,10 @@ int main()
 			InterfacePort.communicationPeriod = ThisMastersConfigs.communicationPeriod;
 			//InterfacePort.Status = ThisMastersConfigs.Status; //Port ready to communicating
 			InterfacePort.LenDataToSend = ThisMastersConfigs.LenDataToTalk;
+			if (ConsolesMenuHandle.CMD[DETAILS])
+				ConnectSocketIfs.printingDebugCmd = 1;
+			else
+				ConnectSocketIfs.printingDebugCmd = 0;
 		}else {
 			InterfacePort.Status &= ~PORT_READY;
 		}
@@ -233,6 +238,9 @@ DWORD WINAPI TickThread(LPVOID lpParam)
 		}
 		if (ConsolesMenuHandle.CMD[TRACE_PORT])
 			tracePort(&InterfacePort, &PortTracer);
+		//[NOTE.3.B] controlling Timers process ringing handling do only in one place, for example in here:
+		//sendingTimeoutHandle(){...; if(x) StopTimerWP(&Port.SendingTimer);}
+		//receivingTimeoutHandle();
 	}
 }
 
@@ -266,8 +274,9 @@ DWORD WINAPI ThreadReading(LPVOID lpParam) //
 				StopWatchWP(&testMeasure[0]);
 			}
 		}
-		if (IsTimerWPRinging(&InterfacePort.SendingTimer)) {
-			SendingHandle(&InterfacePort);
+		if (IsTimerWPRinging(&InterfacePort.SendingTimer) /*|| ()*/) {
+			//SendingHandle(&InterfacePort);
+			SendingTimerHandle(&InterfacePort);
 			StopWatchWP(&testMeasure[1]);
 		}
 		if (IsTimerWPRinging(&MonitoringTim)) {
@@ -295,4 +304,5 @@ static void RegisterCmdFunctionsCallback(void)
 	ConsolesMenuHandle.executeFunc[TRACE_CONFIGS] = (callback_fn*)ConfigTracerParams;
 	ConsolesMenuHandle.executeFunc[COMMON_CONFIGS] = (callback_fn*)CommonConfigurate;
 	ConsolesMenuHandle.executeFunc[DEFAULT_CONFIGS] = (callback_fn*)SetDefaultConfig;
+	ConsolesMenuHandle.executeFunc[RESET_PORT] = (callback_fn*)ResetPortsState;
 }

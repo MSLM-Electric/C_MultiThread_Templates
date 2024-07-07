@@ -103,6 +103,11 @@ typedef u32 u32_t;
                                         printf message;\
                                     }while(0)\
 
+#define DEBUG_PRINTFS(enable, message) do{\
+                                     if(enable)\
+                                        printf_s message;\
+                                    }while(0)\
+
 #endif // !DEBUG_PRINTF
 
 

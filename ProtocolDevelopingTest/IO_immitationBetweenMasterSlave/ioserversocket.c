@@ -158,7 +158,7 @@ int CreateServerSocket(void)
     // The sockaddr_in structure specifies the address family,
     // IP address, and port of the server to be connected to.
     serverService.sin_family = AF_INET;
-    serverService.sin_addr.s_addr = inet_addr("192.168.88.250");//inet_addr("127.0.0.1");
+	serverService.sin_addr.s_addr = inet_addr("127.0.0.1");// ("192.168.1.101");//("192.168.88.250");//inet_addr;
     serverService.sin_port = htons(DEFAULT_PORT);
 
     //----------------------
@@ -185,6 +185,7 @@ int CreateServerSocket(void)
     memcpy(&ListenSocketIfs.interfaceService, &serverService, sizeof(struct sockaddr_in));
     ListenSocketIfs.remoteNodeAddrSize = remoteNodeAddrSize;
     memcpy(&ListenSocketIfs.set, &set, sizeof(fd_set));
+	ListenSocketIfs.printingDebugCmd = 0;
     return 0;
 }
 

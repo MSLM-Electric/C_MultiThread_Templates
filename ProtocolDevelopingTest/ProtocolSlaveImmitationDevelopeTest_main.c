@@ -74,20 +74,22 @@ int main()
 	sem = CreateSemaphoreW(NULL, 3, 3, "NT5BBSEM");
 	mutx = CreateMutexW(NULL, 1, "Mutex");
 
-	int res = 0;
-	//res = ThreadCreation(&ThreadNo1, &Thread1Struct, 1);
-	res = ThreadCreation(&ThreadNo2, &Thread2Struct, 2);
-	res = ThreadCreation(&TickThread, &TickThreadStruct, 4);
-	res = ThreadCreation(&ThreadReading, &ThreadReadingStruct, 5);
-#ifdef SEPARATE_TESTING_SOCKETS
-	res = ThreadCreation(&ioserversock_task, &ioserversock_struct, 6);
-#endif 
 	// Aray to store thread handles 
 	HANDLE Array_Of_Thread_Handles[6];
 	// Store Thread handles in Array of Thread
 	// Handles as per the requirement
 	// of WaitForMultipleObjects() 
-	//Array_Of_Thread_Handles[0] = Thread1Struct.Handle_Of_Thread;
+
+	int res = 0;
+	res = ThreadCreation(&ThreadNo2, &Thread2Struct, 2);
+	res = ThreadCreation(&TickThread, &TickThreadStruct, 4);
+	res = ThreadCreation(&ThreadReading, &ThreadReadingStruct, 5);
+#ifdef SEPARATE_TESTING_SOCKETS
+	res = ThreadCreation(&ioserversock_task, &ioserversock_struct, 6);
+#else
+	res = ThreadCreation(&ThreadNo1, &Thread1Struct, 1);
+	Array_Of_Thread_Handles[0] = Thread1Struct.Handle_Of_Thread;
+#endif 
 	Array_Of_Thread_Handles[1] = Thread2Struct.Handle_Of_Thread;
 	Array_Of_Thread_Handles[3] = TickThreadStruct.Handle_Of_Thread;
 	Array_Of_Thread_Handles[4] = ThreadReadingStruct.Handle_Of_Thread;
@@ -128,6 +130,10 @@ int main()
 		if (ConsolesMenuHandle.CMD[START_COMMUNICATION] && ThisSlavesConfigs.Status) {
 			InterfacePort.Status |= PORT_READY;
 			InterfacePort.ReceivingTimer.setVal = ThisSlavesConfigs.ResponseTimeout;
+			if (ConsolesMenuHandle.CMD[DETAILS])
+				ListenSocketIfs.printingDebugCmd = 1;
+			else
+				ListenSocketIfs.printingDebugCmd = 0;
 			if (!IsTimerWPStarted(&InterfacePort.ReceivingTimer)) {
 				Recv(&InterfacePort, InterfacePort.BufferRecved, sizeof(InterfacePort.BufferRecved));
 			}
@@ -283,4 +289,6 @@ static void RegisterCmdFunctionsCallback(void)
 	ConsolesMenuHandle.executeFunc[TRACE_CONFIGS] = (callback_fn*)ConfigTracerParams;
 	ConsolesMenuHandle.executeFunc[SLAVE_CFG] = (callback_fn*)ConfigSlave;
 	ConsolesMenuHandle.executeFunc[COMMON_CONFIGS] = (callback_fn*)CommonConfigurate;
+	ConsolesMenuHandle.executeFunc[DEFAULT_CONFIGS] = (callback_fn*)SetDefaultConfig;
+	ConsolesMenuHandle.executeFunc[RESET_PORT] = (callback_fn*)ResetPortsState;
 }

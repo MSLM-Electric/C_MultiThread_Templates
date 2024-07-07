@@ -3,6 +3,7 @@
 
 //FIL MutexFileHandle;
 //FIL ScanfMutex;
+extern HANDLE HardwareImmitMutex;
 
 void MakingPacketScenarios(char* buffer, const int maxPossibleLen, void* arg)
 {
@@ -118,7 +119,6 @@ void SetDefaultConfig(char* buffer, const int maxPossibleLen, void* arg)
 	printf_s("Entered the communication period: %d ms\n", ThisMastersConfigs.communicationPeriod);
 	sprintf(buffer, "GREETINGS FOR COMMUNICATION WITH ME!");
 	printf_s("Entered the array of data to write: %s\n", buffer);
-	memset(buffer, 0, maxPossibleLen);
 	memcpy_s(InterfacePort.BufferToSend, 255, buffer, 255);
 	ThisMastersConfigs.dataToWrite = InterfacePort.BufferToSend;
 	ThisMastersConfigs.Status = 1; //Masters configuration inited!
@@ -135,5 +135,28 @@ void SetDefaultConfig(char* buffer, const int maxPossibleLen, void* arg)
 	printf_s("Config Port trace:\nSet Trace time: %d ms\n", PortTracer.TraceTime.setVal);
 	PortTracer.FrequencyTrace.setVal = 20;
 	printf_s("Set Trace frequency: %d ms\n", PortTracer.FrequencyTrace.setVal);
+	ConsolesMenuHandle.CMD[DETAILS] = 1;
 	ConsolesMenuHandle.CMD[DEFAULT_CONFIGS] = 0;
+}
+
+void ResetPortsState(char* buffer, const int maxPossibleLen, void* arg)
+{
+	UNUSED(arg);
+	UNUSED(buffer);
+	UNUSED(maxPossibleLen);
+	WaitForSingleObject(HardwareImmitMutex, 0xFFFFFFFF);
+	{
+		StopTimerWP(&InterfacePort.ReceivingTimer);
+		StopTimerWP(&InterfacePort.SendingTimer);
+		memset(&InterfacePort.DelayedRecv, 0, sizeof(DelayedRecv_t));
+		InterfacePort.inCursor = InterfacePort.outCursor = 0;
+		InterfacePort.Status = PORT_CLEAR;
+		//InterfacePort.Status setBITS(PORT_READY);
+#ifdef MASTER_PORT_PROJECT
+		InterfacePort.Status setBITS(PORT_MASTER);
+#endif // MASTER_PORT_PROJECT
+		DEBUG_PRINTF(1, ("Port reseted\n"));
+	}
+	ReleaseMutex(HardwareImmitMutex);
+	ConsolesMenuHandle.CMD[RESET_PORT] = 0;
 }

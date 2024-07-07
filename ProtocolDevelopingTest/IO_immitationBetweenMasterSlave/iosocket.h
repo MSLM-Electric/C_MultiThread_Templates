@@ -22,6 +22,7 @@ typedef struct {
     struct sockaddr_in interfaceService;
     fd_set set;
     int remoteNodeAddrSize;
+	uint8_t printingDebugCmd;
 }SocketInerfaceParams_t;
 
 SocketInerfaceParams_t ConnectSocketIfs;

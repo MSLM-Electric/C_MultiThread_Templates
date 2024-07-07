@@ -1,10 +1,16 @@
 #include "iosocket.h"
 
+#define PUT_ZERO_CHAR
 int recvWithTimeout(SOCKET Socket, fd_set* readfds, char* buffer, int buffLen, const TIMEVAL* timeout, SOCKADDR_IN* serverService, int* remoteNodeAddrSize)
 {
     int res = 0;
     int recvSize = 0;
-    uint8_t printingDebugCmd = 1;
+	uint8_t printingDebugCmd =
+#ifdef MASTER_PORT_PROJECT
+		ConnectSocketIfs.printingDebugCmd;
+#elif SLAVE_PORT_PROJECT
+		ListenSocketIfs.printingDebugCmd;
+#endif // !MASTER_PORT_PROJECT
     stopwatchwp_t selectMeasure;
     InitStopWatchWP(&selectMeasure, (tickptr_fn*)GetTickCount);
     StopWatchWP(&selectMeasure);
@@ -27,6 +33,9 @@ int recvWithTimeout(SOCKET Socket, fd_set* readfds, char* buffer, int buffLen, c
         else if (recvSize == 0)
             DEBUG_PRINTF(printingDebugCmd, ("peer disconnected\n"));
         else {
+#ifdef PUT_ZERO_CHAR
+			buffer[recvSize] = 0;
+#endif
             DEBUG_PRINTF(printingDebugCmd, ("read successful!\n"));
         }
         break;

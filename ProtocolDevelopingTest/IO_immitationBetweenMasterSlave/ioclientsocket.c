@@ -132,7 +132,7 @@ int CreateClientSocket(void)
 
     //----------------------
     // Create a SOCKET for connecting to server
-    ConnectSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); //IPPROTO_UDP
+    ConnectSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP); //IPPROTO_UDP
     if (ConnectSocket == INVALID_SOCKET) {
         wprintf(L"socket failed with error: %ld\n", WSAGetLastError());
         WSACleanup();
@@ -143,7 +143,7 @@ int CreateClientSocket(void)
     // The sockaddr_in structure specifies the address family,
     // IP address, and port of the server to be connected to.
     clientService.sin_family = AF_INET;
-    clientService.sin_addr.s_addr = inet_addr("192.168.88.250");//inet_addr("127.0.0.1");
+    clientService.sin_addr.s_addr = inet_addr("127.0.0.1"); //inet_addr("192.168.88.250");//
     clientService.sin_port = htons(DEFAULT_PORT);
 
     int remoteNodeAddrSize = sizeof(clientService);
@@ -157,6 +157,7 @@ int CreateClientSocket(void)
     memcpy(&ConnectSocketIfs.interfaceService, &clientService, sizeof(SOCKADDR_IN));
     ConnectSocketIfs.remoteNodeAddrSize = remoteNodeAddrSize;
     memcpy(&ConnectSocketIfs.set, &set, sizeof(fd_set));
+	ConnectSocketIfs.printingDebugCmd = 1;
     return 0;
 }
 

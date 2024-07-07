@@ -9,6 +9,10 @@
 #include "../IO_immitationBetweenMasterSlave/SlaveImmitationCfg.h"
 #endif // MASTER_PORT_PROJECT
 
+#ifdef DEBUG_ON_VS
+HANDLE HardwareImmitMutex; //on real hardware mutex not needed
+#endif
+
 #define ONLY //just nothing. Only for clarifying ports state currently
 #define no_required_now 0
 #pragma region HARDWARE_PORT
@@ -37,7 +41,7 @@ char globMutexFile[200];
 #endif //GLOB_MUTEX_FILE
 
 enum {
-	//PORT_OFF = 0, //PORT_CLEAR,
+	PORT_CLEAR = 0,//PORT_OFF = 0, //,
 	PORT_READY = 1, //mb PORT_OK
 	PORT_BUSY = 1 << 1,      //mb not needed. instead it mb use only receiving flag
 	PORT_SENDING = 1 << 2,
@@ -83,6 +87,7 @@ int InitPort(InterfacePortHandle_t* PortHandle);
 int Write(InterfacePortHandle_t *PortHandle, const uint8_t *inDatas, const int size);
 int Recv(InterfacePortHandle_t *PortHandle, uint8_t *outBuff, const int maxPossibleSize);
 int SendingHandle(InterfacePortHandle_t* Port);
+int SendingTimerHandle(InterfacePortHandle_t *Port);
 int ReceivingHandle(InterfacePortHandle_t* Port);
 void TransmitInterrupt(void* arg); //Call_TXInterrupt()
 void Called_RXInterrupt(void* arg); //void ReceiveInterrupt(void* arg);
