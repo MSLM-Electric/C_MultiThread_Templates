@@ -23,6 +23,7 @@ extern HANDLE SocketMutex;
 
 /*DE*/ uint8_t MoreDetailsInShowing = 0;
 /*PA*/ uint8_t PauseConsoleCommand = 0;
+static stopwatchwp_t timeMeasure[10];
 
 enum {
 	INTERRUPT_CALLED = 1,
@@ -119,6 +120,7 @@ int main()
 #ifndef SEPARATE_TESTING_SOCKETS
 	CreateClientSocket();
 #endif // !SEPARATE_TESTING_SOCKETS
+	InitStopWatchGroup(timeMeasure, (tickptr_fn*)GetTickCount, sizeof(timeMeasure) / sizeof(stopwatchwp_t));
 	RegisterCmdFunctionsCallback();
 	ConsolesMenuHandle.CMD[PAUSE_CONSOLE] = 1; //enable pause initially
 	while (1)
@@ -153,6 +155,7 @@ int main()
 			LaunchTimerWP(InterfacePort.communicationPeriod, &UsersTimer);
 			if (IsTimerWPRinging(&UsersTimer)) {
 				RestartTimerWP(&UsersTimer);
+				DEBUG_PRINTF(1, ("comm period measure: %d\n", StopWatchWP(&timeMeasure[0])));
 				if (Write(&InterfacePort, &InterfacePort.BufferToSend, InterfacePort.LenDataToSend) > 0) { // =>0//?
 					res = Recv(&InterfacePort, &InterfacePort.BufferRecved, sizeof(InterfacePort.BufferRecved));
 				}
@@ -175,7 +178,11 @@ DWORD WINAPI ThreadWriting(LPVOID lpParam)//rename to ThreadConsoleHandling or T
 		{
 			memset(keyboardBuff, 0, sizeof(keyboardBuff));
 			printf("What function to Act? Enter it here:\n");
-			scanf_s("%s", keyboardBuff, 255);
+#ifndef _CRT_DISABLE_PERFCRIT_LOCKS
+			scanf_s("%s", keyboardBuff, sizeof(keyboardBuff));
+#else
+			ScanKeyboardNoLock(keyboardBuff, sizeof(keyboardBuff));
+#endif // !_CRT_DISABLE_PERFCRIT_LOCKS
 			printf("entered data is: %s\n", keyboardBuff);
 		}
 		ReleaseMutex(mutx);
@@ -268,7 +275,7 @@ DWORD WINAPI ThreadReading(LPVOID lpParam) //
 			RecvHandling(&InterfacePort); //CheckRecvedData()
 			InterfacePort.Status clearBITS(PORT_RECEIVED_ALL);
 		}
-		if ((InterfacePort.Status & (PORT_BUSY | PORT_RECEIVED | PORT_RECEIVED_ALL)) == ONLY PORT_BUSY) {
+		if ((InterfacePort.Status & (PORT_BUSY /*| PORT_RECEIVED | PORT_RECEIVED_ALL*/)) == ONLY PORT_BUSY) {
 			if (IsTimerWPRinging(&InterfacePort.ReceivingTimer)) { //also you can put it on TickThread()
 				ReceivingHandle(&InterfacePort);
 				StopWatchWP(&testMeasure[0]);

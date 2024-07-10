@@ -125,6 +125,7 @@ DWORD WINAPI ioserversock_task(LPVOID lpParam)
 
 int CreateServerSocket(void)
 {
+    SocketMutex = CreateMutexW(NULL, 1, "SockMutex");
     //----------------------
     // Declare and initialize variables.
     int iResult;

@@ -49,13 +49,12 @@ enum {
 	PORT_SENDING_LAST_BYTE = 1 << 4,
 	PORT_RECEIVING = 1 << 5, //mb not needed
 	PORT_RECEIVED = 1 << 6,
-	PORT_ASYNC = 1 << 7,     //if zero, then it is a PORT_SYNC.  PORT_ASYNC = RS-485/CAN like interfaces.
+	PORT_ASYNC = 1 << 7,     //if zero, then it is a PORT_SYNC.  PORT_ASYNC = RS-485/CAN like interfaces. //!Not implemented yet
 	PORT_MASTER = 1 << 8,    //if zero, it is SLAVE (good approach//?)
 	PORT_BUFFER_FIFO = 1 << 9, //if zero, it is simple 8bit buffer //PORT_BUFF_FIFO_ENABLED
 	PORT_RECEIVED_ALL = 1 << 10,
-	//PORT_USING_ON_BACKGND = 1 << 10, //?mb not needed!
-	//..
 	PORT_ERROR = 1 << 11,
+	//PORT_USING_ON_BACKGND = 1 << 12, //?mb not needed!
 }InterfacePortState_e;
 
 
@@ -89,6 +88,7 @@ int Recv(InterfacePortHandle_t *PortHandle, uint8_t *outBuff, const int maxPossi
 int SendingHandle(InterfacePortHandle_t* Port);
 int SendingTimerHandle(InterfacePortHandle_t *Port);
 int ReceivingHandle(InterfacePortHandle_t* Port);
+int ReceivingTimerHandle(InterfacePortHandle_t* PortHandle);
 void TransmitInterrupt(void* arg); //Call_TXInterrupt()
 void Called_RXInterrupt(void* arg); //void ReceiveInterrupt(void* arg);
 //int SentInterrupt(void); //End of transmit callback

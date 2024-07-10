@@ -110,10 +110,36 @@ typedef u32 u32_t;
 
 #endif // !DEBUG_PRINTF
 
-
 #define LINE_EXECUTE_PRINT(x) do{\
                             if(x)\
                                 printf("line executed: %s: %d\n", __FILE__, __LINE__); \
                         }while(0)\
+
+/*gcc (optimiz. QT) not compatible/dangerous //? void *CUT_FILES_PATH()
+#define MINIMIZE_FILE_PATH
+#ifdef MINIMIZE_FILE_PATH
+//MINIMIZE_FILE_PATH for unload to printing
+inline char* CUT_FILES_PATH(char* x, int siz) {
+    if (siz > 3) {
+        if (x[siz - 2] == '.')
+            if ((x[siz - 1] == 'h') || (x[siz - 1] == 'c')) {
+                int pos = siz - 3;
+                while ((x[pos--] != '\\') && (pos));
+                return (char*)&x[pos];
+            }
+    }
+    return x;
+}
+
+#define LINE_EXECUTE_PRINTM(x) do{\
+                            if(x)\
+                                printf("line executed: %s: %d\n", CUT_FILES_PATH(__FILE__, strlen(__FILE__)), __LINE__); \
+                        }while(0)\
+
+#define LINE_EXECUTE_PRINT LINE_EXECUTE_PRINTM
+#else
+#define LINE_EXECUTE_PRINT LINE_EXECUTE_PRINTF
+#endif
+#define CUT_TEST LINE_EXECUTE_PRINT*/
 
 #endif// TYPE_DEF_H

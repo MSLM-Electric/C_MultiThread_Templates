@@ -25,4 +25,5 @@ C_MultiThread_Template/MutexImplementing_main.c
 !ProtocolDevelopingTest/ProtocolSlaveDevelopeTest/Debug/*.exe
 !ProtocolDevelopingTest/IO_immitationBetweenMasterSlave/
 ProtocolDevelopingTest/IO_immitationBetweenMasterSlave/OLD_iofile.txt
+.png
 f

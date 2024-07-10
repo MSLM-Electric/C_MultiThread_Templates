@@ -105,6 +105,25 @@ int ScanKeyboardWithWhiteSpaces(char* inBuff, uint16_t maxPossibleLen)
 	return res = 0;
 }
 
+#ifdef _CRT_DISABLE_PERFCRIT_LOCKS //!it not locks yet
+int ScanKeyboardNoLock(char *inBuff, uint16_t maxPossibleLen)
+{
+	int res = -1;
+	int i, ch;
+
+	for (i = 0; (i < maxPossibleLen) && ((ch = _getchar_nolock()) != EOF)
+		&& (ch != '\n'); i++)
+	{
+		inBuff[i] = (char)ch;
+	}
+
+	// Terminate string with a null character
+
+	inBuff[i] = '\0';
+	printf("Input was: %s\n", inBuff);
+}
+#endif // _CRT_DISABLE_PERFCRIT_LOCKS
+
 void ScanCMDsScenarios(char *buffer, const int maxPossibleLen)
 {
 	u8 u = 0;

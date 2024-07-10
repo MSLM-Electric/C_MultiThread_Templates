@@ -18,6 +18,7 @@ char slavesMessageId[] = SLAVE_MESSAGE_ID;
 HANDLE iofileMutex;
 FIL FileHandle;
 FIL MutexFileHandle;
+static stopwatchwp_t timeMeasure[10];
 
 int InitPort(InterfacePortHandle_t* PortHandle)
 {
@@ -27,6 +28,7 @@ int InitPort(InterfacePortHandle_t* PortHandle)
 	ReleaseMutex(iofileMutex);
 	ReleaseMutex(HardwareImmitMutex);
 	RealeaseGLOBMutex(&MutexFileHandle);
+	InitStopWatchGroup(timeMeasure, (tickptr_fn*)GetTickCount, sizeof(timeMeasure) / sizeof(stopwatchwp_t));
 	PortHandle->Status = 0;
 #ifdef MASTER_PORT_PROJECT
 	PortHandle->Status |= PORT_MASTER;
@@ -48,6 +50,7 @@ int Write(InterfacePortHandle_t* PortHandle, const uint8_t *inDatas, const int s
 	if ((PortHandle->Status & (PORT_READY | PORT_SENDING | PORT_BUSY)) == ONLY PORT_READY) {
 		memcpy(PortHandle->BufferToSend, inDatas, size);
 		PortHandle->LenDataToSend = size;
+		PortHandle->outCursor = 0;
 		//PortHandle->outCursor++;
 		memcpy(HWPort.FIFO_BUFFER, PortHandle->BufferToSend, PortHandle->LenDataToSend);
 		HWPort.someSettings = 0xFF;
@@ -80,6 +83,7 @@ int Write(InterfacePortHandle_t* PortHandle, const uint8_t *inDatas, const int s
 		if (PortHandle->DelayedRecv.DelayedRecv) {   //??? DelayedRecvAskedToDoAfterSending
 			void* arg = PortHandle->DelayedRecv.ifsArg; 
 			u16 Len = PortHandle->DelayedRecv.maxLen;
+			LINE_EXECUTE_PRINT(TRACE_RECV_FUNC);
 			PortHandle->DelayedRecv.DelayedRecv(arg, Len);
 		}
 	}
@@ -118,7 +122,9 @@ int Recv(InterfacePortHandle_t* PortHandle, uint8_t *outBuff, const int maxPossi
 	if ((PortHandle->Status & (PORT_READY | PORT_RECEIVING | PORT_BUSY)) == ONLY PORT_READY) {
 		memset(&PortHandle->DelayedRecv, 0, sizeof(PortHandle->DelayedRecv));
 		PortHandle->LenDataToRecv = maxPossibleSize;
-		LaunchTimerWP(PortHandle->ReceivingTimer.setVal, &PortHandle->ReceivingTimer);
+		PortHandle->inCursor = 0;
+		LINE_EXECUTE_PRINT(TRACE_RECV_TIMER);
+		RestartTimerWP(&PortHandle->ReceivingTimer);
 		PortHandle->Status setBITS(PORT_BUSY | PORT_RECEIVING);
 		PortHandle->Status clearBITS(PORT_RECEIVED | PORT_RECEIVED_ALL);
 		HWPort.clearOrResetSomeFlags = 0;
@@ -127,8 +133,9 @@ int Recv(InterfacePortHandle_t* PortHandle, uint8_t *outBuff, const int maxPossi
 		HWPort.RXInterruptEnable = 1;
 		HWPort.StartRX = 1;
 	}
-	else if (((PortHandle->Status & (PORT_BUSY | PORT_RECEIVED)) && !IsRecvTimerRinging) == ONLY (PORT_BUSY | PORT_RECEIVED)) {
+	else if (((PortHandle->Status & (PORT_BUSY | PORT_RECEIVED)) == ONLY (PORT_BUSY | PORT_RECEIVED)) && !IsRecvTimerRinging) {
 		//PortHandle->LenDataToRecv ..
+		LINE_EXECUTE_PRINT(TRACE_RECV_TIMER);
 		PortHandle->inCursor += sizeof(HWPort.FIFO_BUFFER);
 		memcpy(PortHandle->BufferRecved, HWPort.FIFO_BUFFER, sizeof(HWPort.FIFO_BUFFER));
 		PortHandle->Status clearBITS(PORT_RECEIVED);
@@ -141,9 +148,10 @@ int Recv(InterfacePortHandle_t* PortHandle, uint8_t *outBuff, const int maxPossi
 		HWPort.RXInterruptEnable = 1;
 		HWPort.StartRX = 1;
 	}
-	else if ((PortHandle->Status & (PORT_BUSY | PORT_SENDING | PORT_RECEIVING)) == ONLY (PORT_BUSY | PORT_SENDING)) {
+	else if ((PortHandle->Status & (PORT_BUSY | PORT_SENDING | PORT_RECEIVING)) == ONLY (PORT_BUSY | PORT_SENDING)) {//! mb reject from this feature
 		//Set DoDelayedCall callback for This function after sending if user asked to do it before
 		if (IsTimerWPStarted(&PortHandle->SendingTimer)) {
+			LINE_EXECUTE_PRINT(TRACE_RECV_TIMER);
 			PortHandle->DelayedRecv.DelayedRecv = (DelayedRecv_fn*)Recv;
 			PortHandle->DelayedRecv.ifsArg = PortHandle;
 			PortHandle->DelayedRecv.maxLen = maxPossibleSize;
@@ -152,28 +160,29 @@ int Recv(InterfacePortHandle_t* PortHandle, uint8_t *outBuff, const int maxPossi
 	else {
 		res = -4;
 	}
-	if (IsRecvTimerRinging && (PortHandle->Status & STILL PORT_RECEIVING)) {
-		HWPort.clearOrResetSomeFlags = 0;
-		HWPort.RXInterruptEnable = 0;
-		HWPort.StartRX = 0;
-		HWPort.someSettings = 0xff;
-		HWPort.clearFIFO = 1;
-		//memset(HWPort.FIFO_BUFFER, 0, sizeof(HWPort.FIFO_BUFFER /*.LenDataToRecv*/));
-		StopTimerWP(&PortHandle->ReceivingTimer);
-		PortHandle->Status clearBITS(PORT_RECEIVING | PORT_BUSY | PORT_RECEIVED);
-		if (PortHandle->inCursor != 0) {
-			PortHandle->Status |= PORT_RECEIVED_ALL;//PORT_RECEIVED; //? mb RECEIVED_TIMEOUT or RECEIVED_ALL? ALL better
-			PortHandle->Status clearBITS(PORT_ERROR);
-		}
-		else
-		{
-			//Port not received data;
-			PortHandle->Status setBITS(PORT_ERROR);
-			//PortHandle->RecvErrCnt++;
-		}
-		PortHandle->LenDataToRecv = PortHandle->inCursor;
-	
-	}
+	//if (IsRecvTimerRinging && (PortHandle->Status & STILL PORT_RECEIVING)) {
+	//	StopTimerWP(&PortHandle->ReceivingTimer);
+	//	HWPort.clearOrResetSomeFlags = 0;
+	//	HWPort.RXInterruptEnable = 0;
+	//	HWPort.StartRX = 0;
+	//	HWPort.someSettings = 0xff;
+	//	HWPort.clearFIFO = 1;
+	//	//memset(HWPort.FIFO_BUFFER, 0, sizeof(HWPort.FIFO_BUFFER /*.LenDataToRecv*/));
+	//	LINE_EXECUTE_PRINT(TRACE_RECV_TIMER);
+	//	PortHandle->Status clearBITS(PORT_RECEIVING | PORT_BUSY | PORT_RECEIVED);
+	//	if (PortHandle->inCursor != 0) {
+	//		PortHandle->Status |= PORT_RECEIVED_ALL;//PORT_RECEIVED; //? mb RECEIVED_TIMEOUT or RECEIVED_ALL? ALL better
+	//		PortHandle->Status clearBITS(PORT_ERROR);
+	//	}
+	//	else
+	//	{
+	//		//Port not received data;
+	//		PortHandle->Status setBITS(PORT_ERROR);
+	//		//PortHandle->RecvErrCnt++;
+	//	}
+	//	PortHandle->LenDataToRecv = PortHandle->inCursor;
+	//
+	//}
 	ReleaseMutex(HardwareImmitMutex);
 	return res;
 }
@@ -190,7 +199,7 @@ int ReceivingHandle(InterfacePortHandle_t* Port)
 
 int SendingTimerHandle(InterfacePortHandle_t *Port)
 {
-	int res = -1;
+	int res = 0;
 	//u8 IsSendingTimerRinging = IsTimerWPRinging(&InterfacePort.SendingTimer);
 	TakeMutex(HardwareImmitMutex, maxDELAY); //! [NOTE.4.] in timer interrupt section we don't need mutex handling cause interrupts priority is high!
 	if ((Port->Status & (PORT_BUSY | PORT_SENDING)) == ONLY(PORT_BUSY | STILL PORT_SENDING)){
@@ -209,10 +218,45 @@ int SendingTimerHandle(InterfacePortHandle_t *Port)
 			u16 Len = Port->DelayedRecv.maxLen;
 			Port->DelayedRecv.DelayedRecv(arg, Len);
 		}
-		res = 0;
+		res = -1;
 	}
+	//else if ((Port->Status & (PORT_BUSY | PORT_SENDING)) == NOTHING) {
+	//	StopTimerWP(&Port->SendingTimer);
+	//}
 	ReleaseMutex(HardwareImmitMutex);
 	return res;
+}
+
+int ReceivingTimerHandle(InterfacePortHandle_t* PortHandle)
+{
+	int res = 0;
+	u8 IsRecvTimerRinging = IsTimerWPRinging(&PortHandle->ReceivingTimer);
+	/*//!!?*/TakeMutex(HardwareImmitMutex, maxDELAY);
+	LINE_EXECUTE_PRINT(TRACE_RECV_TIMER);
+	if (IsRecvTimerRinging && ((PortHandle->Status & (PORT_BUSY | STILL PORT_RECEIVING)) == ONLY (PORT_BUSY | PORT_RECEIVING))) {
+		StopTimerWP(&PortHandle->ReceivingTimer);
+		HWPort.clearOrResetSomeFlags = 0;
+		HWPort.RXInterruptEnable = 0;
+		HWPort.StartRX = 0;
+		HWPort.someSettings = 0xff;
+		HWPort.clearFIFO = 1;
+		//memset(HWPort.FIFO_BUFFER, 0, sizeof(HWPort.FIFO_BUFFER /*.LenDataToRecv*/));
+		LINE_EXECUTE_PRINT(TRACE_RECV_TIMER);
+		PortHandle->Status clearBITS(PORT_RECEIVING | PORT_BUSY | PORT_RECEIVED);
+		if (PortHandle->inCursor != 0) {
+			PortHandle->Status |= PORT_RECEIVED_ALL;//PORT_RECEIVED; //? mb RECEIVED_TIMEOUT or RECEIVED_ALL? ALL better
+			PortHandle->Status clearBITS(PORT_ERROR);
+		}
+		else
+		{
+			//Port not received data;
+			PortHandle->Status setBITS(PORT_ERROR);
+			//PortHandle->RecvErrCnt++;
+		}
+		PortHandle->LenDataToRecv = PortHandle->inCursor;
+
+	}
+	ReleaseMutex(HardwareImmitMutex);
 }
 
 static void ErrorPortSendingHandle(InterfacePortHandle_t *Port)
@@ -259,6 +303,7 @@ static int immitationOfPortsBus(InterfacePortHandle_t* PortHandle) //! immitatio
 	size_t siz;
 	//res = shutdown(ConnectSocket, SD_RECEIVE);
 	TakeMutex(SocketMutex, maxDELAY);
+	DEBUG_PRINTF(1, ("sending time ms: %d\n", StopWatchWP(&timeMeasure[1])));
 	res = sendto(*SocketHandle, buffer, strlen(buffer), 0, remoteNodeAddr, remoteNodeAddrSize);
 	ReleaseMutex(SocketMutex);
 	if ((res != -1) && (res > 0)) {
@@ -289,6 +334,7 @@ int immitationReceivingOfPortsBus(InterfacePortHandle_t* outPortHandle)
 	char buffer[300];
 	//char portsBusMessageId = portsMessageId;
 	if (NOT IsTimerWPRinging(&outPortHandle->ReceivingTimer)) {
+		DEBUG_PRINTFS(0, ("NOT recv ringing section measure: %u\n", StopWatchWP(&timeMeasure[3])));
 		TakeMutex(SocketMutex, maxDELAY);
 		res = 
 #ifdef MASTER_PORT_PROJECT
@@ -303,8 +349,10 @@ int immitationReceivingOfPortsBus(InterfacePortHandle_t* outPortHandle)
 			res = -1;
 			return res;
 		}
-		else if (res > 0)
+		else if (res > 0) {
+			DEBUG_PRINTFS(1, ("readed period: %u\n", StopWatchWP(&timeMeasure[0])));
 			DEBUG_PRINTFS(1, ("Readed data: %s\n", buffer, sizeof(buffer)));
+		}
 	}
 	/*if (strncmp(buffer, portsMessageId, strlen(portsMessageId) - 2) == 0) {
 		buffer[strlen(portsMessageId) - 2] = PortNo;
@@ -364,6 +412,7 @@ void Called_RXInterrupt(void* arg) //ReceiveInterrupt()
 	InterfacePortHandle_t* Port = (InterfacePortHandle_t*)arg;
 	if ((Port->Status & (PORT_READY | PORT_RECEIVING)) == ONLY (PORT_READY | PORT_RECEIVING)) {
 		Port->Status |= PORT_RECEIVED;
+		LINE_EXECUTE_PRINT(TRACE_RECV_FUNC);
 		Recv(Port, NULL,no_required_now);
 	}
 	return;

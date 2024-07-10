@@ -6,6 +6,11 @@ set(PROJ_NAME ProtocolMasterDevelopeTest)
 add_definitions(-DMASTER_PORT_PROJECT)
 add_definitions(-D_WINSOCKAPI_)
 
+add_definitions(-DTRACE_RECV_TIMER=0)
+add_definitions(-DTRACE_RECV_FUNC=0)
+add_definitions(-DTRACE_SENDING_TIMER=0)
+add_definitions(-DTRACE_WRITE_FUNC=0)
+
 set(ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../")
 #on Lib located inc and src
 set(LIB_DIR ${ROOT_PATH}/Lib)

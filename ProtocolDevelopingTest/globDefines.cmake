@@ -13,3 +13,4 @@ add_definitions(-DFILE_MUTEX_TAKEN="MUTEX_TAKEN")
 add_definitions(-DPROTOCOL_DEVELOPING_PROJECT)
 #add_definitions(-DDEBUG_ON_VS);
 #add_definitions(-DSEPARATE_TESTING_SOCKETS)
+#add_definitions(-D_CRT_DISABLE_PERFCRIT_LOCKS) #supposed for __get_char_nolock()

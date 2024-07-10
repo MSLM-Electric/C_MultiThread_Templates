@@ -66,6 +66,7 @@ struct ConsolesMenuHandle_Type ConsolesMenuHandle;
 uint8_t StringCompareAndParseToNum(char* inBuff, uint8_t maxPossibleLen);
 void SettingsCMD_Handling(char* inBuff, const uint16_t maxPossibleLen);
 int ScanKeyboardWithWhiteSpaces(char* inBuff, uint16_t maxPossibleLen);
+int ScanKeyboardNoLock(char* inBuff, uint16_t maxPossibleLen);
 void ScanCMDsScenarios(char* buffer, const int maxPossibleLen);
 #define PORTABILITY_WITH_OLD_NAME //If you see this attached to some function, so it's for a while/temporarely. After renaming and fixing all corresponded usings the new name of func will be taken. 
 #define ExecuteConsoleMenuRegisteredCallbacksFunc ScanCMDsScenarios PORTABILITY_WITH_OLD_NAME  //ExecuteRegisteredCallbacksFuncOfCMDs

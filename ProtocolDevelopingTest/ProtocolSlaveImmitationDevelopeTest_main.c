@@ -135,6 +135,7 @@ int main()
 			else
 				ListenSocketIfs.printingDebugCmd = 0;
 			if (!IsTimerWPStarted(&InterfacePort.ReceivingTimer)) {
+				LINE_EXECUTE_PRINT(TRACE_RECV_FUNC);
 				Recv(&InterfacePort, InterfacePort.BufferRecved, sizeof(InterfacePort.BufferRecved));
 			}
 			/*else if((InterfacePort.Status & (PORT_BUSY | PORT_RECEIVED)) == ONLY (PORT_BUSY | PORT_RECEIVED)){ //looks useless
@@ -162,7 +163,11 @@ DWORD WINAPI ThreadNo1(LPVOID lpParam)
 		{
 			memset(keyboardBuff, 0, sizeof(keyboardBuff));
 			printf("What function to Act? Enter it here: ");
-			scanf_s("%s", keyboardBuff, 255);
+#ifndef _CRT_DISABLE_PERFCRIT_LOCKS
+			scanf_s("%s", keyboardBuff, sizeof(keyboardBuff));
+#else
+			ScanKeyboardNoLock(keyboardBuff, sizeof(keyboardBuff));
+#endif // !_CRT_DISABLE_PERFCRIT_LOCKS
 			printf("entered data is: %s\n", keyboardBuff);
 		}
 		ReleaseMutex(mutx);
@@ -185,7 +190,7 @@ DWORD WINAPI ThreadReading(LPVOID lpParam) //
 	//InterfacePortHandle_t Port;
 	Timerwp_t readingIOfilePeriod;
 	InitTimerWP(&readingIOfilePeriod, (tickptr_fn*)GetTickCount);
-	LaunchTimerWP((U32_ms)/*400*/50, &readingIOfilePeriod);
+	LaunchTimerWP((U32_ms)/*400*/100, &readingIOfilePeriod);
 	stopwatchwp_t testMeasure[2];
 	InitStopWatchWP(&testMeasure[0], (tickptr_fn*)GetTickCount);
 	InitStopWatchWP(&testMeasure[1], (tickptr_fn*)GetTickCount);
@@ -200,12 +205,7 @@ DWORD WINAPI ThreadReading(LPVOID lpParam) //
 			RecvHandling(&InterfacePort); //if it for me AnswerToMaster()
 			InterfacePort.Status clearBITS(PORT_RECEIVED_ALL);
 		}
-		if ((InterfacePort.Status & (PORT_BUSY | PORT_RECEIVED | PORT_RECEIVED_ALL)) == ONLY PORT_BUSY) {
-			if (IsTimerWPRinging(&InterfacePort.ReceivingTimer)) { //also you can put it on TickThread()
-				ReceivingHandle(&InterfacePort);
-				StopWatchWP(&testMeasure[0]);
-			}
-		}
+		ReceivingTimerHandle(&InterfacePort);
 		if (IsTimerWPRinging(&InterfacePort.SendingTimer)) {
 			SendingHandle(&InterfacePort);
 			StopWatchWP(&testMeasure[1]);
@@ -279,6 +279,7 @@ static void RecvHandling(InterfacePortHandle_t* Port)
 		u8 buffer[30];
 		memset(buffer, 0, sizeof(buffer));
 		sprintf(buffer, " slave response!\n");
+		LINE_EXECUTE_PRINT(TRACE_RECV_FUNC);
 		Write(Port, buffer, sizeof(buffer));
 	}
 }
