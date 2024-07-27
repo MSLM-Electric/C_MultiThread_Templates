@@ -83,7 +83,7 @@ typedef u32 u32_t;
 #define UNUSED(X) (void)X      /* To avoid gcc/g++ warnings */
 #endif // !UNUSED
 
-#define clearBITS(x) &= ~(x)
+#define clearBITS(x) &= ~(u32)(x)
 #define setBITS(x) |= (x)
 //#define BITPOS(x) y = while((x >> 1) > 1){y++};
 #define asm __asm
@@ -141,5 +141,13 @@ inline char* CUT_FILES_PATH(char* x, int siz) {
 #define LINE_EXECUTE_PRINT LINE_EXECUTE_PRINTF
 #endif
 #define CUT_TEST LINE_EXECUTE_PRINT*/
+
+//#ifdef __func__
+#define FUNCTION_EXECUTE_PRINT(x) do{\
+                            if(x)\
+                                printf("func executed: %s(): %d\n", __func__, __LINE__); \
+                        }while(0)\
+
+//#endif //!__func__
 
 #endif// TYPE_DEF_H

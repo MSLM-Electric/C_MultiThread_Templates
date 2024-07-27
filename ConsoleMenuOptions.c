@@ -105,7 +105,7 @@ int ScanKeyboardWithWhiteSpaces(char* inBuff, uint16_t maxPossibleLen)
 	return res = 0;
 }
 
-#ifdef _CRT_DISABLE_PERFCRIT_LOCKS //!it not locks yet
+#ifdef _CRT_DISABLE_PERFCRIT_LOCKS //!it not unlocks yet
 int ScanKeyboardNoLock(char *inBuff, uint16_t maxPossibleLen)
 {
 	int res = -1;

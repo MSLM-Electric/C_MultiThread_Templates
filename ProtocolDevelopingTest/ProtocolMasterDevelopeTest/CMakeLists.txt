@@ -10,6 +10,7 @@ add_definitions(-DTRACE_RECV_TIMER=0)
 add_definitions(-DTRACE_RECV_FUNC=0)
 add_definitions(-DTRACE_SENDING_TIMER=0)
 add_definitions(-DTRACE_WRITE_FUNC=0)
+add_definitions(-DHARDWARE_MUTEX_CHECK=0)
 
 set(ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../")
 #on Lib located inc and src

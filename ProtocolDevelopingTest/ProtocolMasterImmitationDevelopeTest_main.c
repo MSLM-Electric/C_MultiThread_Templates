@@ -80,11 +80,11 @@ int main()
 	sem = CreateSemaphoreW(NULL, 3, 3, "NT5BBSEM");
 	mutx = CreateMutexW(NULL, 1, "Mutex");
 
-	// Aray to store thread handles 
+	// Aray to store thread handles
 	HANDLE Array_Of_Thread_Handles[6]; //?5
 	// Store Thread handles in Array of Thread
 	// Handles as per the requirement
-	// of WaitForMultipleObjects() 
+	// of WaitForMultipleObjects()
 
 	int res = 0;
 	res = ThreadCreation(&ThreadNo2, &Thread2Struct, 2);
@@ -123,6 +123,10 @@ int main()
 	InitStopWatchGroup(timeMeasure, (tickptr_fn*)GetTickCount, sizeof(timeMeasure) / sizeof(stopwatchwp_t));
 	RegisterCmdFunctionsCallback();
 	ConsolesMenuHandle.CMD[PAUSE_CONSOLE] = 1; //enable pause initially
+	Timerwp_t lilDelay;
+	InitTimerWP(&lilDelay, (tickptr_fn*)GetTickCount);
+	LaunchTimerWP((U32_ms)10, &lilDelay);
+	LaunchTimerWP(1000, &UsersTimer);
 	while (1)
 	{
 		PauseConsoleCommand = ConsolesMenuHandle.CMD[PAUSE_CONSOLE];
@@ -150,15 +154,25 @@ int main()
 		}
 
 		/*Users Thread. */
-		//SendRequest(PortNo=0, SlaveAddr=1, func=3, itsMemoryAddr=0x020, qntyData=10, communPeriod=400, *); 
+		//SendRequest(PortNo=0, SlaveAddr=1, func=3, itsMemoryAddr=0x020, qntyData=10, communPeriod=400, *);
 		if (InterfacePort.Status & PORT_READY) {
-			LaunchTimerWP(InterfacePort.communicationPeriod, &UsersTimer);
 			if (IsTimerWPRinging(&UsersTimer)) {
+				UsersTimer.setVal = InterfacePort.communicationPeriod;
 				RestartTimerWP(&UsersTimer);
 				DEBUG_PRINTF(1, ("comm period measure: %d\n", StopWatchWP(&timeMeasure[0])));
-				if (Write(&InterfacePort, &InterfacePort.BufferToSend, InterfacePort.LenDataToSend) > 0) { // =>0//?
-					res = Recv(&InterfacePort, &InterfacePort.BufferRecved, sizeof(InterfacePort.BufferRecved));
+				if ((InterfacePort.Status & (PORT_READY | PORT_SENDING | PORT_BUSY)) == ONLY PORT_READY) {
+					if (Write(&InterfacePort, &InterfacePort.BufferToSend, InterfacePort.LenDataToSend) > 0) { // =>0//?
+						res = Recv(&InterfacePort, &InterfacePort.BufferRecved, sizeof(InterfacePort.BufferRecved));
+					}
 				}
+			}
+		}
+		if (IsTimerWPRinging(&lilDelay)) {
+			RestartTimerWP(&lilDelay);
+			if ((InterfacePort.Status & (PORT_BUSY /*| PORT_RECEIVED | PORT_RECEIVED_ALL*/)) == ONLY PORT_BUSY) {
+				ReceivingTimerHandle(&InterfacePort);
+				SendingTimerHandle(&InterfacePort);
+				//StopWatchWP(&testMeasure[0]);
 			}
 		}
 	}
@@ -274,17 +288,6 @@ DWORD WINAPI ThreadReading(LPVOID lpParam) //
 		if (InterfacePort.Status & PORT_RECEIVED_ALL) { //?mb don't use this on interrupt section
 			RecvHandling(&InterfacePort); //CheckRecvedData()
 			InterfacePort.Status clearBITS(PORT_RECEIVED_ALL);
-		}
-		if ((InterfacePort.Status & (PORT_BUSY /*| PORT_RECEIVED | PORT_RECEIVED_ALL*/)) == ONLY PORT_BUSY) {
-			if (IsTimerWPRinging(&InterfacePort.ReceivingTimer)) { //also you can put it on TickThread()
-				ReceivingHandle(&InterfacePort);
-				StopWatchWP(&testMeasure[0]);
-			}
-		}
-		if (IsTimerWPRinging(&InterfacePort.SendingTimer) /*|| ()*/) {
-			//SendingHandle(&InterfacePort);
-			SendingTimerHandle(&InterfacePort);
-			StopWatchWP(&testMeasure[1]);
 		}
 		if (IsTimerWPRinging(&MonitoringTim)) {
 			printf("Received timeout test measure: %u\n", testMeasure[0].measuredTime);

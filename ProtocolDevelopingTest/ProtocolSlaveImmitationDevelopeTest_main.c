@@ -116,6 +116,11 @@ int main()
 	RegisterCmdFunctionsCallback();
 	ConsolesMenuHandle.CMD[PAUSE_CONSOLE] = 1;
 	ConsolesMenuHandle.CMD[READ_BUS] = 1;
+	Timerwp_t lilDelay;
+	InitTimerWP(&lilDelay, (tickptr_fn*)GetTickCount);
+	LaunchTimerWP((U32_ms)10, &lilDelay);
+	stopwatchwp_t timeMeasure[2];
+	InitStopWatchGroup(timeMeasure, (tickptr_fn*)GetTickCount, sizeof(timeMeasure) / sizeof(stopwatchwp_t));
 
 	while (1)
 	{
@@ -134,13 +139,19 @@ int main()
 				ListenSocketIfs.printingDebugCmd = 1;
 			else
 				ListenSocketIfs.printingDebugCmd = 0;
-			if (!IsTimerWPStarted(&InterfacePort.ReceivingTimer)) {
-				LINE_EXECUTE_PRINT(TRACE_RECV_FUNC);
-				Recv(&InterfacePort, InterfacePort.BufferRecved, sizeof(InterfacePort.BufferRecved));
-			}
-			/*else if((InterfacePort.Status & (PORT_BUSY | PORT_RECEIVED)) == ONLY (PORT_BUSY | PORT_RECEIVED)){ //looks useless
-				RecvHandling(&InterfacePort);
-			}*/
+			if (IsTimerWPRinging(&lilDelay)) {
+				RestartTimerWP(&lilDelay);
+				if (!IsTimerWPStarted(&InterfacePort.ReceivingTimer)) {
+					LINE_EXECUTE_PRINT(TRACE_RECV_FUNC);
+					Recv(&InterfacePort, InterfacePort.BufferRecved, sizeof(InterfacePort.BufferRecved));
+				}
+				if (InterfacePort.Status & (PORT_BUSY)) {
+					ReceivingTimerHandle(&InterfacePort);
+					SendingTimerHandle(&InterfacePort);
+					//SendingHandle(&InterfacePort);
+					StopWatchWP(&timeMeasure[1]);
+				}
+			}			
 		}
 		else
 		{
@@ -188,7 +199,7 @@ DWORD WINAPI ThreadReading(LPVOID lpParam) //
 
 	uint16_t testCountR = 0;
 	//InterfacePortHandle_t Port;
-	Timerwp_t readingIOfilePeriod;
+	Timerwp_t readingIOfilePeriod/*lilDelay*/;
 	InitTimerWP(&readingIOfilePeriod, (tickptr_fn*)GetTickCount);
 	LaunchTimerWP((U32_ms)/*400*/100, &readingIOfilePeriod);
 	stopwatchwp_t testMeasure[2];
@@ -205,11 +216,7 @@ DWORD WINAPI ThreadReading(LPVOID lpParam) //
 			RecvHandling(&InterfacePort); //if it for me AnswerToMaster()
 			InterfacePort.Status clearBITS(PORT_RECEIVED_ALL);
 		}
-		ReceivingTimerHandle(&InterfacePort);
-		if (IsTimerWPRinging(&InterfacePort.SendingTimer)) {
-			SendingHandle(&InterfacePort);
-			StopWatchWP(&testMeasure[1]);
-		}
+
 		if (IsTimerWPRinging(&MonitoringTim)) {
 			printf("Received timeout test measure: %u\n", testMeasure[0].measuredTime);
 			printf("Sending timeout test measure: %u\n", testMeasure[1].measuredTime);

@@ -135,7 +135,7 @@ void SetDefaultConfig(char* buffer, const int maxPossibleLen, void* arg)
 	printf_s("Config Port trace:\nSet Trace time: %d ms\n", PortTracer.TraceTime.setVal);
 	PortTracer.FrequencyTrace.setVal = 20;
 	printf_s("Set Trace frequency: %d ms\n", PortTracer.FrequencyTrace.setVal);
-	ConsolesMenuHandle.CMD[DETAILS] = 1;
+	ConsolesMenuHandle.CMD[DETAILS] = 0;
 	ConsolesMenuHandle.CMD[DEFAULT_CONFIGS] = 0;
 }
 
