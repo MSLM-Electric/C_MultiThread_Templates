@@ -12,8 +12,8 @@ Currently working at: ProtocolDevelopTemplate Project
    |- Lib
    |   |- SimpleTimerWP.c
    |   |- SimpleTimerWP.h
-   |   |- fileHandle.c
-   |   |- fileHandle.h
+   |   |- fileHandle.c (not needed)
+   |   |- fileHandle.h (not needed)
    |   |- type_def.h
    |
    |- ProtocolDevelopingTest
@@ -24,8 +24,6 @@ Currently working at: ProtocolDevelopTemplate Project
    |   |   |- HardwareInterfaceUnit.h
    |   |
    |   |- IO_immitationBetweenMasterSlave
-   |   |   |- iofile.txt
-   |   |   |- globMutexHold.txt
    |   |   |- MasterImmitationCfg.h
    |   |   |- PortsBusMessages.h
    |   |   |- CmdsSceanarioScripts.c
@@ -39,8 +37,8 @@ Currently working at: ProtocolDevelopTemplate Project
    |- ConsoleMenuOptions.h  (independent lib)
    |- MultiThreadSupport.c  (ind)
    |- MultiThreadSupport.h
-   
-   
+
+
 ```
 The Slave Project looks almost the same:
 ```
@@ -56,8 +54,7 @@ The Slave Project looks almost the same:
    |   |- HardwarePeripheral ...
    |   |
    |   |- IO_immitationBetweenMasterSlave
-   |   |   |- iofile.txt ...
-   |   |   |- SlaveImmitationCfg.h
+   |   |   |- SlaveImmitationCfg.h ...
    |   |   |- ...
    |   |
    |   |- ProtocolSlaveDevelopeTest

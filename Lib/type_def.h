@@ -62,6 +62,7 @@ typedef u32 u32_t;
 
 #ifndef ONLY
 #define ONLY  //!just for beautyfying and readabiling/readability code
+#define ENABLED_ONLY ONLY
 #endif // !ONLY
 
 #ifndef STILL
@@ -71,6 +72,10 @@ typedef u32 u32_t;
 #ifndef NOTHING
 #define NOTHING 0 //!just for beautyfying and readability code
 #endif // !NOTHING
+
+#ifndef STILL_ONLY_THESE
+#define STILL_ONLY_THESE
+#endif // !STILL_ONLY_THESE
 
 #ifndef SOMETHING 
 #ifdef NULL
@@ -98,6 +103,7 @@ typedef u32 u32_t;
 //}
 
 #ifndef DEBUG_PRINTF
+#ifndef DISABLE_LOGS
 #define DEBUG_PRINTF(enable, message) do{\
                                      if(enable)\
                                         printf message;\
@@ -108,6 +114,10 @@ typedef u32 u32_t;
                                         printf_s message;\
                                     }while(0)\
 
+#else
+#define DEBUG_PRINTF(enable, message)
+#define DEBUG_PRINTFS(enable, message)
+#endif // !DISABLE_LOGS
 #endif // !DEBUG_PRINTF
 
 #define LINE_EXECUTE_PRINT(x) do{\

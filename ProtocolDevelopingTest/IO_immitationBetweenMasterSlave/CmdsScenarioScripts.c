@@ -160,3 +160,9 @@ void ResetPortsState(char* buffer, const int maxPossibleLen, void* arg)
 	ReleaseMutex(HardwareImmitMutex);
 	ConsolesMenuHandle.CMD[RESET_PORT] = 0;
 }
+
+void ShowHelperInfo(char* buffer, const int maxPossibleLen, void* arg)
+{
+	/*//TODO: In Progress!*/
+	return;
+}

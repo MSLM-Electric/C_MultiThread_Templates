@@ -42,7 +42,7 @@ DWORD WINAPI ioserversock_task(LPVOID lpParam)
 
     //----------------------
     // Create a SOCKET for connecting to server
-    ListenSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP); //SOCK_DGRAM, IPPROTO_UDP - in case of udp not required to listen    
+    ListenSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP); //SOCK_DGRAM, IPPROTO_UDP - in case of udp not required to listen
 #ifdef WSA_IN_MAIN_INIT_SECTION
     ListenSocket = WSASocketW(AF_INET, SOCK_DGRAM, IPPROTO_UDP, 0, 0, WSA_FLAG_OVERLAPPED);
 #endif
@@ -59,7 +59,7 @@ DWORD WINAPI ioserversock_task(LPVOID lpParam)
     serverService.sin_port = htons(DEFAULT_PORT);
 
     //----------------------
-    // Connect to server.
+    // bind to server.
     iResult = bind(ListenSocket, (SOCKADDR*)&serverService, sizeof(serverService));
     if (iResult == SOCKET_ERROR) {
         wprintf(L"connect failed with error: %d\n", WSAGetLastError());
@@ -87,7 +87,7 @@ DWORD WINAPI ioserversock_task(LPVOID lpParam)
     {
         //RestartTimerWP(&ioserverResponsePeriod);
         //while (NOT IsTimerWPRinging(&ioserverResponsePeriod));
-     
+
         memset(buffer, 0, sizeof(buffer));
         int res = recvWithTimeout(ListenSocket, &set, buffer, sizeof(buffer), &timeout, &serverService, &remoteNodeAddrSize);
         //----------------------
@@ -164,7 +164,8 @@ int CreateServerSocket(void)
     serverService.sin_port = htons(DEFAULT_PORT);
 
     //----------------------
-    // Connect to server.
+    //Bind to server
+    //!in case of Server do i need bind() socket? Yes!
     iResult = bind(ListenSocket, (SOCKADDR*)&serverService, sizeof(serverService));
     if (iResult == SOCKET_ERROR) {
         wprintf(L"connect failed with error: %d\n", WSAGetLastError());

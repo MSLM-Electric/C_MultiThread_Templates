@@ -22,6 +22,7 @@ enum cmdsValEnums {
 	COMMON_CONFIGS,
 	DEFAULT_CONFIGS,
 	RESET_PORT,
+	HELP,
 	EXAMPLE, /*//Users code*/
 	cmdsValEnumslastINDEX
 };
@@ -49,6 +50,7 @@ static menuChoise_t MenuOption[cmdsValEnumslastINDEX - cmdsValEnumsfirstINDEX] =
 	{"commoncfg", COMMON_CONFIGS},
 	{"defcfg", DEFAULT_CONFIGS},
 	{"rstport", RESET_PORT},
+	{"help", HELP},
 	//Users code
 	/*------------------------------Put your Functions launch here----------------------------*/
 	{"example", EXAMPLE},
@@ -68,6 +70,6 @@ void SettingsCMD_Handling(char* inBuff, const uint16_t maxPossibleLen);
 int ScanKeyboardWithWhiteSpaces(char* inBuff, uint16_t maxPossibleLen);
 int ScanKeyboardNoLock(char* inBuff, uint16_t maxPossibleLen);
 void ScanCMDsScenarios(char* buffer, const int maxPossibleLen);
-#define PORTABILITY_WITH_OLD_NAME //If you see this attached to some function, so it's for a while/temporarely. After renaming and fixing all corresponded usings the new name of func will be taken. 
+#define PORTABILITY_WITH_OLD_NAME //If you see this attached to some function, so it's for a while/temporarely. After renaming and fixing all corresponded usings the new name of func will be taken.
 #define ExecuteConsoleMenuRegisteredCallbacksFunc ScanCMDsScenarios PORTABILITY_WITH_OLD_NAME  //ExecuteRegisteredCallbacksFuncOfCMDs
 #endif // !CONSOLEMENUOPTIONS_H

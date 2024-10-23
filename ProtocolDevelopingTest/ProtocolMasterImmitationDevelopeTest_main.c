@@ -315,4 +315,5 @@ static void RegisterCmdFunctionsCallback(void)
 	ConsolesMenuHandle.executeFunc[COMMON_CONFIGS] = (callback_fn*)CommonConfigurate;
 	ConsolesMenuHandle.executeFunc[DEFAULT_CONFIGS] = (callback_fn*)SetDefaultConfig;
 	ConsolesMenuHandle.executeFunc[RESET_PORT] = (callback_fn*)ResetPortsState;
+	ConsolesMenuHandle.executeFunc[HELP] = (callback_fn*)ShowHelperInfo;
 }

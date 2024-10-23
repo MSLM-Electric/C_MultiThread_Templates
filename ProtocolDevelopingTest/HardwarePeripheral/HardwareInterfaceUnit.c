@@ -47,7 +47,7 @@ int Write(InterfacePortHandle_t* PortHandle, const uint8_t *inDatas, const int s
 	int res = -1;
 	TakeMutex(HardwareImmitMutex, maxDELAY);
 	DEBUG_PRINTF(HARDWARE_MUTEX_CHECK, ("Mutex taken\n"));
-	u8 IsSendingTimerRinging = IsTimerWPRinging(&InterfacePort.SendingTimer);
+	u8 IsSendingTimerRinging = IsTimerWPRinging(&PortHandle->SendingTimer);
 	if ((PortHandle->Status & (PORT_READY | PORT_SENDING | PORT_BUSY)) == ONLY PORT_READY) {
 		memcpy(PortHandle->BufferToSend, inDatas, size);
 		PortHandle->LenDataToSend = size;
@@ -206,7 +206,7 @@ int SendingTimerHandle(InterfacePortHandle_t *Port) //!!<---  IsTimerWPStarted()
 	int res = 0;
 	TakeMutex(HardwareImmitMutex, maxDELAY); //! [NOTE.4.] in timer interrupt section we don't need mutex handling cause interrupts priority is high!
 	DEBUG_PRINTF(HARDWARE_MUTEX_CHECK, ("Mutex taken\n"));
-	u8 IsSendingTimerRinging = IsTimerWPRinging(&InterfacePort.SendingTimer);
+	u8 IsSendingTimerRinging = IsTimerWPRinging(&Port->SendingTimer);
 	if ((Port->Status & (PORT_BUSY | PORT_SENDING)) == ONLY(PORT_BUSY | STILL PORT_SENDING)) {
 		if (NOT IsTimerWPStarted(&Port->SendingTimer)) {
 			Port->errCnt++;
@@ -506,7 +506,7 @@ void ShowTracedAccumulations(tracePortCfg_t* traceP)
 	u8 stats[9];
 	printf("MAST  ASYN  RCVED  RCVING  SNDGLAST  SNDED  SNDING  BUSY  REDY\n");
 	for (AccumCnt; AccumCnt <= traceP->accumArrayPos; AccumCnt++) {
-		for (BitPos(PORT_READY); bitPos <= BitPos(PORT_MASTER); bitPos++) {
+		for (bitPos = BitPos(PORT_READY); bitPos <= BitPos(PORT_MASTER); bitPos++) {
 			stats[bitPos] = (traceP->accumulatedStats[AccumCnt] & SET_BIT(bitPos)) > 0;
 		}
 		printf("%2d%7d%6d%7d%9d%9d%7d%7d%6d\n", stats[8], stats[7], stats[6], stats[5], stats[4], stats[3], stats[2], stats[1], stats[0]);

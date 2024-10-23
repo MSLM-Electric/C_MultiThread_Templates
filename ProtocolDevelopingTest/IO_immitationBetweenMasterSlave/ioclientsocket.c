@@ -118,7 +118,7 @@ int CreateClientSocket(void)
     int iResult;
     WSADATA wsaData;
 
-    SOCKET ConnectSocket = INVALID_SOCKET;
+    SOCKET ConnectSocket = INVALID_SOCKET; //! rename it to ClientSocket
     struct sockaddr_in clientService;
 
     int recvbuflen = DEFAULT_BUFLEN;
@@ -135,12 +135,17 @@ int CreateClientSocket(void)
 
     //----------------------
     // Create a SOCKET for connecting to server
-    ConnectSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP); //IPPROTO_UDP
+    ConnectSocket = socket(AF_INET/*PF_INET//?read about it on bgnet guide page 19 socket()*/, SOCK_DGRAM, IPPROTO_UDP); //IPPROTO_UDP
     if (ConnectSocket == INVALID_SOCKET) {
         wprintf(L"socket failed with error: %ld\n", WSAGetLastError());
         WSACleanup();
         return 1;
     }
+
+    //!in case of UDP and Client we need bind() socket here!
+    //?! or not? Two controversial opposite suggestions:
+    //1. https://stackoverflow.com/questions/3057029/do-i-have-to-bind-a-udp-socket-in-my-client-program-to-receive-data-i-always-g
+    //2. https://stackoverflow.com/questions/12942574/datagramsocket-bind-and-connect-difference
 
     //----------------------
     // The sockaddr_in structure specifies the address family,
