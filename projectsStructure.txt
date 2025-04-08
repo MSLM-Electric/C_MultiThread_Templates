@@ -61,11 +61,8 @@ Currently working at: ProtocolDevelopTemplate Project
 
    The "ProtocolMasterSlaveDevelopInOneCore" is empty!
 
-TODO: Implement 8bit-Mode/None FIFO mode. Interrupt occurring after every 8bits received/sended. (After every byte)
+TODO: Implement 8bit-Mode/None FIFO mode. Interrupt occurring after every 8bits received/sended. (After every byte). Done on another repo!
 TODO: Use #include <WinSock2.h> for IO between Master & Slaves
 THOUGHTS: Mb for simulating the communication of ports bus using UDP is more flexible and familiar/closer to real hardware communications on buses.
-TODO: !! First of all do tests separately on ioserver_task and ioclient_task. Then disable those tasks and do the rest works.
 TODO: Reading IOfile make matchable with Port.ReceivingTimer (mb, think about it again)
 TEST: Think about readingIOfilePeriod on Slave. And once glance at master too.
-TEST: AND REMAKE. (((InterfacePort.Status & (PORT_BUSY | PORT_RECEIVED | PORT_RECEIVED_ALL)) & PORT_BUSY) > 0)???
-MEASURED: Immitation of sending data to bus/sending period is only ~2000ms (sendto period) and not depends by communicperiod

@@ -80,7 +80,7 @@ void SettingsCMD_Handling(char* inBuff, const uint16_t maxPossibleLen)
 	default:
 		break;
 	}
-	memset(inBuff, 0, 2/*maxPossibleLen*/); //memsetstr
+	//+//?!memset(inBuff, 0, 2/*maxPossibleLen*/); //memsetstr
 	return;
 }
 

@@ -383,7 +383,7 @@ int immitationReceivingOfPortsBus(InterfacePortHandle_t* outPortHandle)
 		}
 		else if (res > 0) {
 			DEBUG_PRINTFS(1, ("readed period: %u\n", StopWatchWP(&timeMeasure[0])));
-			DEBUG_PRINTFS(1, ("Readed data: %s\n", buffer, sizeof(buffer)));
+			DEBUG_PRINTFS(1, ("Readed data: %s\n", buffer/*, sizeof(buffer)*/));
 		}
 	}
 	/*if (strncmp(buffer, portsMessageId, strlen(portsMessageId) - 2) == 0) {

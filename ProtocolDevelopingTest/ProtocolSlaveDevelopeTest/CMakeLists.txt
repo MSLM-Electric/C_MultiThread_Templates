@@ -18,11 +18,11 @@ set(LIB_DIR ${ROOT_PATH}/Lib)
 #inc and src located together on root path
 set(ROOT_SRC_DIR ${ROOT_PATH})
 set(HARDWARE_PERIPHERAL ${ROOT_PATH}/ProtocolDevelopingTest/HardwarePeripheral)
-set(PROTOCOL_MASTER_MAIN ${ROOT_PATH}/ProtocolDevelopingTest)
-include(${PROTOCOL_MASTER_MAIN}/globDefines.cmake)
+set(PROTOCOL_MAIN ${ROOT_PATH}/ProtocolDevelopingTest)
+include(${PROTOCOL_MAIN}/globDefines.cmake)
 
 set(SOURCES
-	${PROTOCOL_MASTER_MAIN}/ProtocolSlaveImmitationDevelopeTest_main.c
+	${PROTOCOL_MAIN}/ProtocolSlaveImmitationDevelopeTest_main.c
 	${ROOT_SRC_DIR}/ConsoleMenuOptions.c
 	${ROOT_SRC_DIR}/MultiThreadSupport.c
 	${LIB_DIR}/SimpleTimerWP.c

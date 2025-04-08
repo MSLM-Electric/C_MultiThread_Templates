@@ -33,7 +33,7 @@ int recvWithTimeout(SOCKET Socket, fd_set* readfds, char* buffer, int buffLen, c
         else if (recvSize == 0)
             DEBUG_PRINTF(printingDebugCmd, ("peer disconnected\n"));
         else {
-#ifdef PUT_ZERO_CHAR
+#ifdef PUT_ZERO_CHAR  //!dangerous!
 			buffer[recvSize] = 0;
 #endif
             DEBUG_PRINTF(printingDebugCmd, ("read successful!\n"));

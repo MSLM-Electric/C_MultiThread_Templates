@@ -170,9 +170,9 @@ DWORD WINAPI ThreadNo1(LPVOID lpParam)
 
 	while (1)
 	{
+		memset(keyboardBuff, 0, sizeof(keyboardBuff));
 		WaitForSingleObject(mutx, INFINITE);
 		{
-			memset(keyboardBuff, 0, sizeof(keyboardBuff));
 			printf("What function to Act? Enter it here: ");
 #ifndef _CRT_DISABLE_PERFCRIT_LOCKS
 			scanf_s("%s", keyboardBuff, sizeof(keyboardBuff));
