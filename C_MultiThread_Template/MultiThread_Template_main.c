@@ -63,10 +63,11 @@ int main()
 	sem = CreateSemaphoreW(NULL, 3, 3, "NT5BBSEM");
 	mutx = CreateMutexW(NULL, 1, "Mutex");
 
+	Sleep(500);
 	int res = 0;
-	res = ThreadCreation(&ThreadNo1, &Thread1Struct, 1);
-	res = ThreadCreation(&ThreadNo2, &Thread2Struct, 2);
-	res = ThreadCreation(&TickThread, &TickThreadStruct, 4);
+	res = ThreadCreation(&ThreadNo1, &Thread1Struct, 1, THREAD_PRIORITY_NORMAL);
+	res = ThreadCreation(&ThreadNo2, &Thread2Struct, 2, THREAD_PRIORITY_NORMAL);
+	res = ThreadCreation(&TickThread, &TickThreadStruct, 4, THREAD_PRIORITY_HIGHEST);
 
 	// Aray to store thread handles 
 	HANDLE Array_Of_Thread_Handles[4];
