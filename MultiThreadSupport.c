@@ -1,10 +1,9 @@
 #include "MultiThreadSupport.h"
 #include "Lib/type_def.h"
 
-int ThreadCreation(ThreadNamePtr_fn* ThreadName, ThreadsStruct_t *ThreadStruct, int Data_Of_Thread, const int ThreadPriority)
+int ThreadCreation(ThreadNamePtr_fn* ThreadName, ThreadsStruct_t *ThreadStruct, int Data_Of_Thread)
 {
 	int res = 0;
-	DWORD /*dwError,*/ dwThreadPri;
 	ThreadStruct->Data_Of_Thread = Data_Of_Thread;
 
 	// variable to hold handle of Thread
@@ -17,6 +16,17 @@ int ThreadCreation(ThreadNamePtr_fn* ThreadName, ThreadsStruct_t *ThreadStruct, 
 		res = -1;
 		ExitProcess(ThreadStruct->Data_Of_Thread);
 	}
+
+	return res;
+}
+
+/*This function implemented to not crash the compatibility with old version of project. In future this function may be renamed just to "ThreadCreation"*/
+int ThreadCreationWithPriority(ThreadNamePtr_fn* ThreadName, ThreadsStruct_t* ThreadStruct, int Data_Of_Thread, const int ThreadPriority)
+{
+	int res = 0;
+	DWORD /*dwError,*/ dwThreadPri;
+	res = ThreadCreation(ThreadName, ThreadStruct, Data_Of_Thread);
+
 	if (!SetThreadPriority(ThreadStruct->Handle_Of_Thread, ThreadPriority))
 	{
 		DEBUG_PRINTF(1, ("Failed to set thread priority (%d)\n", GetLastError()));
